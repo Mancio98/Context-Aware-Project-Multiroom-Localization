@@ -9,4 +9,14 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="local_service_stopped">SLAC stopped</string>
+    <string name="local_service_started">SLAC started</string>
+    <string name="local_service_label">SLAC</string>
+    <string name="scan">SCAN</string>
+    <string name="done">Done</string>
+    <string name="default_device_name">UNKNOWN</string>
+    <string name="paired_devices">Paired devices</string>
+    <string name="choose_room">choose room</string>
+    <string name="discovered_devices">Discovered Devices</string>
+
 </resources>
