@@ -18,5 +18,6 @@
     <string name="paired_devices">Paired devices</string>
     <string name="choose_room">choose room</string>
     <string name="discovered_devices">Discovered Devices</string>
+    <string name="playmusic">play</string>
 
 </resources>

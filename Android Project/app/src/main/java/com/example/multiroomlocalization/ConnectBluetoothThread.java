@@ -29,17 +29,15 @@ import kotlin.jvm.internal.FunctionImpl;
 public class ConnectBluetoothThread extends Thread {
 
     private BluetoothSocket mySocket;
-    private final BluetoothDevice myDevice;
-    private BluetoothAdapter bluetoothAdapter;
-    private Activity myActivity;
+    private BluetoothDevice myDevice;
+    private final BluetoothAdapter bluetoothAdapter;
+    private final Activity myActivity;
     private BluetoothA2dp bluetoothA2DP;
-    private Method connectA2dp;
     private Method disconnectA2dp;
-    public ConnectBluetoothThread(BluetoothDevice device, Activity activity, BluetoothAdapter adapter) {
+    public ConnectBluetoothThread(Activity activity, BluetoothAdapter adapter) {
 
         bluetoothAdapter = adapter;
         myActivity = activity;
-        myDevice = device;
 
     }
 
@@ -94,17 +92,18 @@ public class ConnectBluetoothThread extends Thread {
             } catch (IOException closeException) {
                 Log.e("connect", "Could not close the client socket", closeException);
             }
-            return;
         }
     }
 
-    public void run() {
+    public void connectDevice(BluetoothDevice device) {
 
-        ifNotBondedPair();
-        connectProxyA2DP();
+        myDevice = device;
+
+        start();
 
     }
 
+    //if device is not paired, i pair it
     private boolean ifNotBondedPair() {
 
         checkPermission(myActivity);
@@ -125,60 +124,26 @@ public class ConnectBluetoothThread extends Thread {
     }
 
 
-    BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
+    @Override
+    public void run() {
+        super.run();
 
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            String action = intent.getAction();
-            Log.d("a2dp", "receive intent for action : " + action);
-            if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
-                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_DISCONNECTED);
-                if (state == BluetoothA2dp.STATE_CONNECTED) {
-                    setIsA2dpReady(true);
-                    Log.i("connesso", "diocane");
+        ifNotBondedPair();
+        connectProxyA2DP();
+    }
 
+    // listener for service implementing a2dp profile proxy
+    private final BluetoothProfile.ServiceListener profileListener = new BluetoothProfile.ServiceListener() {
 
-                } else if (state == BluetoothA2dp.STATE_DISCONNECTED) {
-                    setIsA2dpReady(false);
-                }
-            } else if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
-                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_NOT_PLAYING);
-                if (state == BluetoothA2dp.STATE_PLAYING) {
-                    Log.d("a2dp", "A2DP start playing");
-                    Toast.makeText(myActivity, "A2dp is playing", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d("a2dp", "A2DP stop playing");
-                    Toast.makeText(myActivity, "A2dp is stopped", Toast.LENGTH_SHORT).show();
-                }
-            } else if(action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
-
-                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_BONDED);
-                if (state == BluetoothDevice.BOND_BONDED) {
-                    Log.d("bonded", "bonded");
-
-
-                } else {
-                    Log.d("bonded", "not bonded");
-
-                }
-            }
-
-        }
-    };
-
-
-
-    private BluetoothProfile.ServiceListener profileListener = new BluetoothProfile.ServiceListener() {
         public void onServiceConnected(int profile, BluetoothProfile proxy) {
             if (profile == BluetoothProfile.A2DP) {
                 bluetoothA2DP = (BluetoothA2dp) proxy;
-
-
                 try {
-
-                    connectA2dp = bluetoothA2DP.getClass().getMethod("connect", new Class[] {BluetoothDevice.class});
-                    disconnectA2dp = bluetoothA2DP.getClass().getMethod("disconnect", new Class[] {BluetoothDevice.class});
-
+                    //get hidden method to connect device to proxy
+                    Method connectA2dp = bluetoothA2DP.getClass().getMethod("connect", BluetoothDevice.class);
+                    //get hidden method to disconnect device to proxy
+                    disconnectA2dp = bluetoothA2DP.getClass().getMethod("disconnect", BluetoothDevice.class);
+                    //call connect
                     connectA2dp.invoke(bluetoothA2DP,myDevice);
                 } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
@@ -188,12 +153,19 @@ public class ConnectBluetoothThread extends Thread {
         }
         public void onServiceDisconnected(int profile) {
             if (profile == BluetoothProfile.A2DP) {
-                bluetoothA2DP = null;
+                try {
+                    disconnectA2dp.invoke(bluetoothAdapter,myDevice);
+                    bluetoothA2DP = null;
+                    myDevice = null;
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     };
-    private void connectProxyA2DP(){
 
+    private void connectProxyA2DP(){
 
         // Establish connection to the proxy.
         bluetoothAdapter.getProfileProxy(myActivity, profileListener, BluetoothProfile.A2DP);
@@ -201,18 +173,12 @@ public class ConnectBluetoothThread extends Thread {
     }
 
 
+    // Disconnect to service and device.
+    public void disconnect() {
 
-    // Closes the client socket and causes the thread to finish.
-    public void cancel() {
-        try {
+        checkPermission(myActivity);
+        if(bluetoothA2DP.getConnectedDevices().size() > 0)
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2DP);
-            mySocket.close();
 
-        } catch (IOException e) {
-            Log.e("connect", "Could not close the client socket", e);
-        }
-
-
-        interrupt();
     }
 }

@@ -14,7 +14,7 @@ import android.widget.Button;
 public class RoomRAFragment extends Fragment {
 
 
-    private ScanBluetoothControl bluetoothControl;
+    private BluetoothControlFragment bluetoothControl;
 
 
     @Nullable
@@ -33,7 +33,7 @@ public class RoomRAFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        bluetoothControl = new ScanBluetoothControl(this);
+        bluetoothControl = new BluetoothControlFragment(this);
 
     }
 
