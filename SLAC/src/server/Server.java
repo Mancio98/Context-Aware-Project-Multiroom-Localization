@@ -11,7 +11,7 @@ import java.net.Socket;
 
 
 public class Server {
-	private final static int SERVER_PORT = 49152;
+	private final static int SERVER_PORT = 8779;
 	
 	private static SocketHandler socketHandler;
 	private static boolean stopped;
@@ -19,6 +19,8 @@ public class Server {
 	
 	public static void main(String[] args) {
 		DatabaseManager dbm = new DatabaseManager();
+		
+		System.out.println("entrato");
 		
 		try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
             while(!stopped) {

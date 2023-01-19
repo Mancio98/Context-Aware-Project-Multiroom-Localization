@@ -49,6 +49,8 @@ public class SocketHandler extends Thread {
             e.printStackTrace();
             return;
         }
+        System.out.println("address: " + clientSocket.getInetAddress());
+        System.out.println("local address: " + clientSocket.getLocalAddress());
         /*
         String clientId;
         try {
