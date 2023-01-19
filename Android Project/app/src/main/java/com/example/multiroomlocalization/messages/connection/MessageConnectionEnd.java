@@ -1,7 +1,7 @@
-package server.messages.connection;
+package com.example.multiroomlocalization.messages.connection;
 
 
-import server.messages.Message;
+import com.example.multiroomlocalization.messages.Message;
 
 
 public class MessageConnectionEnd extends Message {

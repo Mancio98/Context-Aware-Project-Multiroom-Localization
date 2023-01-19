@@ -1,7 +1,7 @@
-package server.messages.localization;
+package com.example.multiroomlocalization.messages.localization;
 
 
-import server.messages.Message;
+import com.example.multiroomlocalization.messages.Message;
 
 
 public class MessageScanRoom extends Message {

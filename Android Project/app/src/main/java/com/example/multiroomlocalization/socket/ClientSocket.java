@@ -1,10 +1,26 @@
+package com.example.multiroomlocalization.socket;
+
+import android.os.AsyncTask;
+
+import com.example.multiroomlocalization.messages.Message;
+import com.example.multiroomlocalization.messages.connection.MessageConnectionBack;
+import com.google.gson.Gson;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClientSocket extends Thread {
-    private final int port;
+    private final int port = 49152;
     private Socket socket;
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
 
-    private string ip;
+    private String ip;
 
     @Override
     public void run() {
@@ -54,19 +70,13 @@ public class ClientSocket extends Thread {
 
         private String message;
 
-        protected MessageSender(JSONObject message) {
-            this.message = message.toString();
+        protected MessageSender(Message message) {
+            Gson gson = new Gson();
+            this.message = gson.toJson(message, Message.class);
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-
-            try {
-
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
 
             return null;
         }

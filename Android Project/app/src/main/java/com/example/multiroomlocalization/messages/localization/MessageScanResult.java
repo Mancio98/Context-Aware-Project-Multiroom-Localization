@@ -1,7 +1,8 @@
-package server.messages.localization;
+package com.example.multiroomlocalization.messages.localization;
 
-import server.messages.Message;
-import server.localization.ScanResult;
+import com.example.multiroomlocalization.messages.Message;
+import com.example.multiroomlocalization.localization.ScanResult;
+import com.example.multiroomlocalization.localization.Fingerprint;
 
 
 public class MessageScanResult extends Message {

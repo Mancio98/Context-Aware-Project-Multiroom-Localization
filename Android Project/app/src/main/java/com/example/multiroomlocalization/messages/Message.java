@@ -1,4 +1,4 @@
-package server.messages;
+package com.example.multiroomlocalization.messages;
 
 import com.google.gson.Gson;
 
