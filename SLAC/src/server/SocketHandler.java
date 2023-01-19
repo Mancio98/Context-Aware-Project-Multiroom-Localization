@@ -51,6 +51,9 @@ public class SocketHandler extends Thread {
         }
         System.out.println("address: " + clientSocket.getInetAddress());
         System.out.println("local address: " + clientSocket.getLocalAddress());
+        System.out.println("local socket address: " + clientSocket.getLocalSocketAddress());
+        System.out.println("remote socket address: " + clientSocket.getRemoteSocketAddress());
+        
         /*
         String clientId;
         try {
