@@ -2,8 +2,10 @@ package com.example.multiroomlocalization.socket;
 
 import android.os.AsyncTask;
 
+import com.example.multiroomlocalization.localization.Fingerprint;
 import com.example.multiroomlocalization.messages.Message;
-import com.example.multiroomlocalization.messages.connection.MessageConnectionBack;
+import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
 import com.google.gson.Gson;
 
 import java.io.DataInputStream;
@@ -24,7 +26,35 @@ public class ClientSocket extends Thread {
 
     @Override
     public void run() {
+        try {
+            socket = new Socket(ip, port);
+            dataIn = new DataInputStream(socket.getInputStream());
+            dataOut = new DataOutputStream(socket.getOutputStream());
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
 
+
+        while(true) {
+            Fingerprint fingerprint = new Fingerprint();
+            // CHIAMARE METODO PER PER LE FINGERPRINT
+
+            MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
+
+            Gson gson = new Gson();
+            try {
+                dataOut.writeUTF(gson.toJson(messageFingerprint, MessageFingerprint.class));
+
+                String result = dataIn.readUTF();
+                System.out.print(result);
+
+                MessageReferencePointResult messageResult = gson.fromJson(result, MessageReferencePointResult.class);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     //This thread inizialize the socket and requires for a connection to the server
@@ -72,7 +102,7 @@ public class ClientSocket extends Thread {
 
         protected MessageSender(Message message) {
             Gson gson = new Gson();
-            this.message = gson.toJson(message, Message.class);
+            this.message = gson.toJson(message, MessageFingerprint.class);
         }
 
         @Override

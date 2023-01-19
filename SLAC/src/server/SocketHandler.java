@@ -4,8 +4,9 @@ package server;
 import com.google.gson.Gson;
 
 import server.database.DatabaseManager;
-import server.messages.localization.MessageScanResult;
-import server.messages.localization.MessageStartScan;
+import server.localization.ReferencePoint;
+import server.messages.localization.MessageFingerprint;
+import server.messages.localization.MessageReferencePointResult;
 import server.messages.connection.MessageConnection;
 import server.messages.connection.MessageConnectionBack;
 
@@ -40,10 +41,20 @@ public class SocketHandler extends Thread {
         if(clientSocket == null)
             return;
         
+        try {
+	        dataIn = new DataInputStream(clientSocket.getInputStream());
+	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        /*
         String clientId;
         try {
         	dataIn = new DataInputStream(clientSocket.getInputStream());
             dataOut = new DataOutputStream(clientSocket.getOutputStream());
+            
             
             String json = dataIn.readUTF();
             MessageConnection connection = gson.fromJson(json, MessageConnection.class);
@@ -63,16 +74,21 @@ public class SocketHandler extends Thread {
         }
         
         System.out.println("START SERVING: " + clientId);
-
+        */
+        
         
         while (isRunning) {
             try {
                 // Find a change in the start/stop state
                 //send start to the client
+            	/*
                 dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
                 dataOut.flush();
-                MessageScanResult resultMessage = gson.fromJson(dataIn.readUTF(), MessageScanResult.class);
-                //System.out.println(resultMessage.toJson());
+                */
+            	MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
+                System.out.println(resultMessage.toJson());
+                dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko")), MessageReferencePointResult.class));
+                dataOut.flush();
             }
             catch (SocketException e) {
                 e.printStackTrace();
@@ -92,7 +108,7 @@ public class SocketHandler extends Thread {
         }
         
         
-        System.out.println("STOP SERVING: " + clientId);
+        //System.out.println("STOP SERVING: " + clientId);
     }
     
     public void stopSocketHandler() {
