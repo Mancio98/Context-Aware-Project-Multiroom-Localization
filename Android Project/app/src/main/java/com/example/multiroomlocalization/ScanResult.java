@@ -2,11 +2,11 @@ package com.example.multiroomlocalization;
 
 public class ScanResult {
 
-    private final String BSSID;
-    private final String SSID;
-    private final double level;
+    public final String BSSID;
+    public final String SSID;
+    public final int level;
 
-    public ScanResult(String BSSID, String SSID, double level) {
+    public ScanResult(String BSSID, String SSID, int level) {
         this.BSSID = BSSID;
         this.SSID = SSID;
         this.level = level;
@@ -20,7 +20,7 @@ public class ScanResult {
         return this.SSID;
     }
 
-    public double getLevel() {
+    public int getLevel() {
         return this.level;
     }
 

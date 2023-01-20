@@ -11,7 +11,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.ContextAwareProjectMultiroomLocalization.AppBarOverlay"
+        android:theme="@style/Theme.MultiRoomLocalization.AppBarOverlay"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.ContextAwareProjectMultiroomLocalization.PopupOverlay" />
+            app:popupTheme="@style/Theme.MultiRoomLocalization.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

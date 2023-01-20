@@ -6,7 +6,7 @@ import java.util.List;
 public class ReferencePoint {
 
     private String id;
-    private HashMap<String, List<ScanResult>> fingerprints;
+    //private HashMap<String, List<ScanResult>> fingerprints;
     private Speaker speaker;
 
     private int x;
@@ -16,13 +16,13 @@ public class ReferencePoint {
         this.x = x;
         this.y = y;
         this.id = label;
-        this.fingerprints = new HashMap<>();
+        //this.fingerprints = new HashMap<>();
         this.speaker = null;
     }
 
-    public ReferencePoint(String label, HashMap<String, List<ScanResult>> fingerprints, int x, int y) {
+    public ReferencePoint(String label, int x, int y) { // HashMap<String, List<ScanResult>> fingerprints,
         this.id = label;
-        this.fingerprints = fingerprints;
+        //this.fingerprints = fingerprints;
         this.speaker = null;
         this.x = x;
         this.y = y;
@@ -40,9 +40,9 @@ public class ReferencePoint {
 
     public void setX(int x) { this.x = x; }
 
-    public HashMap<String, List<ScanResult>> getFingerprints() {
-        return this.fingerprints;
-    }
+   // public HashMap<String, List<ScanResult>> getFingerprints() {
+   //     return this.fingerprints;
+   // }
 
     public void setSpeaker(Speaker speaker) {
         this.speaker = speaker;

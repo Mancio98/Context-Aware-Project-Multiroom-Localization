@@ -61,6 +61,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
+import com.example.multiroomlocalization.socket.ClientSocket;
 //import com.yalantis.ucrop.UCrop;
 
 import android.view.Menu;
@@ -218,11 +219,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Button scanBT = (Button) findViewById(R.id.scanBT);
+        Button scanBT = (Button) findViewById(R.id.scanBT);
         //scanBT.setOnClickListener(askBtPermission);
         activity = this;
 
-        //audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
+        /* DA SCOMMENTARE MA METTERE APPOSTO CON LA ROBA DI MANCINI
+
+        audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int pos, boolean fromUser) {}
@@ -245,11 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
-
-
-        //DA RIVEDERE
-
-
+        */
 
 
         imageView = (ImageView) findViewById(R.id.map);
@@ -294,6 +293,9 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+
+
 
     }
 
@@ -352,6 +354,14 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Presss");
             return true;
         }
+        else if(id==R.id.action_client){
+
+            ClientSocket client = new ClientSocket();
+            client.setContext(getApplicationContext());
+            client.start();
+
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -369,12 +379,6 @@ public class MainActivity extends AppCompatActivity {
                         //Uri destImage = null;
 
                         if (null != image) {
-
-                            /*UCrop.of(image,destImage)
-                                    .withAspectRatio(9,16)
-                                    .withMaxResultSize(1080,1920)
-                                    .start(MainActivity.this);
-                            */
 
                             dialog.cancel();
                             CropView cv = new CropView(MainActivity.this, image);
@@ -399,28 +403,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-/*    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
-            final Uri resultUri = UCrop.getOutput(data);
-            imageView.setImageURI(resultUri);
-            newImage=true;
-
-            System.out.println("DIMENSION BitmaP: " +   mutableBitmap.getHeight() + " " + mutableBitmap.getWidth());
-            System.out.println("DIMENSION BitmaPScaled: " + mutableBitmap.getScaledHeight(canvas) + " " + mutableBitmap.getScaledWidth(canvas));
-            System.out.println("DIMENSION: " + imageViewHeight + " " + imageViewWidth);
-
-            System.out.println("REFERENCE: " + referencePoints);
-
-            referencePoints.clear();
-            System.out.println("REFERENCE: " + referencePoints);
-
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(data);
-        }
-    }
-*/
 
     public void checkPermission(String permission, int requestCode)
     {
@@ -532,7 +514,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        mediaBrowser.connect();
+        //DA SCOMMENTARE
+        //mediaBrowser.connect();
 
     }
 
@@ -548,7 +531,7 @@ public class MainActivity extends AppCompatActivity {
         if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
             MediaControllerCompat.getMediaController(MainActivity.this).unregisterCallback(controllerCallback);
         }
-        mediaBrowser.disconnect();
+        //mediaBrowser.disconnect();
     }
 
     @Override
