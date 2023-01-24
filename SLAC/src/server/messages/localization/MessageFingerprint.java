@@ -5,7 +5,7 @@ import server.localization.Fingerprint;
 
 
 public class MessageFingerprint extends Message {
-	private Fingerprint fingerprint;
+	public Fingerprint fingerprint;
 
 	public MessageFingerprint(Fingerprint fingerprint) {
 		super("FINGERPRINT");

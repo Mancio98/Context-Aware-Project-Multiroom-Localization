@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 
 public class Fingerprint {
-    private final HashMap <String, ScanResult> fingerprint;
+    public final HashMap <String, ScanResult> fingerprint;
 
     public Fingerprint() {
         this.fingerprint = new HashMap<String, ScanResult>();
