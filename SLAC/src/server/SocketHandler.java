@@ -53,7 +53,10 @@ public class SocketHandler extends Thread {
         System.out.println("local address: " + clientSocket.getLocalAddress());
         System.out.println("local socket address: " + clientSocket.getLocalSocketAddress());
         System.out.println("remote socket address: " + clientSocket.getRemoteSocketAddress());
+<<<<<<< HEAD
         
+=======
+>>>>>>> c9ee19ca7f8f0b4b3e357cd6ae29bfbb2e65ab9b
         /*
         String clientId;
         try {
@@ -90,10 +93,21 @@ public class SocketHandler extends Thread {
                 dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
                 dataOut.flush();
                 */
+<<<<<<< HEAD
             	MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
                 System.out.println(resultMessage.toJson());
                 dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko")), MessageReferencePointResult.class));
                 dataOut.flush();
+=======
+            	String json = dataIn.readUTF();
+            	System.out.println(json);
+            	//MessageFingerprint resultMessage = gson.fromJson(json, MessageFingerprint.class);
+            	//System.out.println(resultMessage.toJson());
+            	//dataOut.writeUTF("Edin DZEKO MANCINI MERDA");
+            	dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko"))));
+                dataOut.flush(); 
+                
+>>>>>>> c9ee19ca7f8f0b4b3e357cd6ae29bfbb2e65ab9b
             }
             catch (SocketException e) {
                 e.printStackTrace();
@@ -119,5 +133,9 @@ public class SocketHandler extends Thread {
     public void stopSocketHandler() {
 		isRunning = false;
 		this.interrupt();
+<<<<<<< HEAD
 	}
+=======
+	} 
+>>>>>>> c9ee19ca7f8f0b4b3e357cd6ae29bfbb2e65ab9b
 }
