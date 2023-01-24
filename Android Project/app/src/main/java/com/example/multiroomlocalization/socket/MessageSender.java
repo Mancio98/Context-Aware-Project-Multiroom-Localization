@@ -1,2 +1,4 @@
-package com.example.multiroomlocalization.socket;public interface MessageSender {
+package com.example.multiroomlocalization.socket;
+
+public interface MessageSender {
 }

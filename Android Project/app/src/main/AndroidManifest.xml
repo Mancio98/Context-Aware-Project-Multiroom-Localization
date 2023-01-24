@@ -80,6 +80,8 @@
             android:name=".ScanService"
             android:exported="false" />
 
+
+
     </application>
 
 </manifest>

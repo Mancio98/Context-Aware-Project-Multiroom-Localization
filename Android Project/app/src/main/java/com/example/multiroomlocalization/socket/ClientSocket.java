@@ -6,12 +6,8 @@ import android.content.Intent;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.RemoteException;
-import android.os.ResultReceiver;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.multiroomlocalization.Fingerprint;
 import com.example.multiroomlocalization.ScanService;
@@ -23,7 +19,6 @@ import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +35,7 @@ public class ClientSocket extends Thread {
     private String ip = "10.0.2.2";
     WifiManager wifiManager;
     Context context;
-
+    int i=0;
     @Override
     public void run() {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -49,7 +44,6 @@ public class ClientSocket extends Thread {
             socket = new Socket(ip, port);
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
-
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -63,18 +57,23 @@ public class ClientSocket extends Thread {
                 boolean success = intent.getBooleanExtra(
                         WifiManager.EXTRA_RESULTS_UPDATED, false);
                 if (success) {
-
-                        Log.println(Log.VERBOSE, "", "PROVA");
+                        System.out.println("QUI: " + i);
+                        i++;
                         new MessageSender(scanSuccess()).execute();
                         mHandler.postDelayed(scanRunnable, intervalScan);
                 } else {
                         // scan failure handling
-                        scanFailure();
+                        //scanFailure();
+                        System.out.println("QUA: " + i);
+                        i++;
+                        new MessageSender(scanFailure()).execute();
+                        mHandler.postDelayed(scanRunnable,0);
                 }
             }
         });
 
             mHandler.postDelayed(scanRunnable, 0);
+            //scanRunnable.run();
 
     }
 
@@ -82,17 +81,20 @@ public class ClientSocket extends Thread {
         this.context = context;
     }
 
-    public void startScan(){
+    /*public void startScan(){
         boolean success = wifiManager.startScan();
         if (!success) {
             // scan failure handling
             scanFailure();
         }
-    }
+    }*/
 
     private MessageFingerprint scanSuccess() {
         List<ScanResult> results = wifiManager.getScanResults();
         ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
+        if(results.size()<1){
+            return null;
+        }
         for (ScanResult res : results ) {
             scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
             //System.out.println("QUI SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
@@ -107,17 +109,25 @@ public class ClientSocket extends Thread {
         return messageFingerprint;
     }
 
-    private void scanFailure() {
+    private MessageFingerprint scanFailure() {
         // handle failure: new scan did NOT succeed
         // consider using old scan results: these are the OLD results!
         List<ScanResult> results = wifiManager.getScanResults();
 
         //INVIO MESSAGGIO
-
+        ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
         for ( ScanResult res : results ) {
+            scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
             Log.println(Log.VERBOSE, "", "ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
             //System.out.println("ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
         }
+
+        Fingerprint fingerprint = new Fingerprint(scanResult);
+        // CHIAMARE METODO PER PER LE FINGERPRINT
+
+        MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
+
+        return messageFingerprint;
     }
 
 
@@ -171,30 +181,39 @@ public class ClientSocket extends Thread {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
-            try {
-                String json = gson.toJson(message);
-                Log.println(Log.VERBOSE,"",json);
-                //System.out.println(json);
-                dataOut.writeUTF(json);//gson.toJson(messageFingerprint));
-                dataOut.flush();
-                String result = dataIn.readUTF();
+            if(message!=null) {
+                Gson gson = new Gson();
+                try {
+                    String json = gson.toJson(message);
+                    System.out.println(json);
+                    dataOut.writeUTF(json);
+                    dataOut.flush();
 
-                //System.out.print(result);
-                Log.println(Log.VERBOSE,"",result);
+                    String result = dataIn.readUTF();
 
-                MessageReferencePointResult messageResult = gson.fromJson(result, MessageReferencePointResult.class);
+                    System.out.println(result);
+
+                    MessageReferencePointResult messageResult = gson.fromJson(result, MessageReferencePointResult.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
             return null;
         }
 
+        /*
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+        }
+        */
 
-
-
+        /*
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+        }
+         */
     }
 
     private Runnable scanRunnable = new Runnable() {
