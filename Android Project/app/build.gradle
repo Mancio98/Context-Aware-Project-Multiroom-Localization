@@ -23,8 +23,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     buildFeatures {
         viewBinding true
@@ -42,30 +42,34 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+<<<<<<< HEAD
     // dependency for exoplayer
+=======
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 
+    // dependency for exoplayer
     implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
 
-// for core support in exoplayer.
-
+    // for core support in exoplayer.
     implementation 'com.google.android.exoplayer:exoplayer-core:2.18.2'
 
-// for adding dash support in our exoplayer.
-
+    // for adding dash support in our exoplayer.
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.18.2'
 
-// for adding hls support in exoplayer.
-
+    // for adding hls support in exoplayer.
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.18.2'
 
-// for smooth streaming of video in our exoplayer.
-
+    // for smooth streaming of video in our exoplayer.
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.2'
 
-// for generating default ui of exoplayer
-
+    // for generating default ui of exoplayer
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.2'
 
     // for GSON
     implementation 'com.google.code.gson:gson:2.10.1'
+<<<<<<< HEAD
+=======
+
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 }
