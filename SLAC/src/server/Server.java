@@ -11,7 +11,7 @@ import java.net.Socket;
 
 
 public class Server {
-	private final static int SERVER_PORT = 49152;
+	private final static int SERVER_PORT = 8777;
 	
 	private static SocketHandler socketHandler;
 	private static boolean stopped;

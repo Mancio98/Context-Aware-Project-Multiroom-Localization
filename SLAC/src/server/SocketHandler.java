@@ -49,6 +49,10 @@ public class SocketHandler extends Thread {
             e.printStackTrace();
             return;
         }
+        System.out.println("address: " + clientSocket.getInetAddress());
+        System.out.println("local address: " + clientSocket.getLocalAddress());
+        System.out.println("local socket address: " + clientSocket.getLocalSocketAddress());
+        System.out.println("remote socket address: " + clientSocket.getRemoteSocketAddress());
         /*
         String clientId;
         try {
@@ -85,10 +89,14 @@ public class SocketHandler extends Thread {
                 dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
                 dataOut.flush();
                 */
-            	MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
-                System.out.println(resultMessage.toJson());
-                dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko")), MessageReferencePointResult.class));
-                dataOut.flush();
+            	String json = dataIn.readUTF();
+            	System.out.println(json);
+            	//MessageFingerprint resultMessage = gson.fromJson(json, MessageFingerprint.class);
+            	//System.out.println(resultMessage.toJson());
+            	//dataOut.writeUTF("Edin DZEKO MANCINI MERDA");
+            	dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko"))));
+                dataOut.flush(); 
+                
             }
             catch (SocketException e) {
                 e.printStackTrace();
@@ -114,5 +122,5 @@ public class SocketHandler extends Thread {
     public void stopSocketHandler() {
 		isRunning = false;
 		this.interrupt();
-	}
+	} 
 }

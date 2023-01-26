@@ -2,8 +2,8 @@ package server.speaker;
 
 
 public class Speaker {
-    private String mac;
-    private String name;
+    public String mac;
+    public String name;
 
     public Speaker(String id, String name) {
         this.name = name;
