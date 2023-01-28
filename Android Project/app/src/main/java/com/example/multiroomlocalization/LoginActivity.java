@@ -2,12 +2,16 @@ package com.example.multiroomlocalization;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -16,6 +20,7 @@ public class LoginActivity extends AppCompatActivity {
     Button buttonLogin;
     boolean emailEmpty;
     boolean passwordEmpty;
+    boolean bool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +32,8 @@ public class LoginActivity extends AppCompatActivity {
         emailEmpty = true;
         passwordEmpty = true;
         buttonLogin.setEnabled(false);
+        bool = true;
+        //NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         emailInput.addTextChangedListener(new TextWatcher() {
             @Override
@@ -81,8 +88,42 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String email = emailInput.getText().toString();
+                String password = passwordInput.getText().toString();
+
+                if(email.equals("admin") && password.equals("admin")){
+                    loginSuccesfull();
+                }
+                else {
+                    Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
+                }
+
+                /*System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
+                // Check if the notification policy access has been granted for the app.
+                if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                    startActivity(intent);
+                }
+                else {
+                    if(bool) {
+                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
+                        bool = false;
+                    }else {
+                        bool = true;
+                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+                    }
+                }*/
 
             }
         });
+
+
     }
+
+
+    private void loginSuccesfull(){
+        Intent changeActivity = new Intent(this,MainActivity.class);
+        startActivity(changeActivity);
+    }
+
 }
