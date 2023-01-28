@@ -1,7 +1,6 @@
 package com.example.multiroomlocalization;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,13 +10,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 
-import android.os.Handler;
-import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -26,9 +23,9 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.AbsSeekBar;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
@@ -39,6 +36,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Set;
 
 
@@ -49,10 +48,10 @@ public class MainActivity extends AppCompatActivity {
     private ServerSLAC server;
     private Activity activity;
     private ConnectBluetoothThread connectBluetoothThread;
+    protected static BluetoothUtility btUtility;
 
-    private AudioPlaybackService playerService;
     boolean serviceBound = false;
-    private myAudioController mediaController;
+
     private MediaBrowserCompat mediaBrowser;
 
     private ImageView playPause;
@@ -121,10 +120,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
     private int seekPosition;
+    private ImageButton nextTrack;
+    private ImageButton previousTrack;
+    private Serializable deviceForRoom;
 
     void buildTransportControls() {
         // Grab the view for the play/pause button
-        playPause = (ImageView) findViewById(R.id.playpause);
+        playPause = (ImageButton) findViewById(R.id.playpause);
 
         // Attach a listener to the button
         playPause.setOnClickListener(new View.OnClickListener() {
@@ -139,18 +141,37 @@ public class MainActivity extends AppCompatActivity {
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
                 } else {
                     Log.i("button","play");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",null);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(0),null);
                 }
             }});
 
-            MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
+        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
+        nextTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToNext();
+                }
+            }
+        });
 
-            // Display the initial state
-            MediaMetadataCompat metadata = mediaController.getMetadata();
-            PlaybackStateCompat pbState = mediaController.getPlaybackState();
+        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
+        previousTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
 
-            // Register a Callback to stay in sync
-            mediaController.registerCallback(controllerCallback);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToPrevious();
+                }
+            }
+        });
+
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
+
+        // Register a Callback to stay in sync
+        mediaController.registerCallback(controllerCallback);
 
     }
     @Override
@@ -175,7 +196,6 @@ public class MainActivity extends AppCompatActivity {
                 int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
                 if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
 
-                    Log.i("seekbar","endseekto");
                     int progress = seekBar.getProgress();
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().seekTo(progress);
                 }
@@ -185,6 +205,21 @@ public class MainActivity extends AppCompatActivity {
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
+
+        btUtility = new BluetoothUtility(this);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.setFragmentResultListener("requestDevice", this, (requestKey, result) -> {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                deviceForRoom = result.getSerializable("requestDevice", ArrayList.class);
+
+            }
+            else
+                deviceForRoom =  result.getSerializable("requestDevice");
+
+            //TODO send to SLAC the array
+        });
 
     }
 
@@ -324,17 +359,15 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case BT_CONNECT_AND_SCAN:
+        if (requestCode == BT_CONNECT_AND_SCAN) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                launchAssignRAFragment();
+            } else {
+                Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
+            }
 
-                    Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
-                    launchAssignRAFragment();
-                } else {
-                    Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
-                }
-                return;
         }
     }
 
@@ -380,6 +413,7 @@ public class MainActivity extends AppCompatActivity {
 
         fragmentTransaction.replace(R.id.RaRooms, btFragment);
         fragmentTransaction.addToBackStack("btFragment");
+
         fragmentTransaction.commit();
 
     }
@@ -390,10 +424,10 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
 
 
-            /*
+
             if(BluetoothUtility.checkPermission(activity))
-                launchAssignRAFragment();*/
-            startBluetoothConnection();
+                launchAssignRAFragment();
+            //startBluetoothConnection();
 
 
         }

@@ -19,5 +19,7 @@
     <string name="choose_room">choose room</string>
     <string name="discovered_devices">Discovered Devices</string>
     <string name="playmusic">play</string>
+    <string name="assignspeaker_room">Assign 1 speaker to a room</string>
+    <string name="choose_device">choose device</string>
 
 </resources>
