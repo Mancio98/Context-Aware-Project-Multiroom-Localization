@@ -22,4 +22,6 @@
     <string name="assignspeaker_room">Assign 1 speaker to a room</string>
     <string name="choose_device">choose device</string>
 
+    <string name="addReferencePointpopup">Adesso che hai caricato la tua mappa seleziona tutte le stanze della casa e aggiungi il nome con cui indicarla</string>
+
 </resources>

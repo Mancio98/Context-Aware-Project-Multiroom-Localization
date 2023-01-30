@@ -36,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -71,6 +72,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
+import com.example.multiroomlocalization.socket.ClientSocket;
 //import com.yalantis.ucrop.UCrop;
 
 import android.view.Menu;
@@ -253,8 +255,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button scanBT = (Button) findViewById(R.id.scanBT);
+
         scanBT.setOnClickListener(askBtPermission);
         activity = this;
+
+
+
+
+
 
         audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -278,6 +286,8 @@ public class MainActivity extends AppCompatActivity {
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
+
+
 
 
         btUtility = new BluetoothUtility(this);
@@ -377,28 +387,64 @@ public class MainActivity extends AppCompatActivity {
                     Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                     mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                     canvas = new Canvas(mutableBitmap);
+
                 }
-            }
-        });
+            });
 
-        imageView.setOnTouchListener(new View.OnTouchListener() {
-            @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int x1 = (int) event.getX();
-                int y1 = (int) event.getY();
+        }else{
 
-                System.out.println("X: " + x1 + " Y: " + y1);
+        imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
 
-                int tempx = x1;
-                int tempy = y1;
+        imageView.setOnTouchListener(touchListener);
 
                 createDialog(tempx,tempy);
                 return false;
             }
         });*/
 
+
     }
+
+    View.OnTouchListener touchListener = new View.OnTouchListener() {
+        @SuppressLint("ClickableViewAccessibility")
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int x1 = (int) event.getX();
+            int y1 = (int) event.getY();
+
+            System.out.println("X: " + x1 + " Y: " + y1);
+
+            int tempx = x1;
+            int tempy = y1;
+
+            createDialog(tempx,tempy);
+            return false;
+        }
+    };
+
+    ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            imageViewHeight = imageView.getHeight();
+            imageViewWidth = imageView.getWidth();
+            int xGlobal = imageView.getLeft();
+            int yGlobal = imageView.getTop();
+
+            System.out.println("Global");
+            System.out.println("X: " + xGlobal);
+            System.out.println("Y: " + yGlobal);
+            System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
+            // don't forget to remove the listener to prevent being called again
+            // by future layout events:
+            if(first || newImage) {
+                first=false;
+                newImage = false;
+                Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
+                mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                canvas = new Canvas(mutableBitmap);
+            }
+        }
+    };
 
     private Runnable scanRunnable = new Runnable() {
         @Override
@@ -435,6 +481,7 @@ public class MainActivity extends AppCompatActivity {
 
             dialogBuilder.setView(popup);
             dialog = dialogBuilder.create();
+
             dialog.show();
 
             upload.setOnClickListener(new View.OnClickListener() {
@@ -455,6 +502,14 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Presss");
             return true;
         }
+        else if(id==R.id.action_client){
+
+            ClientSocket client = new ClientSocket();
+            client.setContext(getApplicationContext());
+            client.start();
+
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -473,12 +528,6 @@ public class MainActivity extends AppCompatActivity {
 
                         if (null != image) {
 
-                            /*UCrop.of(image,destImage)
-                                    .withAspectRatio(9,16)
-                                    .withMaxResultSize(1080,1920)
-                                    .start(MainActivity.this);
-                            */
-
                             dialog.cancel();
                             CropView cv = new CropView(MainActivity.this, image);
                             cv.setCanceledOnTouchOutside(false);
@@ -489,9 +538,14 @@ public class MainActivity extends AppCompatActivity {
                                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "Title", null);
 
                                     imageView.setImageURI(Uri.parse(path));
+                                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                                    imageView.setOnTouchListener(touchListener);
+
                                     newImage=true;
 
                                     cv.cancel();
+
+                                    startPopup();
                                     return false;
                                 }
                             });
@@ -502,28 +556,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-/*    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
-            final Uri resultUri = UCrop.getOutput(data);
-            imageView.setImageURI(resultUri);
-            newImage=true;
 
-            System.out.println("DIMENSION BitmaP: " +   mutableBitmap.getHeight() + " " + mutableBitmap.getWidth());
-            System.out.println("DIMENSION BitmaPScaled: " + mutableBitmap.getScaledHeight(canvas) + " " + mutableBitmap.getScaledWidth(canvas));
-            System.out.println("DIMENSION: " + imageViewHeight + " " + imageViewWidth);
+    @SuppressLint("ClickableViewAccessibility")
+    private void startPopup(){
+        dialogBuilder = new AlertDialog.Builder(this);
+        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+        Button next = (Button) popup.findViewById(R.id.buttonPopup);
+        TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
-            System.out.println("REFERENCE: " + referencePoints);
+        next.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                dialog.cancel();
+                return false;
+            }
+        });
+        text.setText(getString(R.string.addReferencePointpopup));
 
-            referencePoints.clear();
-            System.out.println("REFERENCE: " + referencePoints);
-
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(data);
-        }
+        dialogBuilder.setView(popup);
+        dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
     }
-*/
 
     public void checkPermission(String permission, int requestCode)
     {
@@ -584,6 +638,7 @@ public class MainActivity extends AppCompatActivity {
 
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
 
         labelRoom.addTextChangedListener(new TextWatcher() {
@@ -636,7 +691,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        mediaBrowser.connect();
+        //DA SCOMMENTARE
+        //mediaBrowser.connect();
 
     }
 
@@ -652,7 +708,7 @@ public class MainActivity extends AppCompatActivity {
         if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
             MediaControllerCompat.getMediaController(MainActivity.this).unregisterCallback(controllerCallback);
         }
-        mediaBrowser.disconnect();
+        //mediaBrowser.disconnect();
     }
 
     @Override
