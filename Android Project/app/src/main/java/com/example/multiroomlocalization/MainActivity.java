@@ -27,10 +27,14 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -177,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton nextTrack;
     private ImageButton previousTrack;
     private Serializable deviceForRoom;
+    private boolean onTop = false;
 
     void buildTransportControls() {
         // Grab the view for the play/pause button
@@ -232,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_temp_mansio);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -247,11 +252,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Button scanBT = (Button) findViewById(R.id.scanBT);
-        //scanBT.setOnClickListener(askBtPermission);
+        Button scanBT = (Button) findViewById(R.id.scanBT);
+        scanBT.setOnClickListener(askBtPermission);
         activity = this;
 
-        //audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
+        audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int pos, boolean fromUser) {}
@@ -291,14 +296,67 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
 
+        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+        audioControllerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(onTop){
+                    Animation slideUp = AnimationUtils.loadAnimation(activity,R.anim.slide_up);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            audioPlaylistView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideUp);
+
+
+                    onTop = true;
+                }
+                else{
+
+                    Animation slideDown = AnimationUtils.loadAnimation(activity,R.anim.slide_down);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            audioPlaylistView.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideDown);
+
+                    onTop = false;
+                }
+            }
+        });
         //DA RIVEDERE
 
 
 
 
-        imageView = (ImageView) findViewById(R.id.map);
-
+        //imageView = (ImageView) findViewById(R.id.map);
+/*
         imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -338,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
                 createDialog(tempx,tempy);
                 return false;
             }
-        });
+        });*/
 
     }
 
