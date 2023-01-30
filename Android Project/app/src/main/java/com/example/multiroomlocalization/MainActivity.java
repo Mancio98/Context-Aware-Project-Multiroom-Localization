@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 
+import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.os.Parcelable;
@@ -42,7 +43,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
@@ -69,15 +72,13 @@ import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
 import com.example.multiroomlocalization.socket.ClientSocket;
-//import com.yalantis.ucrop.UCrop;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
-import java.util.ArrayList;
-
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean first = true;
     private boolean newImage = true;
     private int intervalScan = 10000;
+    private int timerScanTraining = 60000; //* 5 //60000 = 1 min
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
 
@@ -241,11 +243,39 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
+        binding.fab.setEnabled(false);
+
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1 );
-                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 1);
+                dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+                dialogBuilder.setView(popup);
+                dialog = dialogBuilder.create();
+                dialog.setCanceledOnTouchOutside(false);
+
+
+                Button next = (Button) popup.findViewById(R.id.buttonPopup);
+                TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+
+                text.setText(getString(R.string.trainingText));
+                next.setText("Next");
+
+                next.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        int i=0;
+                        dialog.cancel();
+                        createPopupTraining(referencePoints.get(i),i);
+                        Toast.makeText(MainActivity.this, "PROVA PROVA", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                dialog.show();
+
+                //checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1 );
+                //checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 1);
             }
         });
 
@@ -495,10 +525,31 @@ public class MainActivity extends AppCompatActivity {
         Button next = (Button) popup.findViewById(R.id.buttonPopup);
         TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
+        final boolean[] first = {true};
+
         next.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                dialog.cancel();
+                next.setEnabled(false);
+                if(first[0]){
+                    text.setText(getString(R.string.addReferencePointpopupSecond));
+                    next.setText("Start");
+                    first[0] = false;
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            next.setEnabled(true);
+                        }
+                    }, 300);
+
+                }
+                else{
+                    dialog.cancel();
+                }
+
                 return false;
             }
         });
@@ -612,6 +663,7 @@ public class MainActivity extends AppCompatActivity {
                 ReferencePoint ref = new ReferencePoint(x,y,labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
+                binding.fab.setEnabled(true);
                 dialog.cancel();
             }
         });
@@ -857,4 +909,67 @@ public class MainActivity extends AppCompatActivity {
             playerService.stopSelf();
         }*/
     }
+
+    private void createPopupTraining(ReferencePoint point,int index){
+        dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
+        dialogBuilder.setView(popup);
+        dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        Button buttonNext = popup.findViewById(R.id.buttonTraining);
+
+        TextView textRoom = (TextView) popup.findViewById(R.id.textRoom);
+        textRoom.setText(point.getId());
+
+        TextView timer = (TextView) popup.findViewById(R.id.timer);
+        timer.setText("seconds remaining: 05:00");
+
+        CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                timer.setText("seconds remaining: " +new SimpleDateFormat("mm:ss").format(new Date( millisUntilFinished)));
+            }
+
+            public void onFinish() {
+                timer.setText("Stanza completata");
+                buttonNext.setEnabled(true);
+                if (index+1<referencePoints.size()){
+                    buttonNext.setText("Next");
+                    buttonNext.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.cancel();
+                            createPopupTraining(referencePoints.get(index+1), index+1);
+                        }
+                    });
+                }
+                else {
+                    buttonNext.setText("Finish");
+                    buttonNext.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.cancel();
+                            // SALVATAGGIO DATI
+                        }
+                    });
+                }
+
+
+            }
+        };
+
+        buttonNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                countDownTimer.start();
+                buttonNext.setEnabled(false);
+            }
+        });
+
+        dialog.show();
+
+
+
+    }
+
 }

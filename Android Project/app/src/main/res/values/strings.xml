@@ -23,5 +23,7 @@
     <string name="choose_device">choose device</string>
 
     <string name="addReferencePointpopup">Adesso che hai caricato la tua mappa seleziona tutte le stanze della casa e aggiungi il nome con cui indicarla</string>
+    <string name="addReferencePointpopupSecond">Quando hai aggiunto tutte le stanze conferma attraverso il bottone in basso a destra</string>
 
+    <string name="trainingText"> Ora bisogna misurare le stanze della casa, spostati nella stanza indicata, premi start e cammina all\'interno della stanza fino alla fine del timer. Una volta completato premi sul tasto next per cambiare stanza.  </string>
 </resources>
