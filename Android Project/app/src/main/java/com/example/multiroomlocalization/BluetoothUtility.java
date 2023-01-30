@@ -21,7 +21,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BluetoothUtility {
+    BetterActivityResult<Intent, ActivityResult> activityLauncher;
+    public BluetoothUtility(ActivityResultCaller caller) {
 
+        activityLauncher = BetterActivityResult.registerActivityForResult(caller);
+    }
 
     //method for scan bluetooth devices around me
     public static void scan(Activity activity, BluetoothAdapter bluetoothAdapter){
@@ -35,10 +39,8 @@ public class BluetoothUtility {
     }
 
     //method to query user to enable bluetooth
-    public static boolean enableBluetooth(BluetoothAdapter bluetoothAdapter, ActivityResultCaller caller){
+    public boolean enableBluetooth(BluetoothAdapter bluetoothAdapter){
 
-        BetterActivityResult<Intent, ActivityResult> activityLauncher;
-        activityLauncher = BetterActivityResult.registerActivityForResult(caller);
 
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);

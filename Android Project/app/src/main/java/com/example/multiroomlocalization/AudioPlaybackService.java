@@ -1,13 +1,15 @@
 package com.example.multiroomlocalization;
 
-import static androidx.core.content.PackageManagerCompat.LOG_TAG;
+import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
-import android.annotation.SuppressLint;
+
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioAttributes;
+
 import android.media.AudioFocusRequest;
-import android.media.AudioManager;
+import android.media.AudioAttributes;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
@@ -17,26 +19,29 @@ import android.os.Handler;
 
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+
 import androidx.media.MediaBrowserServiceCompat;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+
 import java.util.List;
 
-public class AudioPlaybackService extends MediaBrowserServiceCompat implements MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
-        MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
-        AudioManager.OnAudioFocusChangeListener{
+public class AudioPlaybackService extends MediaBrowserServiceCompat implements Player.Listener{
 
     private static final String MY_EMPTY_MEDIA_ROOT_ID = "empty_root_id";
 
@@ -47,54 +52,62 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements M
     private MediaPlayer mediaPlayer;
     private ExoPlayer exoPlayer;
 
-    private AudioAttributes attrs = new AudioAttributes.Builder()
+    private final AudioAttributes attrs = new AudioAttributes.Builder()
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .build();
+    private final com.google.android.exoplayer2.audio.AudioAttributes attrs2 = new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+            .setContentType(AUDIO_CONTENT_TYPE_MUSIC)
             .build();
     private AudioFocusRequest focusRequest;
 
-    private String currentTrack = "";
+    private int currentTrack = 0;
 
     private int resumePosition;
     private TelephonyManager telephonyManager;
     private PhoneStateListener phoneStateListener;
     private boolean ongoingCall = false;
-    private ArrayList<myAudioTrack> trackList;
+
+    private final List<myAudioTrack> trackList = Arrays.asList(new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
+            null, null, null), new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", null, null, null));
+
+    private int playerState = PlaybackState.STATE_NONE;
+    private final Handler handler = new Handler();
+
     private final MediaSessionCompat.Callback myMediaSessionCallback = new MediaSessionCompat.Callback() {
+
+    //private final MediaSessionConnector.PlaybackPreparer myMediaSessionCallback = new MediaSessionConnector.PlaybackPreparer() {
 
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             super.onPlayFromMediaId(mediaId,extras);
-            int result = requestAudioFocus();
+                int mediaIndex = Integer.parseInt(mediaId);
+                if(exoPlayer == null) {
 
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                // Start the service
-
-
-                if(mediaPlayer == null) {
-                    Log.i("service","null");
-                    currentTrack = mediaId;
+                    currentTrack = mediaIndex;
+                    initExoPlayer();
                     Intent intent = new Intent(context, AudioPlaybackService.class);
                     startService(intent);
+
+
                 }
                 else{
-                    Log.i("service","notnull");
-                    if(mediaId.equals(currentTrack)){
-                        resumeAudio();
 
+                    if(mediaIndex == currentTrack){
+                        resumeAudio();
                     }
                     else {
-                        currentTrack = mediaId;
-
-                        initMediaPlayer();
+                        currentTrack = mediaIndex;
+                        seekToAudio();
                     }
                 }
-                // Put the service in the foreground, post notification
-                //service.startForeground(id, myPlayerNotification);
-            }else {
-                stopSelf();
-            }
 
+        }
+
+        @Override
+        public void onPlay() {
+            super.onPlay();
+            resumeAudio();
         }
 
         @Override
@@ -102,79 +115,113 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements M
             super.onPause();
             pauseAudio();
 
-            // Update metadata and state
-
-            // Take the service out of the foreground, retain the notification
-            //service.stopForeground(false);
         }
 
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
+            if(exoPlayer != null){
+                exoPlayer.seekToNext();
+                System.out.println("vai o no?");
+                if(!exoPlayer.isPlaying())
+                    exoPlayer.play();
+            }
         }
 
         @Override
         public void onSkipToPrevious() {
             super.onSkipToPrevious();
+            if(exoPlayer != null) {
+
+                exoPlayer.seekToPrevious();
+                if(!exoPlayer.isPlaying())
+                    exoPlayer.play();
+            }
         }
 
+        @Override
+        public void onStop() {
+            super.onStop();
 
+            exoPlayer.stop();
+
+
+        }
 
         @Override
-            public void onStop() {
-                super.onStop();
-                removeAudioFocus();
+        public void onSeekTo(long pos) {
+            super.onSeekTo(pos);
 
-                // Set the session inactive  (and update metadata and state)
-                mediaSession.setActive(false);
-                // stop the player (custom call)
-                stopAudio();
-                // Stop the service
-                stopSelf();
-                // Take the service out of the foreground
-                //stopForeground(false);
-            }
-
-            @Override
-            public void onSeekTo(long pos) {
-                super.onSeekTo(pos);
-                Log.i("porco","dio");
-                seekToAudio(Math.toIntExact(pos));
-            }
+            exoPlayer.seekTo(pos);
+        }
 
     };
+    private MediaSessionConnector mediaSessionConnector;
 
-    private int playerState = PlaybackState.STATE_NONE;
-    private Handler handler = new Handler();
+    private void pauseAudio() {
+        if(exoPlayer.isPlaying()) {
+
+            exoPlayer.pause();
+
+        }
+    }
+
+    private void seekToAudio(){
+        if(exoPlayer != null){
+            exoPlayer.seekTo(currentTrack,0);
+            if(!exoPlayer.isPlaying())
+                exoPlayer.play();
+        }
+    }
+
+    private void resumeAudio() {
+        if (!exoPlayer.isPlaying())
+            exoPlayer.play();
+
+    }
+
+
+    @Override
+    public void onIsPlayingChanged(boolean isPlaying) {
+        Player.Listener.super.onIsPlayingChanged(isPlaying);
+
+        if(isPlaying) {
+            playerState = PlaybackState.STATE_PLAYING;
+            MediaMetadataCompat mediaMetadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadata.METADATA_KEY_TITLE, "Song Title")
+                    .putLong(MediaMetadata.METADATA_KEY_DURATION, exoPlayer.getDuration())
+                    .build();
+            mediaSession.setMetadata(mediaMetadata);
+            updateCurrentPosition();
+        }
+        else
+            playerState = PlaybackState.STATE_PAUSED;
+    }
+
 
     private void updatePlaybackState() {
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            position = mediaPlayer.getCurrentPosition();
+        if (exoPlayer != null && exoPlayer.isPlaying()) {
+            position = exoPlayer.getCurrentPosition();
         }
         PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
                 .setActions(getAvailableActions());
         stateBuilder.setState(playerState, position, 1.0f);
         mediaSession.setPlaybackState(PlaybackStateCompat.fromPlaybackState(stateBuilder.build()));
     }
-
     private void updateCurrentPosition() {
-        if (mediaPlayer == null) {
-            return;
-        }
-        else if(mediaPlayer.isPlaying()) {
+
+        if(exoPlayer.isPlaying()) {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    int currentPosition = mediaPlayer.getCurrentPosition();
-                    PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
-                            .setActions(getAvailableActions())
-                            .setState(PlaybackStateCompat.STATE_PLAYING, currentPosition, 1)
-                            .build();
-                    mediaSession.setPlaybackState(playbackState);
+                    updatePlaybackState();
                     updateCurrentPosition();
                 }
             }, 1000);
+        }
+        else{
+            updatePlaybackState();
         }
     }
 
@@ -186,83 +233,26 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements M
             actions |= PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_SEEK_TO;
         else
             actions |= PlaybackState.ACTION_PLAY | PlaybackState.ACTION_SEEK_TO;
-        /*
-        if (currentIndexOnQueue > 0) {
-            actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
-        }
-        if (currentIndexOnQueue < playingQueue.size() - 1) {
-            actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
-        }*/
+
+
+        actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT;
+
+
         return actions;
     }
 
-    private void playAudio() {
-        if (!mediaPlayer.isPlaying()) {
-            requestAudioFocus();
-            mediaPlayer.start();
-            playerState = PlaybackState.STATE_PLAYING;
-            updatePlaybackState();
-            updateCurrentPosition();
-        }
-    }
-
-    private void stopAudio() {
-        if (mediaPlayer == null) return;
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-
-        }
-    }
-
-    private void pauseAudio() {
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-
-            resumePosition = mediaPlayer.getCurrentPosition();
-
-            playerState = PlaybackState.STATE_PAUSED;
-            updatePlaybackState();
-        }
-    }
-
-    private void seekToAudio(int position){
-        if(mediaPlayer != null){
-            mediaPlayer.seekTo(position);
-        }
-    }
-
-    private void resumeAudio() {
-        if (!mediaPlayer.isPlaying()) {
-            mediaPlayer.seekTo(resumePosition);
-            mediaPlayer.start();
-            playerState = PlaybackState.STATE_PLAYING;
-            updatePlaybackState();
-            updateCurrentPosition();
-        }
-    }
 
 
-    @SuppressLint("RestrictedApi")
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         context = getApplicationContext();
 
-        // Create a MediaSessionCompat
-        Log.i("service","già creato");
         callStateListener();
-        mediaSession = new MediaSessionCompat(getApplicationContext(), LOG_TAG);
+        mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
-        // Enable callbacks from MediaButtons and TransportControls
-        //mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
-        // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player
-        /*stateBuilder = new PlaybackStateCompat.Builder()
-                .setActions(
-                        PlaybackStateCompat.ACTION_PLAY |
-                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
-        mediaSession.setPlaybackState(stateBuilder.build());*/
         updatePlaybackState();
 
         // MySessionCallback() has methods that handle callbacks from a media controller
@@ -271,120 +261,127 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements M
         // Set the session's token so that client activities can communicate with it.
         setSessionToken(mediaSession.getSessionToken());
 
+        mediaSession.setActive(true);
+
+
+        //downloadAudioTracks();
+    }
+
+    private void downloadAudioTracks() {
+
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mediaPlayer != null) {
-            stopAudio();
-            mediaPlayer.release();
+        mediaSession.setActive(false);
+        if(exoPlayer != null){
+            exoPlayer.stop();
+            exoPlayer.release();
+            exoPlayer = null;
         }
-        removeAudioFocus();
         //Disable the PhoneStateListener
         if (phoneStateListener != null) {
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
         }
 
+        stopForeground(true);
+        stopSelf();
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        if (!currentTrack.equals(""))
-            initMediaPlayer();
+        MediaButtonReceiver.handleIntent(mediaSession, intent);
+        Notification notification = buildNotification();
+        startForeground(1,notification);
+        startExoPlayer();
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void initMediaPlayer() {
-        mediaPlayer = new MediaPlayer();
-        //Set up MediaPlayer event listeners
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setOnPreparedListener(this);
-        mediaPlayer.setOnBufferingUpdateListener(this);
-        mediaPlayer.setOnSeekCompleteListener(this);
-        mediaPlayer.setOnInfoListener(this);
-        //Reset so that the MediaPlayer is not pointing to another data source
-        mediaPlayer.reset();
+
+    private Notification buildNotification(){
+
+        MediaControllerCompat controller = mediaSession.getController();
+
+        //MediaMetadataCompat mediaMetadata = controller.getMetadata();
+        //MediaDescriptionCompat description = mediaMetadata.getDescription();
+
+        String NOTIFICATION_CHANNEL_ID = "multiroomlocalization";
+        String channelName = "Music Playback";
+
+       /* NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        NotificationManager manager = (NotificationManager) (getSystemService(Context.NOTIFICATION_SERVICE));
+        manager.createNotificationChannel(chan);*/
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
+
+                builder
+                        // Add the metadata for the currently playing track
+                        .setContentTitle("Title")
+                        .setContentText("Subtitle")
+                        .setSubText("Description")
+                        //.setLargeIcon("description.getIconBitmap()")
+                        // Enable launching the player by clicking the notification
+                        .setContentIntent(controller.getSessionActivity())
+                        .setCategory(Notification.CATEGORY_SERVICE)
+                        .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+                        .setOngoing(true)
+                        // Stop the service when the notification is swiped away
+                        .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context,
+                                PlaybackStateCompat.ACTION_STOP))
+                        // Add an app icon and set its accent color
+                        // Be careful about the color
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+
+                        // Add a pause button
+                        .addAction(new NotificationCompat.Action(
+                                android.R.drawable.ic_media_pause, "pause",
+                                MediaButtonReceiver.buildMediaButtonPendingIntent(context,
+                                        PlaybackStateCompat.ACTION_PLAY_PAUSE)))
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        // Take advantage of MediaStyle features
+                        .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                                .setMediaSession(mediaSession.getSessionToken())
+                                .setShowActionsInCompactView(0)
+
+                                // Add a cancel button
+                                .setShowCancelButton(true)
+                                .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context,
+                                        PlaybackStateCompat.ACTION_STOP)));
+
+        return builder.build();
+
+    }
+    private void initExoPlayer() {
+
+        // Build the media items.
+        exoPlayer = new ExoPlayer.Builder(context).build();
+        for (myAudioTrack track : trackList) {
+
+            MediaItem firstItem = MediaItem.fromUri(track.getPath());
+            // Add the media items to be played.
+            exoPlayer.addMediaItem(firstItem);
 
 
-        mediaPlayer.setAudioAttributes(attrs);
-        try {
-            // Set the data source to the mediaFile location
-            mediaPlayer.setDataSource(currentTrack);
-        } catch (IOException e) {
-            e.printStackTrace();
-            stopSelf();
         }
 
-        mediaPlayer.prepareAsync();
+        exoPlayer.setAudioAttributes(attrs2, true);
 
-        mediaSession.setActive(true);
+        exoPlayer.addListener(this);
+        mediaSessionConnector = new MediaSessionConnector(mediaSession);
+        mediaSessionConnector.setPlayer(exoPlayer);
+    }
+
+    private void startExoPlayer(){
+        exoPlayer.prepare();
+        exoPlayer.play();
+
     }
 
 
-    private int requestAudioFocus(){
-
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        focusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                .setOnAudioFocusChangeListener(this)
-                .setAudioAttributes(attrs)
-                .build();
-
-        return am.requestAudioFocus(focusRequest);
-    }
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        //Invoked when the audio focus of the system is updated.
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-                // resume playback
-                if (mediaPlayer == null) initMediaPlayer();
-                else if (!mediaPlayer.isPlaying()) mediaPlayer.start();
-                mediaPlayer.setVolume(1.0f, 1.0f);
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS:
-                // Lost focus for an unbounded amount of time: stop playback and release media player
-                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                // Lost focus for a short time, but we have to stop
-                // playback. We don't release the media player because playback
-                // is likely to resume
-                if (mediaPlayer.isPlaying()) mediaPlayer.pause();
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
-                break;
-        }
-    }
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-
-    }
-
-    private boolean removeAudioFocus() {
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED ==
-                am.abandonAudioFocusRequest(focusRequest);
-
-    }
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-
-        //Invoked when playback of a media source has completed.
-        stopAudio();
-        removeAudioFocus();
-        //stop the service
-        stopSelf();
-    }
-
+/*
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         //Invoked when there has been an error during an asynchronous operation.
@@ -402,27 +399,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements M
         return false;
 
     }
-
-    @Override
-    public boolean onInfo(MediaPlayer mediaPlayer, int i, int i1) {
-        return false;
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        //Invoked when the media source is ready for playback.
-        MediaMetadataCompat mediaMetadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, "Song Title")
-            .putLong(MediaMetadata.METADATA_KEY_DURATION, mediaPlayer.getDuration())
-                .build();
-        mediaSession.setMetadata(mediaMetadata);
-        playAudio();
-    }
-
-    @Override
-    public void onSeekComplete(MediaPlayer mediaPlayer) {
-
-    }
+*/
 
     //Handle incoming phone calls
     private void callStateListener() {
