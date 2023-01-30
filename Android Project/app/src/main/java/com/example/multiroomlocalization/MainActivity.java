@@ -27,10 +27,14 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -179,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton nextTrack;
     private ImageButton previousTrack;
     private Serializable deviceForRoom;
+    private boolean onTop = false;
 
     void buildTransportControls() {
         // Grab the view for the play/pause button
@@ -234,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_temp_mansio);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -250,10 +255,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button scanBT = (Button) findViewById(R.id.scanBT);
-        //scanBT.setOnClickListener(askBtPermission);
+
+        scanBT.setOnClickListener(askBtPermission);
         activity = this;
 
-        /* DA SCOMMENTARE MA METTERE APPOSTO CON LA ROBA DI MANCINI
+
+
+
+
 
         audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -277,8 +286,8 @@ public class MainActivity extends AppCompatActivity {
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
-<<<<<<< HEAD
-        */
+
+
 
 
         btUtility = new BluetoothUtility(this);
@@ -297,33 +306,88 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
 
+        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+        audioControllerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(onTop){
+                    Animation slideUp = AnimationUtils.loadAnimation(activity,R.anim.slide_up);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            audioPlaylistView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideUp);
+
+
+                    onTop = true;
+                }
+                else{
+
+                    Animation slideDown = AnimationUtils.loadAnimation(activity,R.anim.slide_down);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            audioPlaylistView.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideDown);
+
+                    onTop = false;
+                }
+            }
+        });
         //DA RIVEDERE
 
 
-        imageView = (ImageView) findViewById(R.id.map);
 
-        if(imageView.getDrawable() == null){
-            dialogBuilder = new AlertDialog.Builder(this);
-            final View popup = getLayoutInflater().inflate(R.layout.popup_upload_map, null);
-            upload = (Button) popup.findViewById(R.id.upload);
 
-            dialogBuilder.setView(popup);
-            dialog = dialogBuilder.create();
-            dialog.setCanceledOnTouchOutside(false);
-            dialog.show();
+        //imageView = (ImageView) findViewById(R.id.map);
+/*
+        imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                imageViewHeight = imageView.getHeight();
+                imageViewWidth = imageView.getWidth();
+                int xGlobal = imageView.getLeft();
+                int yGlobal = imageView.getTop();
 
-            upload.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+                System.out.println("Global");
+                System.out.println("X: " + xGlobal);
+                System.out.println("Y: " + yGlobal);
+                System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
+                // don't forget to remove the listener to prevent being called again
+                // by future layout events:
+                if(first || newImage) {
+                    first=false;
+                    newImage = false;
+                    Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
+                    mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    canvas = new Canvas(mutableBitmap);
 
-                    // create an instance of the
-                    // intent of the type image
-                    Intent i = new Intent();
-                    i.setType("image/*");
-                    i.setAction(Intent.ACTION_GET_CONTENT);
-
-                    someActivityResultLauncher.launch(i);
                 }
             });
 
@@ -333,7 +397,11 @@ public class MainActivity extends AppCompatActivity {
 
         imageView.setOnTouchListener(touchListener);
 
-        }
+                createDialog(tempx,tempy);
+                return false;
+            }
+        });*/
+
 
     }
 
@@ -489,6 +557,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
 
+    @SuppressLint("ClickableViewAccessibility")
     private void startPopup(){
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
