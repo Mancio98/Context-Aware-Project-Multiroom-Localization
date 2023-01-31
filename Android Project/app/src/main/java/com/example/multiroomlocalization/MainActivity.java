@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,11 +15,11 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 
-
 import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     private int imageViewWidth;
     private boolean first = true;
     private boolean newImage = true;
-    private int intervalScan = 10000;
+    private int intervalScan = 30000;
     private int timerScanTraining = 60000; //* 5 //60000 = 1 min
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
@@ -248,34 +247,9 @@ public class MainActivity extends AppCompatActivity {
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
-                dialogBuilder.setView(popup);
-                dialog = dialogBuilder.create();
-                dialog.setCanceledOnTouchOutside(false);
 
-
-                Button next = (Button) popup.findViewById(R.id.buttonPopup);
-                TextView text = (TextView) popup.findViewById(R.id.textPopup);
-
-
-                text.setText(getString(R.string.trainingText));
-                next.setText("Next");
-
-                next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        int i=0;
-                        dialog.cancel();
-                        createPopupTraining(referencePoints.get(i),i);
-                        Toast.makeText(MainActivity.this, "PROVA PROVA", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                dialog.show();
-
-                //checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1 );
-                //checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 1);
+                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1);
+                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
             }
         });
 
@@ -525,32 +499,19 @@ public class MainActivity extends AppCompatActivity {
         Button next = (Button) popup.findViewById(R.id.buttonPopup);
         TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
-        final boolean[] first = {true};
+        final boolean[] firstTime = {true};
 
-        next.setOnTouchListener(new View.OnTouchListener() {
-            @SuppressLint("ClickableViewAccessibility")
+        next.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                next.setEnabled(false);
-                if(first[0]){
+            public void onClick(View view) {
+                if(firstTime[0]){
                     text.setText(getString(R.string.addReferencePointpopupSecond));
                     next.setText("Start");
-                    first[0] = false;
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            next.setEnabled(true);
-                        }
-                    }, 300);
-
+                    firstTime[0] = false;
                 }
                 else{
                     dialog.cancel();
                 }
-
-                return false;
             }
         });
         text.setText(getString(R.string.addReferencePointpopup));
@@ -569,10 +530,13 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity.this, new String[] { permission }, requestCode);
         }
         else {
-            Toast.makeText(MainActivity.this, "Permission already granted", Toast.LENGTH_SHORT).show();
-            scanService = new ScanService(getApplicationContext());
+            switch (requestCode){
+                case 2:
+                    createPopupStartTraining();
+            }
 
-            mHandler.postDelayed(scanRunnable, intervalScan);
+
+
         }
     }
 
@@ -820,9 +784,7 @@ public class MainActivity extends AppCompatActivity {
             case 1: //DEFINIRE CODICE RICHIESTA
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-                    scanService = new ScanService(getApplicationContext());
 
-                    mHandler.postDelayed(scanRunnable, intervalScan);
                 }
                 else {
                     Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
@@ -884,8 +846,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
 
-
-
             if(BluetoothUtility.checkPermission(activity))
                 launchAssignRAFragment();
             //startBluetoothConnection();
@@ -910,7 +870,7 @@ public class MainActivity extends AppCompatActivity {
         }*/
     }
 
-    private void createPopupTraining(ReferencePoint point,int index){
+    private void createPopupRoomTraining(ReferencePoint point,int index){
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
         dialogBuilder.setView(popup);
@@ -933,13 +893,16 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
                 timer.setText("Stanza completata");
                 buttonNext.setEnabled(true);
+
+                mHandler.removeCallbacks(scanRunnable);
+
                 if (index+1<referencePoints.size()){
                     buttonNext.setText("Next");
                     buttonNext.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             dialog.cancel();
-                            createPopupTraining(referencePoints.get(index+1), index+1);
+                            createPopupRoomTraining(referencePoints.get(index+1), index+1);
                         }
                     });
                 }
@@ -961,15 +924,50 @@ public class MainActivity extends AppCompatActivity {
         buttonNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    if(Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
+                        intervalScan = 5000;
+                    }
+                    else intervalScan = 30000;
+                } catch (Settings.SettingNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+
+                scanService = new ScanService(getApplicationContext());
+                mHandler.postDelayed(scanRunnable, intervalScan);
+
                 countDownTimer.start();
+
                 buttonNext.setEnabled(false);
             }
         });
 
         dialog.show();
-
-
-
     }
 
+   private void createPopupStartTraining(){
+       dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+       final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+       dialogBuilder.setView(popup);
+       dialog = dialogBuilder.create();
+
+
+       Button next = (Button) popup.findViewById(R.id.buttonPopup);
+       TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+       text.setText(getString(R.string.trainingText));
+       next.setText("Next");
+
+       next.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               dialog.cancel();
+               int i=0;
+               createPopupRoomTraining(referencePoints.get(i),i);
+           }
+       });
+
+       dialog.setCanceledOnTouchOutside(false);
+       dialog.show();
+   }
 }
