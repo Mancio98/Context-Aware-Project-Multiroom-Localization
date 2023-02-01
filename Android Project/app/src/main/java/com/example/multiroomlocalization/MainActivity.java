@@ -13,9 +13,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 
+
 import android.os.Handler;
+
 import android.os.Parcelable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -24,10 +27,16 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,6 +45,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
@@ -79,10 +90,10 @@ public class MainActivity extends AppCompatActivity {
     private ServerSLAC server;
     private Activity activity;
     private ConnectBluetoothThread connectBluetoothThread;
+    protected static BluetoothUtility btUtility;
 
-    private AudioPlaybackService playerService;
     boolean serviceBound = false;
-    private myAudioController mediaController;
+
     private MediaBrowserCompat mediaBrowser;
 
     private ImageView playPause;
@@ -169,10 +180,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
     private int seekPosition;
+    private ImageButton nextTrack;
+    private ImageButton previousTrack;
+    private Serializable deviceForRoom;
+    private boolean onTop = false;
 
     void buildTransportControls() {
         // Grab the view for the play/pause button
-        playPause = (ImageView) findViewById(R.id.playpause);
+        playPause = (ImageButton) findViewById(R.id.playpause);
 
         // Attach a listener to the button
         playPause.setOnClickListener(new View.OnClickListener() {
@@ -187,24 +202,44 @@ public class MainActivity extends AppCompatActivity {
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
                 } else {
                     Log.i("button","play");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",null);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(0),null);
                 }
             }});
 
-            MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
+        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
+        nextTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToNext();
+                }
+            }
+        });
 
-            // Display the initial state
-            MediaMetadataCompat metadata = mediaController.getMetadata();
-            PlaybackStateCompat pbState = mediaController.getPlaybackState();
+        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
+        previousTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
 
-            // Register a Callback to stay in sync
-            mediaController.registerCallback(controllerCallback);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToPrevious();
+                }
+            }
+        });
+
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
+
+        // Register a Callback to stay in sync
+        mediaController.registerCallback(controllerCallback);
 
     }
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_temp_mansio);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -220,10 +255,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button scanBT = (Button) findViewById(R.id.scanBT);
-        //scanBT.setOnClickListener(askBtPermission);
+
+        scanBT.setOnClickListener(askBtPermission);
         activity = this;
 
-        /* DA SCOMMENTARE MA METTERE APPOSTO CON LA ROBA DI MANCINI
+
+
+
+
 
         audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -238,7 +277,6 @@ public class MainActivity extends AppCompatActivity {
                 int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
                 if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
 
-                    Log.i("seekbar","endseekto");
                     int progress = seekBar.getProgress();
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().seekTo(progress);
                 }
@@ -248,11 +286,87 @@ public class MainActivity extends AppCompatActivity {
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
-        */
 
 
-        imageView = (ImageView) findViewById(R.id.map);
 
+
+        btUtility = new BluetoothUtility(this);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.setFragmentResultListener("requestDevice", this, (requestKey, result) -> {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                deviceForRoom = result.getSerializable("requestDevice", ArrayList.class);
+
+            }
+            else
+                deviceForRoom =  result.getSerializable("requestDevice");
+
+            //TODO send to SLAC the array
+        });
+
+
+        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
+
+        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+        audioControllerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(onTop){
+                    Animation slideUp = AnimationUtils.loadAnimation(activity,R.anim.slide_up);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            audioPlaylistView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideUp);
+
+
+                    onTop = true;
+                }
+                else{
+
+                    Animation slideDown = AnimationUtils.loadAnimation(activity,R.anim.slide_down);
+                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            audioPlaylistView.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    audioControllerView.startAnimation(slideDown);
+
+                    onTop = false;
+                }
+            }
+        });
+        //DA RIVEDERE
+
+
+
+
+        //imageView = (ImageView) findViewById(R.id.map);
+/*
         imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -273,31 +387,64 @@ public class MainActivity extends AppCompatActivity {
                     Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                     mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                     canvas = new Canvas(mutableBitmap);
+
                 }
-            }
-        });
+            });
 
-        imageView.setOnTouchListener(new View.OnTouchListener() {
-            @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int x1 = (int) event.getX();
-                int y1 = (int) event.getY();
+        }else{
 
-                System.out.println("X: " + x1 + " Y: " + y1);
+        imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
 
-                int tempx = x1;
-                int tempy = y1;
+        imageView.setOnTouchListener(touchListener);
 
                 createDialog(tempx,tempy);
                 return false;
             }
-        });
-
-
+        });*/
 
 
     }
+
+    View.OnTouchListener touchListener = new View.OnTouchListener() {
+        @SuppressLint("ClickableViewAccessibility")
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int x1 = (int) event.getX();
+            int y1 = (int) event.getY();
+
+            System.out.println("X: " + x1 + " Y: " + y1);
+
+            int tempx = x1;
+            int tempy = y1;
+
+            createDialog(tempx,tempy);
+            return false;
+        }
+    };
+
+    ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            imageViewHeight = imageView.getHeight();
+            imageViewWidth = imageView.getWidth();
+            int xGlobal = imageView.getLeft();
+            int yGlobal = imageView.getTop();
+
+            System.out.println("Global");
+            System.out.println("X: " + xGlobal);
+            System.out.println("Y: " + yGlobal);
+            System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
+            // don't forget to remove the listener to prevent being called again
+            // by future layout events:
+            if(first || newImage) {
+                first=false;
+                newImage = false;
+                Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
+                mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                canvas = new Canvas(mutableBitmap);
+            }
+        }
+    };
 
     private Runnable scanRunnable = new Runnable() {
         @Override
@@ -334,6 +481,7 @@ public class MainActivity extends AppCompatActivity {
 
             dialogBuilder.setView(popup);
             dialog = dialogBuilder.create();
+
             dialog.show();
 
             upload.setOnClickListener(new View.OnClickListener() {
@@ -390,9 +538,14 @@ public class MainActivity extends AppCompatActivity {
                                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "Title", null);
 
                                     imageView.setImageURI(Uri.parse(path));
+                                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                                    imageView.setOnTouchListener(touchListener);
+
                                     newImage=true;
 
                                     cv.cancel();
+
+                                    startPopup();
                                     return false;
                                 }
                             });
@@ -403,6 +556,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void startPopup(){
+        dialogBuilder = new AlertDialog.Builder(this);
+        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+        Button next = (Button) popup.findViewById(R.id.buttonPopup);
+        TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+        next.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                dialog.cancel();
+                return false;
+            }
+        });
+        text.setText(getString(R.string.addReferencePointpopup));
+
+        dialogBuilder.setView(popup);
+        dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
 
     public void checkPermission(String permission, int requestCode)
     {
@@ -463,6 +638,7 @@ public class MainActivity extends AppCompatActivity {
 
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
 
         labelRoom.addTextChangedListener(new TextWatcher() {
@@ -508,6 +684,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog.cancel();
             }
         });
+
     }
 
     @Override
@@ -647,6 +824,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+
         switch (requestCode) {
             case BT_CONNECT_AND_SCAN:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -667,6 +845,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 return;
+
         }
     }
 
@@ -712,6 +891,7 @@ public class MainActivity extends AppCompatActivity {
 
         fragmentTransaction.replace(R.id.RaRooms, btFragment);
         fragmentTransaction.addToBackStack("btFragment");
+
         fragmentTransaction.commit();
 
     }
@@ -722,10 +902,10 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
 
 
-            /*
+
             if(BluetoothUtility.checkPermission(activity))
-                launchAssignRAFragment();*/
-            startBluetoothConnection();
+                launchAssignRAFragment();
+            //startBluetoothConnection();
 
 
         }

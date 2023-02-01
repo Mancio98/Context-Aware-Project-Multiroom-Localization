@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,52 +15,89 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-public class ListBluetoothAdapter extends ArrayAdapter<ListBluetoothElement> {
+public class ListBluetoothAdapter extends ArrayAdapter<ListRoomsElement> {
 
 
     private final Context myContext;
+    private final ArrayList<BluetoothDevice> arrayDevices;
+    private final Activity myActivity;
+
+    private final ArrayList<ArrayAdapter<String>> spinnerAdapters = new ArrayList<>();
+    private final Set<BluetoothDevice> pairedDevices;
 
 
-    public ListBluetoothAdapter(@NonNull Context context, int resource) {
-        super(context, resource);
-        myContext = context;
+    public ListBluetoothAdapter(@NonNull Context context, int resource, @NonNull List<ListRoomsElement> objects, Activity myActivity, Set<BluetoothDevice> pairedDevices) {
+        super(context, resource, objects);
+        this.myContext = context;
+        this.arrayDevices = new ArrayList<>();
+        arrayDevices.addAll(pairedDevices);
+        this.myActivity = myActivity;
+        this.pairedDevices = pairedDevices;
 
     }
 
+
+    protected void addBluetoothDevice(BluetoothDevice device){
+
+        arrayDevices.add(device);
+
+        BluetoothUtility.checkPermission(myActivity);
+        spinnerAdapters.forEach(arrayAdapter ->{
+            arrayAdapter.add(device.getName());
+            arrayAdapter.notifyDataSetChanged();
+        } );
+
+    }
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
         View listItem = convertView;
         if (listItem == null)
-            listItem = LayoutInflater.from(myContext).inflate(R.layout.list_bt_layout, parent, false);
+            listItem = LayoutInflater.from(myContext).inflate(R.layout.list_rooms_bt_layout, parent, false);
 
-        ListBluetoothElement device = getItem(position);
+        ListRoomsElement room = getItem(position);
 
-        TextView name = (TextView) listItem.findViewById(R.id.name_btdevice);
+        TextView name = (TextView) listItem.findViewById(R.id.name_room);
 
-        name.setText(device.getNameDevice());
-        Spinner spinner = (Spinner) listItem.findViewById(R.id.spinner_rooms);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(myContext,
-                R.array.rooms_array, android.R.layout.simple_spinner_item);
+        name.setText(room.getName());
+
+        Spinner spinner = (Spinner) listItem.findViewById(R.id.spinner_btdevices);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(myContext, android.R.layout.simple_spinner_item);
+        adapter.add("NONE");
+
+        BluetoothUtility.checkPermission(myActivity);
+        for(BluetoothDevice device : pairedDevices) {
+            adapter.add(device.getName());
+        }
+
+        spinnerAdapters.add(adapter);
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
 
         // Apply the adapter to the spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                device.setRoom(adapter.getItem(i));
+
+                if(i > 0)
+                    room.setDevice(arrayDevices.get(i-1));
+
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-                device.setRoom(adapter.getItem(0));
+
+                room.setDevice(null);
             }
         });
         spinner.setAdapter(adapter);
-        device.setSpinner(spinner);
+        room.setSpinner(spinner);
 
         return listItem;
     }

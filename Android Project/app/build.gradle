@@ -34,19 +34,28 @@ android {
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.0'
-    implementation 'com.google.android.material:material:1.7.0'
+
+    implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.navigation:navigation-fragment:2.5.3'
     implementation 'androidx.navigation:navigation-ui:2.5.3'
     implementation "androidx.media:media:1.6.0"
     testImplementation 'junit:junit:4.13.2'
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 <<<<<<< HEAD
+<<<<<<< HEAD
     // dependency for exoplayer
 =======
+=======
+    implementation 'com.sothree.slidinguppanel:library:3.4.0'
+
+>>>>>>> d021fe4c7a368f8132bab9ce836a20f56a79eada
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 >>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
+
+    // dependency for exoplayer
 
     // dependency for exoplayer
     implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
@@ -69,7 +78,12 @@ dependencies {
     // for GSON
     implementation 'com.google.code.gson:gson:2.10.1'
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.2'
+
+>>>>>>> d021fe4c7a368f8132bab9ce836a20f56a79eada
 
 >>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 }

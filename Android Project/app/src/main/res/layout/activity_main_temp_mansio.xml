@@ -21,34 +21,41 @@
         android:id="@+id/scanBT"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="92dp"
         android:onClick="askBtPermission"
         android:text="@string/scan"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent" />
-
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="150dp"/>
 
     <RelativeLayout
         android:id="@+id/audiocontroller"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/scanBT">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/closePlaylistButton"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            tools:ignore="ContentDescription" />
 
         <SeekBar
             android:id="@+id/seekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true" />
+            android:layout_centerInParent="true"
+            android:layout_below="@id/closePlaylistButton"
+            android:layout_gravity="center" />
 
         <LinearLayout
             android:id="@+id/controller_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_below="@id/seekBar"
             android:layout_centerHorizontal="true">
 
             <ImageButton
@@ -73,6 +80,12 @@
                 android:src="@android:drawable/ic_media_next"
                 android:contentDescription="@string/next" />
         </LinearLayout>
-
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/playlist_view"
+            tools:listitem="@layout/list_tracks_layout"
+            android:layout_below="@id/controller_buttons"
+            android:visibility="invisible"/>
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

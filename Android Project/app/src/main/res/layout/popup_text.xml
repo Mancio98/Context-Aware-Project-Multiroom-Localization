@@ -4,24 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".RoomRAFragment">
-
+    android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textview_paired"
+        android:id="@+id/textPopup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/assignspeaker_room" />
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="200dp"
-        android:id="@+id/rooms_list"
-        tools:listitem="@layout/list_rooms_bt_layout"/>
+        android:layout_gravity="center"
+        android:text="TESTO"
+        android:textAlignment="center"
+        android:textSize="24sp" />
 
     <Button
-        android:id="@+id/close_fragment"
+        android:id="@+id/buttonPopup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/done" />
+        android:layout_gravity="center"
+        android:layout_marginTop="30dp"
+        android:text="Next" />
 </LinearLayout>

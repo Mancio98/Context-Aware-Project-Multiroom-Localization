@@ -6,11 +6,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/default_device_name"
-        android:id="@+id/name_btdevice"/>
+        android:id="@+id/name_room"/>
     <Spinner
         android:layout_width="wrap_content"
         android:layout_height="32dp"
-        android:id="@+id/spinner_rooms"
-        android:contentDescription="@string/choose_room"/>
+        android:id="@+id/spinner_btdevices"
+        android:contentDescription="@string/choose_device"/>
 
 </LinearLayout>
