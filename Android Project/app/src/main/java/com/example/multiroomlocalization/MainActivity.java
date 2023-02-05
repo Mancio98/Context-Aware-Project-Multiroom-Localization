@@ -7,19 +7,22 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
-
+import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.os.Parcelable;
+import android.os.RemoteException;
+import android.provider.Settings;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -45,8 +48,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.Serializable;
+import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
@@ -73,15 +83,14 @@ import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
 import com.example.multiroomlocalization.socket.ClientSocket;
-//import com.yalantis.ucrop.UCrop;
+import com.google.gson.Gson;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
-import java.util.ArrayList;
-
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -113,9 +122,14 @@ public class MainActivity extends AppCompatActivity {
     private int imageViewWidth;
     private boolean first = true;
     private boolean newImage = true;
-    private int intervalScan = 10000;
+    private int intervalScan = 30000;
+    private int timerScanTraining = 60000; //* 5 //60000 = 1 min
+
+    private ClientSocket clientSocket;
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
+    private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
+    private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
     private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
             new MediaBrowserCompat.ConnectionCallback() {
@@ -167,10 +181,8 @@ public class MainActivity extends AppCompatActivity {
                     if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_pause);
                         audioSeekBar.setProgress(Math.toIntExact(state.getPosition()));
-
                     } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_play);
-
                     }
                 }
                 @Override
@@ -246,11 +258,14 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
+        binding.fab.setEnabled(false);
+
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1 );
-                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 1);
+
+                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1);
+                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
             }
         });
 
@@ -564,11 +579,19 @@ public class MainActivity extends AppCompatActivity {
         Button next = (Button) popup.findViewById(R.id.buttonPopup);
         TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
-        next.setOnTouchListener(new View.OnTouchListener() {
+        final boolean[] firstTime = {true};
+
+        next.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                dialog.cancel();
-                return false;
+            public void onClick(View view) {
+                if(firstTime[0]){
+                    text.setText(getString(R.string.addReferencePointpopupSecond));
+                    next.setText("Start");
+                    firstTime[0] = false;
+                }
+                else{
+                    dialog.cancel();
+                }
             }
         });
         text.setText(getString(R.string.addReferencePointpopup));
@@ -587,10 +610,21 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity.this, new String[] { permission }, requestCode);
         }
         else {
-            Toast.makeText(MainActivity.this, "Permission already granted", Toast.LENGTH_SHORT).show();
-            scanService = new ScanService(getApplicationContext());
+            switch (requestCode){
+                case 2:
 
-            mHandler.postDelayed(scanRunnable, intervalScan);
+                    clientSocket = new ClientSocket();
+                    clientSocket.setContext(getApplicationContext());
+                    clientSocket.start();
+
+                    //new ClientSocket.MessageStartMappingPhase().execute();
+                    clientSocket.createMessageStartMappingPhase().execute();
+
+                    createPopupStartTraining();
+            }
+
+
+
         }
     }
 
@@ -681,6 +715,7 @@ public class MainActivity extends AppCompatActivity {
                 ReferencePoint ref = new ReferencePoint(x,y,labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
+                binding.fab.setEnabled(true);
                 dialog.cancel();
             }
         });
@@ -837,9 +872,7 @@ public class MainActivity extends AppCompatActivity {
             case 1: //DEFINIRE CODICE RICHIESTA
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-                    scanService = new ScanService(getApplicationContext());
 
-                    mHandler.postDelayed(scanRunnable, intervalScan);
                 }
                 else {
                     Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
@@ -901,8 +934,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
 
-
-
             if(BluetoothUtility.checkPermission(activity))
                 launchAssignRAFragment();
             //startBluetoothConnection();
@@ -926,4 +957,162 @@ public class MainActivity extends AppCompatActivity {
             playerService.stopSelf();
         }*/
     }
+
+    private void createPopupRoomTraining(ReferencePoint point,int index){
+        dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
+        dialogBuilder.setView(popup);
+        dialog = dialogBuilder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        Button buttonNext = popup.findViewById(R.id.buttonTraining);
+
+        TextView textRoom = (TextView) popup.findViewById(R.id.textRoom);
+        textRoom.setText(point.getId());
+
+        TextView timer = (TextView) popup.findViewById(R.id.timer);
+        timer.setText("seconds remaining: 05:00");
+
+        //new ClientSocket.MessageNewReferencePoint(point).execute();
+        clientSocket.createMessageNewReferencePoint(point).execute();
+
+        CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                timer.setText("seconds remaining: " +new SimpleDateFormat("mm:ss").format(new Date( millisUntilFinished)));
+            }
+
+            public void onFinish() {
+                timer.setText("Stanza completata");
+                buttonNext.setEnabled(true);
+
+                mHandler.removeCallbacks(scanRunnable);
+
+                resultScan.put(referencePoints.get(index).getId(),scanResultArrayList);
+                System.out.println(resultScan);
+
+                if (index+1<referencePoints.size()){
+                    buttonNext.setText("Next");
+                    buttonNext.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.cancel();
+                            //new ClientSocket.MessageEndScanReferencePoint().execute();
+                            clientSocket.createMessageEndScanReferencePoint().execute();
+                            createPopupRoomTraining(referencePoints.get(index+1), index+1);
+                        }
+                    });
+                }
+                else {
+                    buttonNext.setText("Finish");
+                    buttonNext.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.cancel();
+
+                           // new ClientSocket.MessageEndScanReferencePoint().execute();
+                            clientSocket.createMessageEndScanReferencePoint().execute();
+                            //new ClientSocket.MessageEndMappingPhase().execute();
+                            clientSocket.createMessageEndMappingPhase().execute();
+                            // SALVATAGGIO DATI
+                        }
+                    });
+                }
+
+
+            }
+        };
+
+        buttonNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                scanService = new ScanService(getApplicationContext());
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    if(!scanService.getWifiManager().isScanThrottleEnabled()){//Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
+                        intervalScan = 5000;
+                        System.out.println("IntervalScan: " + intervalScan);
+                    }
+                    else {
+                        intervalScan = 30000;
+                        System.out.println("IntervalScan: " + intervalScan);
+                    }
+                }
+
+                mHandler.postDelayed(scanRunnable, 0);
+                scanService.registerReceiver(broadcastReceiverScan);
+
+                scanResultArrayList.clear();
+
+                countDownTimer.start();
+
+                //new ClientSocket.MessageStartScanReferencePoint().execute();
+                clientSocket.createMessageStartScanReferencePoint().execute();
+
+                buttonNext.setEnabled(false);
+            }
+        });
+
+        dialog.show();
+    }
+
+   private void createPopupStartTraining(){
+       dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+       final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+       dialogBuilder.setView(popup);
+       dialog = dialogBuilder.create();
+
+
+       Button next = (Button) popup.findViewById(R.id.buttonPopup);
+       TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+       text.setText(getString(R.string.trainingText));
+       next.setText("Next");
+
+       next.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               dialog.cancel();
+               int i=0;
+               createPopupRoomTraining(referencePoints.get(i),i);
+           }
+       });
+
+       dialog.setCanceledOnTouchOutside(false);
+       dialog.show();
+   }
+
+
+   private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
+       @Override
+       public void onReceive(Context context, Intent intent) {
+           boolean success = intent.getBooleanExtra(
+                   WifiManager.EXTRA_RESULTS_UPDATED, false);
+           if (success) {
+               scanSuccess();
+           } else {
+               // scan failure handling
+               scanFailure();
+           }
+       }
+
+       private void scanSuccess(){
+           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+           for ( ScanResult res : results ) {
+               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+               scanResultArrayList.add(scan);
+               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+           }
+       }
+
+       private void scanFailure(){
+           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+           for ( ScanResult res : results ) {
+               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+               scanResultArrayList.add(scan);
+               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+           }
+       }
+
+
+   };
 }

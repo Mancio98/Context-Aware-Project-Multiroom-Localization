@@ -15,10 +15,12 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.example.multiroomlocalization.Fingerprint;
+import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.ScanService;
 >>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 import com.example.multiroomlocalization.messages.Message;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
 import com.google.gson.Gson;
 
@@ -72,6 +74,7 @@ public class ClientSocket extends Thread {
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         while(true) {
             Fingerprint fingerprint = new Fingerprint();
@@ -96,6 +99,9 @@ public class ClientSocket extends Thread {
 
 =======
         scanService = new ScanService(context);
+=======
+        /*scanService = new ScanService(context);
+>>>>>>> origin/luca-branch
 
         scanService.registerReceiver(new BroadcastReceiver() {
             @Override
@@ -118,11 +124,31 @@ public class ClientSocket extends Thread {
             }
         });
 
-            mHandler.postDelayed(scanRunnable, 0);
+            mHandler.postDelayed(scanRunnable, 0);*/
             //scanRunnable.run();
 
     }
 
+    public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
+        return new MessageStartMappingPhase();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageStartScanReferencePoint(){
+        return new MessageStartScanReferencePoint();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageNewReferencePoint(ReferencePoint ref){
+        System.out.println("ENTRATO QUA");
+        return new MessageNewReferencePoint(ref);
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageEndMappingPhase(){
+        return new MessageEndMappingPhase();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageEndScanReferencePoint(){
+        return new MessageEndScanReferencePoint();
+    }
     public void setContext(Context context){
         this.context = context;
     }
@@ -289,6 +315,114 @@ public class ClientSocket extends Thread {
     private void stopScan() {
         mHandler.removeCallbacks(scanRunnable);
     }
+
+
+    public class MessageStartScanReferencePoint extends AsyncTask<Void,Void,Void> {
+
+        //ReferencePoint referencePoint;
+
+        public MessageStartScanReferencePoint(){//ReferencePoint ref){
+            //this.referencePoint = ref;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint();//referencePoint);
+                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint.class);
+                //System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageStartMappingPhase extends AsyncTask<Void,Void,Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
+                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase.class);
+                //System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageEndMappingPhase extends AsyncTask<Void,Void,Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
+                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase.class);
+                //System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageEndScanReferencePoint extends AsyncTask<Void,Void,Void>{
+
+        public MessageEndScanReferencePoint(){}
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
+                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint.class);
+                //System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageNewReferencePoint extends AsyncTask<Void,Void,Void>{
+
+        ReferencePoint referencePoint;
+
+        public MessageNewReferencePoint(ReferencePoint ref){
+            this.referencePoint = ref;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
+                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint.class);
+                //System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
 
 }
 

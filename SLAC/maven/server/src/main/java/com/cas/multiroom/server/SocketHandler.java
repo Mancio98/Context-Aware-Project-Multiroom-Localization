@@ -30,6 +30,10 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+<<<<<<< HEAD
+=======
+import java.util.Objects;
+>>>>>>> origin/luca-branch
 
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
@@ -65,6 +69,7 @@ public class SocketHandler extends Thread {
         try {
 	        dataIn = new DataInputStream(clientSocket.getInputStream());
 	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
+<<<<<<< HEAD
 	        
 	        /*
 	        String json = dataIn.readUTF();
@@ -73,6 +78,8 @@ public class SocketHandler extends Thread {
 	        	mappingPhase();
 	        }
 	        */
+=======
+>>>>>>> origin/luca-branch
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -115,12 +122,17 @@ public class SocketHandler extends Thread {
 			json = dataIn.readUTF();
 			String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	        if (messageType.equals("START_MAPPING_PHASE")) {
+<<<<<<< HEAD
 	        	mappingPhase();
+=======
+	        	mappingPhase(dataIn);
+>>>>>>> origin/luca-branch
 	        }
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+<<<<<<< HEAD
     	
         /*
         while (isRunning) {
@@ -132,6 +144,19 @@ public class SocketHandler extends Thread {
                 //dataOut.flush();
                 
             	MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
+=======
+        //while (isRunning) {
+        	//mappingPhase();
+            /*try {
+                // Find a change in the start/stop state
+                //send start to the client
+            	/*
+                dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
+                dataOut.flush();
+                */
+            	/*MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
+                System.out.println(resultMessage);//.toJson());
+>>>>>>> origin/luca-branch
                 dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko")), MessageReferencePointResult.class));
                 dataOut.flush();
                 
@@ -142,6 +167,10 @@ public class SocketHandler extends Thread {
             	//dataOut.writeUTF("Edin DZEKO MANCINI MERDA");
             	dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko"))));
                 dataOut.flush();
+<<<<<<< HEAD
+=======
+            	
+>>>>>>> origin/luca-branch
             }
             catch (SocketException e) {
                 e.printStackTrace();
@@ -158,6 +187,7 @@ public class SocketHandler extends Thread {
                 System.err.println("Error while reading from the socket");
                 isRunning = false;
             }
+<<<<<<< HEAD
         }
         */
         
@@ -175,6 +205,29 @@ public class SocketHandler extends Thread {
         
         try {
 	        dataIn = new DataInputStream(clientSocket.getInputStream());
+=======
+            */
+        }
+        
+        
+        //System.out.println("STOP SERVING: " + clientId);
+    //}
+    
+    
+    public void mappingPhase(DataInputStream dataIn) {
+    	DataInputStream dataInTemp = null;
+        DataOutputStream dataOut = null;
+        Gson gson = new Gson();
+        
+        System.out.println("ENTRATO MAPPING PHASE");
+        
+        if (clientSocket == null) {
+        	System.out.println("USCITO QUI");
+            return;
+        }
+        try {
+	        dataInTemp = new DataInputStream(clientSocket.getInputStream());
+>>>>>>> origin/luca-branch
 	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch(IOException e) {
@@ -182,14 +235,36 @@ public class SocketHandler extends Thread {
             return;
         }
     	
+<<<<<<< HEAD
+=======
+        if(dataIn==dataInTemp) {
+        	System.out.println("UGUALE");
+        }
+        if(Objects.equals(dataInTemp, dataIn)) {
+        	System.out.println("UGUALIOOOOOI");
+        }
+        
+>>>>>>> origin/luca-branch
         MessageNewReferencePoint resultMessage;
         ReferencePoint referencePoint;
         
         try {
+<<<<<<< HEAD
 	    	String json = dataIn.readUTF();
 	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	    	
 	    	while (messageType.equals("NEW_REFERENCE_POINT")) {
+=======
+        	System.out.println("POINT");
+	    	String json = dataIn.readUTF();
+	    	System.out.println("REFERENCE POINT");
+	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	    	
+	    	while (messageType.equals("NEW_REFERENCE_POINT")) {
+	    		
+	    		System.out.println("NEW REFERENCE POINT");
+	    		
+>>>>>>> origin/luca-branch
 	    		resultMessage = gson.fromJson(json, MessageNewReferencePoint.class);
 	        	referencePoint = resultMessage.getReferencePoint();
 	        	
@@ -199,12 +274,22 @@ public class SocketHandler extends Thread {
 	    	}
 	    	
 	    	if (messageType.equals("END_MAPPING_PHASE")) {
+<<<<<<< HEAD
 	    		
+=======
+	    		System.out.println("USCITO MAPPING PHASE");
+>>>>>>> origin/luca-branch
 	    	}
         }
         catch (Exception e) {
 	        e.printStackTrace();
 	    }
+<<<<<<< HEAD
+=======
+        	System.out.println("QUI USCITO MAPPING PHASE");
+        
+        
+>>>>>>> origin/luca-branch
     }
     
     
@@ -232,14 +317,27 @@ public class SocketHandler extends Thread {
         try {
 	    	String json = dataIn.readUTF();
 	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+<<<<<<< HEAD
 	    	
 	    	if (messageType.equals("START_SCAN_REFERENCE_POINT")) {
+=======
+    		
+	    	System.out.println("START SCAN FUORI");
+
+	    	if (messageType.equals("START_SCAN_REFERENCE_POINT")) {
+	    		System.out.println("START SCAN");
+>>>>>>> origin/luca-branch
 	        	//MessageStartScanReferencePoint resultMessage = gson.fromJson(json, MessageStartScanReferencePoint.class);
 	        	
 	        	json = dataIn.readUTF();
 	        	messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	        	
 	        	while (!messageType.equals("END_SCAN_REFERENCE_POINT")) {
+<<<<<<< HEAD
+=======
+		    		System.out.println("WHILE");
+
+>>>>>>> origin/luca-branch
 		    		if (messageType.equals("FINGERPRINT")) {
 		    			messageFingerprint = gson.fromJson(json, MessageFingerprint.class);
 		    		}
@@ -253,7 +351,12 @@ public class SocketHandler extends Thread {
 		            messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 		    	}
 	        	
+<<<<<<< HEAD
 	        	
+=======
+	    		System.out.println("FUORI WHILE");
+
+>>>>>>> origin/luca-branch
 	        	String filePath = "";
 	        	// first create file object for file placed at location
 	            // specified by filepath

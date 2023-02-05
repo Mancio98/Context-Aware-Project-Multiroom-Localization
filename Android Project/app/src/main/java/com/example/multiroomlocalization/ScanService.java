@@ -88,4 +88,6 @@ public class ScanService extends IntentService {
 
     }
 
+    public WifiManager getWifiManager(){ return wifiManager;}
+
 }
