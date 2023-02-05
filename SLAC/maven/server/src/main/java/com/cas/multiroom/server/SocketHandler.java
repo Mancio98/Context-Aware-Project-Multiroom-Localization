@@ -65,6 +65,14 @@ public class SocketHandler extends Thread {
         try {
 	        dataIn = new DataInputStream(clientSocket.getInputStream());
 	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
+	        
+	        /*
+	        String json = dataIn.readUTF();
+	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	        if (messageType.equals("START_MAPPING_PHASE")) {
+	        	mappingPhase();
+	        }
+	        */
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -102,17 +110,28 @@ public class SocketHandler extends Thread {
         System.out.println("START SERVING: " + clientId);
         */
         
-        
+        String json;
+		try {
+			json = dataIn.readUTF();
+			String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	        if (messageType.equals("START_MAPPING_PHASE")) {
+	        	mappingPhase();
+	        }
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+        /*
         while (isRunning) {
             try {
                 // Find a change in the start/stop state
                 //send start to the client
-            	/*
-                dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
-                dataOut.flush();
-                */
+            	
+                //dataOut.writeUTF(gson.toJson(new MessageStartScan(true)));
+                //dataOut.flush();
+                
             	MessageFingerprint resultMessage = gson.fromJson(dataIn.readUTF(), MessageFingerprint.class);
-                System.out.println(resultMessage.toJson());
                 dataOut.writeUTF(gson.toJson(new MessageReferencePointResult(new ReferencePoint("edin dzeko")), MessageReferencePointResult.class));
                 dataOut.flush();
                 
@@ -140,7 +159,7 @@ public class SocketHandler extends Thread {
                 isRunning = false;
             }
         }
-        
+        */
         
         //System.out.println("STOP SERVING: " + clientId);
     }

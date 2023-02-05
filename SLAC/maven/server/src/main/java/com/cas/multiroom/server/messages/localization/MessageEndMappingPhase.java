@@ -6,6 +6,6 @@ import com.cas.multiroom.server.messages.Message;
 public class MessageEndMappingPhase extends Message {
 
 	public MessageEndMappingPhase() {
-		super("START_MAPPING_PHASE");
+		super("END_MAPPING_PHASE");
 	}
 }
