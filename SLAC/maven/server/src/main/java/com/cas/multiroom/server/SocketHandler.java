@@ -3,13 +3,16 @@ package com.cas.multiroom.server;
 
 import com.cas.multiroom.server.database.DatabaseManager;
 import com.cas.multiroom.server.localization.ReferencePoint;
+import com.cas.multiroom.server.localization.ScanResult;
 import com.cas.multiroom.server.messages.localization.MessageFingerprint;
 import com.cas.multiroom.server.messages.localization.MessageReferencePointResult;
 import com.cas.multiroom.server.messages.connection.MessageConnection;
 import com.cas.multiroom.server.messages.connection.MessageConnectionBack;
+import com.cas.multiroom.server.messages.Message;
+import com.cas.multiroom.server.messages.localization.MessageStartScanReferencePoint;
 
 import com.google.gson.Gson;
-
+import com.google.gson.JsonObject;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
@@ -33,6 +36,8 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 
+import java.lang.reflect.Field;
+
 
 public class SocketHandler extends Thread {
     private final Socket clientSocket;
@@ -53,7 +58,7 @@ public class SocketHandler extends Thread {
         DataOutputStream dataOut = null;
         Gson gson = new Gson();
         
-        if(clientSocket == null)
+        if (clientSocket == null)
             return;
         
         try {
@@ -139,6 +144,148 @@ public class SocketHandler extends Thread {
         //System.out.println("STOP SERVING: " + clientId);
     }
     
+    
+    public void mappingPhase() {
+    	DataInputStream dataIn = null;
+        DataOutputStream dataOut = null;
+        Gson gson = new Gson();
+        
+        if (clientSocket == null)
+            return;
+        
+        try {
+	        dataIn = new DataInputStream(clientSocket.getInputStream());
+	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            return;
+        }
+    	
+        try {
+	    	String json = dataIn.readUTF();
+	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	    	
+	    	while (!messageType.equals("END_MAPPING_PHASE")) {
+	    		createReferencePointCSV();
+	    	}
+        }
+        catch (Exception e) {
+	        e.printStackTrace();
+	    }
+    }
+    
+    
+    public void createReferencePointCSV() {
+    	DataInputStream dataIn = null;
+        DataOutputStream dataOut = null;
+        Gson gson = new Gson();
+        
+        if (clientSocket == null)
+            return;
+        
+        try {
+	        dataIn = new DataInputStream(clientSocket.getInputStream());
+	        dataOut = new DataOutputStream(clientSocket.getOutputStream());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+    	
+        MessageFingerprint messageFingerprint;
+        List<ScanResult> scanResultList = new ArrayList<ScanResult>();
+        
+        try {
+	    	String json = dataIn.readUTF();
+	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	    	
+	    	if (messageType.equals("START_SCAN_REFERENCE_POINT")) {
+	        	MessageStartScanReferencePoint resultMessage = gson.fromJson(json, MessageStartScanReferencePoint.class);
+	        	ReferencePoint referencePoint = resultMessage.getReferencePoint();
+	        	
+	        	json = dataIn.readUTF();
+	        	messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+	        	
+	        	while (!messageType.equals("END_SCAN_REFERENCE_POINT")) {
+		    		if (messageType.equals("FINGERPRINT")) {
+		    			messageFingerprint = gson.fromJson(json, MessageFingerprint.class);
+		    		}
+		    		else {
+		    			return;
+		    		}
+		        	
+		            scanResultList.addAll(messageFingerprint.getFingerprint().getScanResultList());
+		            
+		            json = dataIn.readUTF();
+		            messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+		    	}
+	        	
+	        	
+	        	String filePath = "";
+	        	// first create file object for file placed at location
+	            // specified by filepath
+	            File file = new File(filePath);
+	            // name of generated csv
+	            final String CSV_LOCATION = referencePoint.getId() + ".csv ";
+	            
+	            // Creating writer class to generate
+	            // csv file
+	            FileWriter writer = new FileWriter(CSV_LOCATION);
+	            
+	            
+	            // Create Mapping Strategy to arrange the 
+	            // column name in order
+	            ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
+	            mappingStrategy.setType(ScanResult.class);
+	  
+	            
+	            Field fields[] = ScanResult.class.getDeclaredFields();
+	            for (int i = 0; i < fields.length; i++)
+	            {
+	                System.out.println("Variable Name is : " + fields[i].getName());
+	            }
+	            
+	            
+	            // Arrange column name as provided in below array.
+	            String[] columns = new String[] { "BSSID", "SSID", "level" };
+	            mappingStrategy.setColumnMapping(columns);
+	  
+	            // Creating StatefulBeanToCsv object
+	            StatefulBeanToCsvBuilder<ScanResult> builder = new StatefulBeanToCsvBuilder(writer);
+	            StatefulBeanToCsv beanWriter = builder.withMappingStrategy(mappingStrategy).build();
+	  
+	            // Write list to StatefulBeanToCsv object
+	            beanWriter.write(scanResultList);
+	  			
+	  
+	            // closing the writer object
+	            writer.close();
+	    	}
+	    	else {
+	    		return;
+	    	}
+	    }
+	    catch (SocketException e) {
+	        e.printStackTrace();
+	        System.out.println("Connection closed");
+	        isRunning = false;
+	    }
+	    catch (EOFException e) {
+	    	e.printStackTrace();
+	        System.out.println("EOF");
+	        isRunning = false;
+	    }
+	    catch (IOException e) {
+	    	e.printStackTrace();
+	        System.err.println("Error while reading from the socket");
+	        isRunning = false;
+	    }
+        catch (Exception e) {
+	        e.printStackTrace();
+	    }
+    }
+    
     public static void writeDataLineByLine(String filePath)
     {
         // first create file object for file placed at location
@@ -219,10 +366,13 @@ public class SocketHandler extends Thread {
 	    }
 	}
     
-	public static void BeanToCSV()
+	public static void BeanToCSV(String filePath)
     {
+		// first create file object for file placed at location
+        // specified by filepath
+        File file = new File(filePath);
         // name of generated csv
-        final String CSV_LOCATION = "Employees.csv ";
+        final String CSV_LOCATION = "ref.csv ";
   
         try {
   

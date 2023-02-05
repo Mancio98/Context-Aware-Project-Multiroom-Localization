@@ -19,7 +19,7 @@ public class Fingerprint {
         this.fingerprint.add(scan);
     }
 
-    public ArrayList<ScanResult> getMap() {
+    public ArrayList<ScanResult> getScanResultList() {
         return this.fingerprint;
     }
 }
