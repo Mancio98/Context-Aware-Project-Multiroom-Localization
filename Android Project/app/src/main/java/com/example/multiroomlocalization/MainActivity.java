@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -19,6 +21,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.os.Parcelable;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -45,6 +48,8 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
@@ -113,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
     private int timerScanTraining = 60000; //* 5 //60000 = 1 min
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
+    private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
+    private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
     private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
             new MediaBrowserCompat.ConnectionCallback() {
@@ -164,10 +171,8 @@ public class MainActivity extends AppCompatActivity {
                     if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_pause);
                         audioSeekBar.setProgress(Math.toIntExact(state.getPosition()));
-
                     } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_play);
-
                     }
                 }
                 @Override
@@ -896,12 +901,16 @@ public class MainActivity extends AppCompatActivity {
 
                 mHandler.removeCallbacks(scanRunnable);
 
+                resultScan.put(referencePoints.get(index).getId(),scanResultArrayList);
+                System.out.println(resultScan);
+
                 if (index+1<referencePoints.size()){
                     buttonNext.setText("Next");
                     buttonNext.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             dialog.cancel();
+
                             createPopupRoomTraining(referencePoints.get(index+1), index+1);
                         }
                     });
@@ -924,17 +933,23 @@ public class MainActivity extends AppCompatActivity {
         buttonNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    if(Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
+                scanService = new ScanService(getApplicationContext());
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    if(!scanService.getWifiManager().isScanThrottleEnabled()){//Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
                         intervalScan = 5000;
+                        System.out.println("IntervalScan: " + intervalScan);
                     }
-                    else intervalScan = 30000;
-                } catch (Settings.SettingNotFoundException e) {
-                    throw new RuntimeException(e);
+                    else {
+                        intervalScan = 30000;
+                        System.out.println("IntervalScan: " + intervalScan);
+                    }
                 }
 
-                scanService = new ScanService(getApplicationContext());
-                mHandler.postDelayed(scanRunnable, intervalScan);
+                mHandler.postDelayed(scanRunnable, 0);
+                scanService.registerReceiver(broadcastReceiverScan);
+
+                scanResultArrayList.clear();
 
                 countDownTimer.start();
 
@@ -970,4 +985,39 @@ public class MainActivity extends AppCompatActivity {
        dialog.setCanceledOnTouchOutside(false);
        dialog.show();
    }
+
+
+   private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
+       @Override
+       public void onReceive(Context context, Intent intent) {
+           boolean success = intent.getBooleanExtra(
+                   WifiManager.EXTRA_RESULTS_UPDATED, false);
+           if (success) {
+               scanSuccess();
+           } else {
+               // scan failure handling
+               scanFailure();
+           }
+       }
+
+       private void scanSuccess(){
+           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+           for ( ScanResult res : results ) {
+               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+               scanResultArrayList.add(scan);
+               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+           }
+       }
+
+       private void scanFailure(){
+           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+           for ( ScanResult res : results ) {
+               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+               scanResultArrayList.add(scan);
+               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+           }
+       }
+
+
+   };
 }
