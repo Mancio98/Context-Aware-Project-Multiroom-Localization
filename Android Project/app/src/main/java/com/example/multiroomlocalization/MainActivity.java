@@ -44,7 +44,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.Serializable;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -76,6 +79,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
 import com.example.multiroomlocalization.socket.ClientSocket;
+import com.google.gson.Gson;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -116,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean newImage = true;
     private int intervalScan = 30000;
     private int timerScanTraining = 60000; //* 5 //60000 = 1 min
+
+    private ClientSocket clientSocket;
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
     private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
@@ -537,6 +543,14 @@ public class MainActivity extends AppCompatActivity {
         else {
             switch (requestCode){
                 case 2:
+
+                    clientSocket = new ClientSocket();
+                    clientSocket.setContext(getApplicationContext());
+                    clientSocket.start();
+
+                    //new ClientSocket.MessageStartMappingPhase().execute();
+                    clientSocket.createMessageStartMappingPhase().execute();
+
                     createPopupStartTraining();
             }
 
@@ -889,6 +903,9 @@ public class MainActivity extends AppCompatActivity {
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
 
+        //new ClientSocket.MessageNewReferencePoint(point).execute();
+        clientSocket.createMessageNewReferencePoint(point).execute();
+
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
             public void onTick(long millisUntilFinished) {
@@ -910,7 +927,8 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View view) {
                             dialog.cancel();
-
+                            //new ClientSocket.MessageEndScanReferencePoint().execute();
+                            clientSocket.createMessageEndScanReferencePoint().execute();
                             createPopupRoomTraining(referencePoints.get(index+1), index+1);
                         }
                     });
@@ -921,6 +939,11 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View view) {
                             dialog.cancel();
+
+                           // new ClientSocket.MessageEndScanReferencePoint().execute();
+                            clientSocket.createMessageEndScanReferencePoint().execute();
+                            //new ClientSocket.MessageEndMappingPhase().execute();
+                            clientSocket.createMessageEndMappingPhase().execute();
                             // SALVATAGGIO DATI
                         }
                     });
@@ -952,6 +975,9 @@ public class MainActivity extends AppCompatActivity {
                 scanResultArrayList.clear();
 
                 countDownTimer.start();
+
+                //new ClientSocket.MessageStartScanReferencePoint().execute();
+                clientSocket.createMessageStartScanReferencePoint().execute();
 
                 buttonNext.setEnabled(false);
             }
