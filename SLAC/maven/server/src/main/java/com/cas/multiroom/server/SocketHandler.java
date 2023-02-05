@@ -48,6 +48,8 @@ public class SocketHandler extends Thread {
     //private final SpeakerManager speakerManager;
     private boolean isRunning;
     
+    private final String CSV_EXTENSION = ".csv";
+    
     public SocketHandler(Socket clientSocket, DatabaseManager dbm) {//, SpeakerManager speakerManager) {
         this.clientSocket = clientSocket;
         this.dbm = dbm;
@@ -287,38 +289,38 @@ public class SocketHandler extends Thread {
 	    	
 	    		System.out.println("FUORI WHILE");
 
-	        	String filePath = "";
-	        	// first create file object for file placed at location
+	        	final String CSV_DIRECTORY_PATH = "";
+	        	final String CSV_FILENAME = referencePoint.getId() + CSV_EXTENSION;
+	            final String CSV_LOCATION = CSV_DIRECTORY_PATH + "/" + CSV_FILENAME;
+	            // first create file object for file placed at location
 	            // specified by filepath
-	            File file = new File(filePath);
-	            // name of generated csv
-	            final String CSV_LOCATION = referencePoint.getId() + ;
+	            File file = new File(CSV_LOCATION);
 	            
 	            // Creating writer class to generate
 	            // csv file
-	            FileWriter writer = new FileWriter(CSV_LOCATION);
+	            FileWriter writer = new FileWriter(file);
 	            
 	            
 	            // Create Mapping Strategy to arrange the 
 	            // column name in order
-	            ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
+	            ColumnPositionMappingStrategy<ScanResult> mappingStrategy = new ColumnPositionMappingStrategy<ScanResult>();
 	            mappingStrategy.setType(ScanResult.class);
 	  
 	            
+	            // Arrange column name as provided in below array.
 	            Field fields[] = ScanResult.class.getDeclaredFields();
+	            String[] columns = new String[fields.length];
 	            for (int i = 0; i < fields.length; i++)
 	            {
+	            	columns[i] = fields[i].getName();
 	                System.out.println("Variable Name is : " + fields[i].getName());
 	            }
 	            
-	            
-	            // Arrange column name as provided in below array.
-	            String[] columns = new String[] { "BSSID", "SSID", "level" };
 	            mappingStrategy.setColumnMapping(columns);
 	  
 	            // Creating StatefulBeanToCsv object
-	            StatefulBeanToCsvBuilder<ScanResult> builder = new StatefulBeanToCsvBuilder(writer);
-	            StatefulBeanToCsv beanWriter = builder.withMappingStrategy(mappingStrategy).build();
+	            StatefulBeanToCsvBuilder<ScanResult> builder = new StatefulBeanToCsvBuilder<ScanResult>(writer);
+	            StatefulBeanToCsv<ScanResult> beanWriter = builder.withMappingStrategy(mappingStrategy).build();
 	  
 	            // Write list to StatefulBeanToCsv object
 	            beanWriter.write(scanResultList);
