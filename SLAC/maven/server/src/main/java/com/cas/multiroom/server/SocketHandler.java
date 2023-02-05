@@ -5,6 +5,7 @@ import com.cas.multiroom.server.database.DatabaseManager;
 import com.cas.multiroom.server.localization.ReferencePoint;
 import com.cas.multiroom.server.localization.ScanResult;
 import com.cas.multiroom.server.messages.localization.MessageFingerprint;
+import com.cas.multiroom.server.messages.localization.MessageNewReferencePoint;
 import com.cas.multiroom.server.messages.localization.MessageReferencePointResult;
 import com.cas.multiroom.server.messages.connection.MessageConnection;
 import com.cas.multiroom.server.messages.connection.MessageConnectionBack;
@@ -162,12 +163,24 @@ public class SocketHandler extends Thread {
             return;
         }
     	
+        MessageNewReferencePoint resultMessage;
+        ReferencePoint referencePoint;
+        
         try {
 	    	String json = dataIn.readUTF();
 	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	    	
-	    	while (!messageType.equals("END_MAPPING_PHASE")) {
-	    		createReferencePointCSV();
+	    	while (messageType.equals("NEW_REFERENCE_POINT")) {
+	    		resultMessage = gson.fromJson(json, MessageNewReferencePoint.class);
+	        	referencePoint = resultMessage.getReferencePoint();
+	        	
+	    		// FARE IL SALVATAGGIO NEL DB DEL NUOVO REFERENCE POINT PASSATO
+	        	
+	    		createReferencePointCSV(referencePoint);
+	    	}
+	    	
+	    	if (messageType.equals("END_MAPPING_PHASE")) {
+	    		
 	    	}
         }
         catch (Exception e) {
@@ -176,7 +189,7 @@ public class SocketHandler extends Thread {
     }
     
     
-    public void createReferencePointCSV() {
+    public void createReferencePointCSV(ReferencePoint referencePoint) {
     	DataInputStream dataIn = null;
         DataOutputStream dataOut = null;
         Gson gson = new Gson();
@@ -193,6 +206,7 @@ public class SocketHandler extends Thread {
             return;
         }
     	
+        
         MessageFingerprint messageFingerprint;
         List<ScanResult> scanResultList = new ArrayList<ScanResult>();
         
@@ -201,8 +215,7 @@ public class SocketHandler extends Thread {
 	    	String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	    	
 	    	if (messageType.equals("START_SCAN_REFERENCE_POINT")) {
-	        	MessageStartScanReferencePoint resultMessage = gson.fromJson(json, MessageStartScanReferencePoint.class);
-	        	ReferencePoint referencePoint = resultMessage.getReferencePoint();
+	        	//MessageStartScanReferencePoint resultMessage = gson.fromJson(json, MessageStartScanReferencePoint.class);
 	        	
 	        	json = dataIn.readUTF();
 	        	messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();

@@ -23,7 +23,8 @@ public abstract class Message implements Serializable {
 	public String getType() {
 		return this.type;
 	}
-
+	
+	/*
     public byte[] toByteArray() throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -45,4 +46,5 @@ public abstract class Message implements Serializable {
 	public String toJson(Gson serializer) {
         return serializer.toJson(this);
     }
+    */
 }
