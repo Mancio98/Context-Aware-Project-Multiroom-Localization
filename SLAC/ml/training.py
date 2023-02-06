@@ -1,5 +1,7 @@
 import configparser
-import numpy as nm  
+import glob
+import numpy as nm
+import os
 import pandas as pd
 from pandas import read_csv
 import pickle
@@ -23,6 +25,14 @@ config.read("config.ini")
 
 
 # INSERIRE QUI LA FASE DI COMBINAZIONE DEI VARI CSV IN UNO UNICO CHIAMATO Dataset.csv
+csv_files = os.listdir(config["ml"]["MEASUREMENT_DIRECTORY"])
+for file in csv_files :
+            df_temp = pd.read_csv(file)
+            df_append = df_append.append(df_temp, ignore_index = True)
+
+
+df_append.to_csv(config["ml"]["DATASET_DIRECTORY"] + config["ml"]["DATASET_FILE"])
+
 
 
 data_set = pd.read_csv(config["ml"]["DATASET_DIRECTORY"] + config["ml"]["DATASET_FILE"], header = None, delimiter = ";", skiprows = 1)  
