@@ -3,7 +3,6 @@ package com.example.multiroomlocalization.socket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -11,6 +10,7 @@ import android.util.Log;
 
 import com.example.multiroomlocalization.Fingerprint;
 import com.example.multiroomlocalization.ReferencePoint;
+import com.example.multiroomlocalization.ScanResult;
 import com.example.multiroomlocalization.ScanService;
 import com.example.multiroomlocalization.messages.Message;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
@@ -88,7 +88,6 @@ public class ClientSocket extends Thread {
     }
 
     public AsyncTask<Void,Void,Void> createMessageNewReferencePoint(ReferencePoint ref){
-        System.out.println("ENTRATO QUA");
         return new MessageNewReferencePoint(ref);
     }
 
@@ -99,60 +98,14 @@ public class ClientSocket extends Thread {
     public AsyncTask<Void,Void,Void> createMessageEndScanReferencePoint(){
         return new MessageEndScanReferencePoint();
     }
+
+    public AsyncTask<Void,Void,Void> createMessageFingerprint(List<ScanResult> fingerprint){
+        return new MessageFingerprint(fingerprint);
+    }
+
     public void setContext(Context context){
         this.context = context;
     }
-
-    /*public void startScan(){
-        boolean success = wifiManager.startScan();
-        if (!success) {
-            // scan failure handling
-            scanFailure();
-        }
-    }*/
-
-    private MessageFingerprint scanSuccess() {
-        List<ScanResult> results = wifiManager.getScanResults();
-        ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
-        if(results.size()<1){
-            return null;
-        }
-        for (ScanResult res : results ) {
-            scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
-            //System.out.println("QUI SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-        }
-
-
-        Fingerprint fingerprint = new Fingerprint(scanResult);
-        // CHIAMARE METODO PER PER LE FINGERPRINT
-
-        MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
-
-        return messageFingerprint;
-    }
-
-    private MessageFingerprint scanFailure() {
-        // handle failure: new scan did NOT succeed
-        // consider using old scan results: these are the OLD results!
-        List<ScanResult> results = wifiManager.getScanResults();
-
-        //INVIO MESSAGGIO
-        ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
-        for ( ScanResult res : results ) {
-            scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
-            Log.println(Log.VERBOSE, "", "ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-            //System.out.println("ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-        }
-
-        Fingerprint fingerprint = new Fingerprint(scanResult);
-        // CHIAMARE METODO PER PER LE FINGERPRINT
-
-        MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
-
-        return messageFingerprint;
-    }
-
-
 
     //This thread inizialize the socket and requires for a connection to the server
     public class Connect extends AsyncTask<Void,Void,Void> {
@@ -253,10 +206,7 @@ public class ClientSocket extends Thread {
 
     public class MessageStartScanReferencePoint extends AsyncTask<Void,Void,Void> {
 
-        //ReferencePoint referencePoint;
-
-        public MessageStartScanReferencePoint(){//ReferencePoint ref){
-            //this.referencePoint = ref;
+        public MessageStartScanReferencePoint(){
         }
 
         @Override
@@ -264,8 +214,7 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint();//referencePoint);
-                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint.class);
-                //System.out.println(json);
+                String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -282,8 +231,7 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
-                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase.class);
-                //System.out.println(json);
+                String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -300,8 +248,7 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
-                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase.class);
-                //System.out.println(json);
+                String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -321,8 +268,7 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
-                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint.class);
-                //System.out.println(json);
+                String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -345,8 +291,7 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
-                String json = gson.toJson(message);//, com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint.class);
-                //System.out.println(json);
+                String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -357,6 +302,28 @@ public class ClientSocket extends Thread {
         }
     }
 
+    public class MessageFingerprint extends AsyncTask<Void,Void,Void>{
+
+        List<ScanResult> fingerprint;
+
+        public MessageFingerprint(List<ScanResult> finger){
+            this.fingerprint = finger;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 
 }
 
