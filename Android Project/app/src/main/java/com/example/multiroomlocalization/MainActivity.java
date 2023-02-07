@@ -912,37 +912,47 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onFinish() {
-                timer.setText("Stanza completata");
+
                 buttonNext.setEnabled(true);
+                buttonNext.setText("STOP");
+                buttonNext.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        timer.setText("Stanza completata");
 
-                mHandler.removeCallbacks(scanRunnable);
+                        mHandler.removeCallbacks(scanRunnable);
 
-                resultScan.put(referencePoints.get(index).getId(),scanResultArrayList);
-                System.out.println(resultScan);
+                        resultScan.put(referencePoints.get(index).getId(),scanResultArrayList);
+                        System.out.println(resultScan);
 
-                if (index+1<referencePoints.size()){
-                    buttonNext.setText("Next");
-                    buttonNext.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.cancel();
-                            clientSocket.createMessageEndScanReferencePoint().execute();
-                            createPopupRoomTraining(referencePoints.get(index+1), index+1);
+                        if (index+1<referencePoints.size()){
+                            buttonNext.setText("Next");
+                            buttonNext.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.cancel();
+                                    clientSocket.createMessageEndScanReferencePoint().execute();
+                                    createPopupRoomTraining(referencePoints.get(index+1), index+1);
+                                }
+                            });
                         }
-                    });
-                }
-                else {
-                    buttonNext.setText("Finish");
-                    buttonNext.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            clientSocket.createMessageEndScanReferencePoint().execute();
-                            clientSocket.createMessageEndMappingPhase().execute();
-                            // SALVATAGGIO DATI
-                            dialog.cancel();
+                        else {
+                            buttonNext.setText("Finish");
+                            buttonNext.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    clientSocket.createMessageEndScanReferencePoint().execute();
+                                    clientSocket.createMessageEndMappingPhase().execute();
+                                    // SALVATAGGIO DATI
+                                    dialog.cancel();
+                                }
+                            });
                         }
-                    });
-                }
+
+                    }
+                });
+
+
 
 
             }

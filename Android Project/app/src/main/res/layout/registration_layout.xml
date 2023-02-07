@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_centerHorizontal="true"
-    android:orientation="vertical"
-    tools:context=".LoginActivity">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/RegistrationText"
@@ -14,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:text="Login"
+        android:text="Sign in"
         android:textAlignment="center"
         android:textSize="60sp" />
 
@@ -59,15 +58,6 @@
         android:layout_gravity="center"
         android:layout_marginTop="100dp"
         android:layout_marginBottom="20dp"
-        android:text="Login" />
+        android:text="Crea account" />
 
-    <TextView
-        android:id="@+id/textRegistration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:linksClickable="true"
-        android:text="Create an account"
-        android:textAlignment="center"
-        android:textSize="16sp" />
 </LinearLayout>
