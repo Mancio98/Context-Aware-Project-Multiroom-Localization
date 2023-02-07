@@ -1,18 +1,22 @@
 package com.cas.multiroom.server.messages.localization;
 
 import com.cas.multiroom.server.messages.Message;
-import com.cas.multiroom.server.localization.Fingerprint;
+
+import java.util.List;
+
+import com.cas.multiroom.server.localization.ScanResult;
 
 
 public class MessageFingerprint extends Message {
-    public Fingerprint fingerprint;
+    public List<ScanResult> fingerprint;
 
-    public MessageFingerprint(Fingerprint fingerprint) {
+    public MessageFingerprint(List<ScanResult> scanResult) {
         super("FINGERPRINT");
-        this.fingerprint = fingerprint;
+        this.fingerprint = scanResult;
     }
 
-    public Fingerprint getFingerprint() {
+    public List<ScanResult> getFingerprint() {
         return this.fingerprint;
     }
+    
 }

@@ -101,6 +101,10 @@
                 android:value="" />
         </activity>
 
+        <activity android:name=".RegistrationActivity">
+
+        </activity>
+
         <service
             android:name=".ScanService"
             android:exported="false" />

@@ -224,7 +224,11 @@ public class SocketHandler extends Thread {
 	    		// FARE IL SALVATAGGIO NEL DB DEL NUOVO REFERENCE POINT PASSATO
 	        	
 	    		createReferencePointCSV(referencePoint);
+	    		
+	    		json = dataIn.readUTF();
+		    	messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	    	}
+	    	
 	    	
 	    	if (messageType.equals("END_MAPPING_PHASE")) {
 	    		System.out.println("USCITO MAPPING PHASE");
@@ -280,7 +284,7 @@ public class SocketHandler extends Thread {
 		    			return;
 		    		}
 		        	
-		            scanResultList.addAll(messageFingerprint.getFingerprint().getScanResultList());
+		            scanResultList.addAll(messageFingerprint.getFingerprint());//.getScanResultList());
 		            
 		            json = dataIn.readUTF();
 		            messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
@@ -289,7 +293,11 @@ public class SocketHandler extends Thread {
 	    	
 	    		System.out.println("FUORI WHILE");
 
+<<<<<<< HEAD
 	        	final String CSV_DIRECTORY_PATH = "";
+=======
+	        	final String CSV_DIRECTORY_PATH = ".";
+>>>>>>> 8b3202b6c7b5adce2bf4a7f9343fdbdcf29d45e3
 	        	final String CSV_FILENAME = referencePoint.getId() + CSV_EXTENSION;
 	            final String CSV_LOCATION = CSV_DIRECTORY_PATH + "/" + CSV_FILENAME;
 	            // first create file object for file placed at location
