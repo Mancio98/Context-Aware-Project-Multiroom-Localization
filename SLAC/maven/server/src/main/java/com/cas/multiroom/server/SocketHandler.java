@@ -3,6 +3,7 @@ package com.cas.multiroom.server;
 
 import com.cas.multiroom.server.database.DatabaseManager;
 import com.cas.multiroom.server.localization.ReferencePoint;
+import com.cas.multiroom.server.localization.ReferencePointMap;
 import com.cas.multiroom.server.localization.ScanResult;
 import com.cas.multiroom.server.messages.localization.MessageFingerprint;
 import com.cas.multiroom.server.messages.localization.MessageNewReferencePoint;
@@ -29,6 +30,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import java.util.Objects;
@@ -40,6 +44,9 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 
 import java.lang.reflect.Field;
+
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvBindByPosition;
 
 
 public class SocketHandler extends Thread {
@@ -243,6 +250,11 @@ public class SocketHandler extends Thread {
     
     
     public void createReferencePointCSV(ReferencePoint referencePoint) {
+    	LinkedHashMap<String, Integer> columns = new LinkedHashMap<String, Integer>();
+    	int c = 0;
+    	List<List<ScanResult>> df_scans = new ArrayList<List<ScanResult>>();
+    	List<ReferencePointMap> list = new ArrayList<ReferencePointMap>();
+    	
     	DataInputStream dataIn = null;
         DataOutputStream dataOut = null;
         Gson gson = new Gson();
@@ -284,20 +296,41 @@ public class SocketHandler extends Thread {
 		    			return;
 		    		}
 		        	
-		            scanResultList.addAll(messageFingerprint.getFingerprint());//.getScanResultList());
+		    		List<ScanResult> scan = messageFingerprint.getFingerprint(); //.getScanResultList());
+		    		for (ScanResult sr : scanResultList)
+		    		{
+		    			if (!columns.containsKey(sr.getBSSID()))
+		    			{
+		    				columns.put(sr.getBSSID(), c);
+		    				c++;
+		    			}
+		    		}
+		    		df_scans.add(scan);
+		            scanResultList.addAll(scan);
 		            
 		            json = dataIn.readUTF();
 		            messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
-		    	}
-	    	
+	        	}
 	    	
 	    		System.out.println("FUORI WHILE");
+	    		
+	    		Integer level = null;
+	    		for (List<ScanResult> lsr : df_scans) {
+    				//list.add(new ReferencePointMap());
+    				list.get(list.size() - 1).setName(referencePoint.getId());
+    				for (ScanResult sr : lsr) {
+    					for (String ap : columns.keySet()) {
+    						level = null;
+	    					if (ap.equals(sr.getBSSID())) {
+	    						level = sr.getLevel();
+	    					}
+	    					list.get(list.size() - 1).setScans(columns.get(ap), level);
+	    				}
+	    			}
+	    		}
+	    		
 
-<<<<<<< HEAD
-	        	final String CSV_DIRECTORY_PATH = "";
-=======
 	        	final String CSV_DIRECTORY_PATH = ".";
->>>>>>> 8b3202b6c7b5adce2bf4a7f9343fdbdcf29d45e3
 	        	final String CSV_FILENAME = referencePoint.getId() + CSV_EXTENSION;
 	            final String CSV_LOCATION = CSV_DIRECTORY_PATH + "/" + CSV_FILENAME;
 	            // first create file object for file placed at location
@@ -311,27 +344,35 @@ public class SocketHandler extends Thread {
 	            
 	            // Create Mapping Strategy to arrange the 
 	            // column name in order
-	            ColumnPositionMappingStrategy<ScanResult> mappingStrategy = new ColumnPositionMappingStrategy<ScanResult>();
-	            mappingStrategy.setType(ScanResult.class);
+	            ColumnPositionMappingStrategy<ReferencePointMap> mappingStrategy = new ColumnPositionMappingStrategy<ReferencePointMap>();
+	            mappingStrategy.setType(ReferencePointMap.class);
 	  
 	            
 	            // Arrange column name as provided in below array.
-	            Field fields[] = ScanResult.class.getDeclaredFields();
-	            String[] columns = new String[fields.length];
+	            //Field fields[] = ScanResult.class.getDeclaredFields();
+	            //String[] columnsCsv = new String[fields.length];
+	            String[] columnsCsv = new String[columns.keySet().size() + 1];
+	            columnsCsv = (String[]) columns.keySet().toArray();
+	            columnsCsv[columns.keySet().size()] = "REFERENCE POINT";
+	            /*
 	            for (int i = 0; i < fields.length; i++)
 	            {
-	            	columns[i] = fields[i].getName();
+	            	columnsCsv[i] = fields[i].getName();
 	                System.out.println("Variable Name is : " + fields[i].getName());
 	            }
+	            */
 	            
-	            mappingStrategy.setColumnMapping(columns);
+	            mappingStrategy.setColumnMapping(columnsCsv);
 	  
 	            // Creating StatefulBeanToCsv object
-	            StatefulBeanToCsvBuilder<ScanResult> builder = new StatefulBeanToCsvBuilder<ScanResult>(writer);
-	            StatefulBeanToCsv<ScanResult> beanWriter = builder.withMappingStrategy(mappingStrategy).build();
+	            StatefulBeanToCsvBuilder<ReferencePointMap> builder = new StatefulBeanToCsvBuilder<ReferencePointMap>(writer);
+	            StatefulBeanToCsv<ReferencePointMap> beanWriter = builder.withMappingStrategy(mappingStrategy).build();
 	  
+	            CSVWriter csvwriter = new CSVWriter(writer);
+	            csvwriter.writeNext(columnsCsv);
+	            csvwriter.close();
 	            // Write list to StatefulBeanToCsv object
-	            beanWriter.write(scanResultList);
+	            beanWriter.write(list);
 	  			
 	  
 	            // closing the writer object
@@ -550,4 +591,47 @@ public class SocketHandler extends Thread {
 		this.interrupt();
 	}
 	*/
+	
+	public class Product {
+        @CsvBindByName(column = "ap")
+        public String ap[];
+		@CsvBindByPosition(position = 0)
+        @CsvBindByName(column = "productCode")
+        public String id;
+		@CsvBindByPosition(position = 1)
+        @CsvBindByName(column = "MFD")
+		public String member2;
+        @CsvBindByName(column = "REFERENCE POINT")
+		public String referencePoint;
+
+        public Product(String id, String member2, String referencePoint) {
+            this.id = id;
+            this.member2 = member2;
+            this.referencePoint = referencePoint;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getMember2() {
+            return member2;
+        }
+
+        public void setMember2(String member2) {
+            this.member2 = member2;
+        }
+
+        public String getReferencePoint() {
+            return referencePoint;
+        }
+
+        public void setReferencePoint(String referencePoint) {
+            this.referencePoint = referencePoint;
+        }
+    }
 }

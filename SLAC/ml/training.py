@@ -24,14 +24,14 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 
+data_set = pd.DataFrame()
 # INSERIRE QUI LA FASE DI COMBINAZIONE DEI VARI CSV IN UNO UNICO CHIAMATO Dataset.csv
 csv_files = os.listdir(config["ml"]["MEASUREMENT_DIRECTORY"])
 for file in csv_files :
-            df_temp = pd.read_csv(file)
-            df_append = df_append.append(df_temp, ignore_index = True)
+            df_csv = pd.read_csv(file)
+            data_set = data_set.append(df_csv, ignore_index = True)
 
-
-df_append.to_csv(config["ml"]["DATASET_DIRECTORY"] + config["ml"]["DATASET_FILE"])
+data_set.to_csv(config["ml"]["DATASET_DIRECTORY"] + config["ml"]["DATASET_FILE"])
 
 
 
