@@ -3,18 +3,22 @@ package com.example.multiroomlocalization;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.multiroomlocalization.socket.ClientSocket;
+
 public class RegistrationActivity  extends AppCompatActivity {
     Button registration;
     boolean userEmpty;
     boolean passwordEmpty;
-    EditText user;
+    EditText username;
     EditText password;
+    ClientSocket client;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,10 +28,14 @@ public class RegistrationActivity  extends AppCompatActivity {
         registration.setEnabled(false);
         userEmpty = true;
         passwordEmpty = true;
-        user = findViewById(R.id.editMailRegistration);
+        username = findViewById(R.id.editMailRegistration);
         password = findViewById(R.id.editPasswordRegistration);
 
-        user.addTextChangedListener(new TextWatcher() {
+        client = new ClientSocket();
+        client.setContext(getApplicationContext());
+        client.start();
+
+        username.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -73,6 +81,16 @@ public class RegistrationActivity  extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        registration.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                User user = new User(username.getText().toString(),password.getText().toString());
+
+                client.createMessageRegistration(user).execute();
 
             }
         });
