@@ -48,6 +48,11 @@ import java.lang.reflect.Field;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 
+import tech.tablesaw.api.IntColumn;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.Column;
+
+
 
 public class SocketHandler extends Thread {
     private final Socket clientSocket;
@@ -127,6 +132,12 @@ public class SocketHandler extends Thread {
 			String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
 	        if (messageType.equals("START_MAPPING_PHASE")) {
 	        	mappingPhase(dataIn);
+	        }
+	        else if (messageType.equals("REGISTRATION")) {
+	        	dbm.insertUser();
+	        }
+	        else if (messageType.equals("LOGIN")) {
+	        	dbm.selectUser();
 	        }
 		}
 		catch (IOException e) {
@@ -215,6 +226,7 @@ public class SocketHandler extends Thread {
         	System.out.println("UGUALIOOOOOI");
         }
         
+        
         MessageNewReferencePoint resultMessage;
         ReferencePoint referencePoint;
         
@@ -271,6 +283,11 @@ public class SocketHandler extends Thread {
             return;
         }
     	
+        // Create table with new reference point id (name)
+        Table table = Table.create(referencePoint.getId());
+        String srBSSID = "";
+        int size = -1 ;
+        IntColumn columnFound = null;
         
         MessageFingerprint messageFingerprint;
         List<ScanResult> scanResultList = new ArrayList<ScanResult>();
@@ -296,17 +313,45 @@ public class SocketHandler extends Thread {
 		    			return;
 		    		}
 		        	
+		    		
 		    		List<ScanResult> scan = messageFingerprint.getFingerprint(); //.getScanResultList());
+		    		size = -1;
 		    		for (ScanResult sr : scanResultList)
 		    		{
-		    			if (!columns.containsKey(sr.getBSSID()))
-		    			{
-		    				columns.put(sr.getBSSID(), c);
-		    				c++;
+		    			columnFound = null;
+		    			srBSSID = sr.getBSSID();
+		    			for (Column column : table.columns()) {
+		    				if (srBSSID.equals(column.name())) {
+		    					columnFound = (IntColumn)column;
+		    				}
+		    			}
+		    			
+		    			if (columnFound != null) {
+		    				columnFound.append(sr.getLevel());
+		    				
+		    				if (size == -1) {
+		    					size = columnFound.size();
+		    				}
+		    			}
+		    			else {
+		    				IntColumn intColumn = IntColumn.create(srBSSID);
+	    					for (int i = 0; i < table.rowCount(); i++) {
+	    						intColumn.appendMissing();
+	    					}
+	    					intColumn.append(sr.getLevel());
+	    					table.addColumns(intColumn);
+	    					
+	    					if (size == -1) {
+		    					size = columnFound.size();
+		    				}
 		    			}
 		    		}
-		    		df_scans.add(scan);
-		            scanResultList.addAll(scan);
+		    		
+		    		for (Column column : table.columns()) {
+	    				if (column.size() < size) {
+	    					((IntColumn)column).appendMissing();
+	    				}
+	    			}
 		            
 		            json = dataIn.readUTF();
 		            messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
@@ -314,25 +359,14 @@ public class SocketHandler extends Thread {
 	    	
 	    		System.out.println("FUORI WHILE");
 	    		
-	    		Integer level = null;
-	    		for (List<ScanResult> lsr : df_scans) {
-    				//list.add(new ReferencePointMap());
-    				list.get(list.size() - 1).setName(referencePoint.getId());
-    				for (ScanResult sr : lsr) {
-    					for (String ap : columns.keySet()) {
-    						level = null;
-	    					if (ap.equals(sr.getBSSID())) {
-	    						level = sr.getLevel();
-	    					}
-	    					list.get(list.size() - 1).setScans(columns.get(ap), level);
-	    				}
-	    			}
-	    		}
-	    		
-
-	        	final String CSV_DIRECTORY_PATH = ".";
+	    		final String CSV_DIRECTORY_PATH = ".";
 	        	final String CSV_FILENAME = referencePoint.getId() + CSV_EXTENSION;
 	            final String CSV_LOCATION = CSV_DIRECTORY_PATH + "/" + CSV_FILENAME;
+	            
+	    		table.write().csv(CSV_LOCATION);
+	    		
+
+	        	/*
 	            // first create file object for file placed at location
 	            // specified by filepath
 	            File file = new File(CSV_LOCATION);
@@ -354,13 +388,7 @@ public class SocketHandler extends Thread {
 	            String[] columnsCsv = new String[columns.keySet().size() + 1];
 	            columnsCsv = (String[]) columns.keySet().toArray();
 	            columnsCsv[columns.keySet().size()] = "REFERENCE POINT";
-	            /*
-	            for (int i = 0; i < fields.length; i++)
-	            {
-	            	columnsCsv[i] = fields[i].getName();
-	                System.out.println("Variable Name is : " + fields[i].getName());
-	            }
-	            */
+	            
 	            
 	            mappingStrategy.setColumnMapping(columnsCsv);
 	  
@@ -377,6 +405,7 @@ public class SocketHandler extends Thread {
 	  
 	            // closing the writer object
 	            writer.close();
+	            */
 	    	}
 	    	else {
 	    		return;
