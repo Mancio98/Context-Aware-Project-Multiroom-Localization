@@ -17,8 +17,13 @@ import com.example.multiroomlocalization.Fingerprint;
 import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
 import com.example.multiroomlocalization.ScanService;
+<<<<<<< HEAD
 >>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
+=======
+import com.example.multiroomlocalization.User;
+>>>>>>> b9169371c0b82af5d25afc787f9ec486cabdd2da
 import com.example.multiroomlocalization.messages.Message;
+import com.example.multiroomlocalization.messages.connection.MessageRegistration;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
 import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
@@ -55,7 +60,7 @@ public class ClientSocket extends Thread {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip = "10.0.2.2";
+    private String ip ="192.168.1.51";// "10.0.2.2";
     WifiManager wifiManager;
     Context context;
     int i=0;
@@ -152,6 +157,15 @@ public class ClientSocket extends Thread {
     public AsyncTask<Void,Void,Void> createMessageFingerprint(List<ScanResult> fingerprint){
         return new MessageFingerprint(fingerprint);
     }
+
+    public AsyncTask<Void,Void,Void> createMessageRegistration(User user){
+        return new MessageRegistration(user);
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageLogin(User user){
+        return new MessageLogin(user);
+    }
+
 
     public void setContext(Context context){
         this.context = context;
@@ -434,6 +448,52 @@ public class ClientSocket extends Thread {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageRegistration extends AsyncTask<Void,Void,Void>{
+
+        User user;
+
+        public MessageRegistration(User user){
+            this.user = user;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.connection.MessageRegistration message = new com.example.multiroomlocalization.messages.connection.MessageRegistration(user);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageLogin extends AsyncTask<Void,Void,Void>{
+
+        User user;
+
+        public MessageLogin(User user){
+            this.user = user;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.connection.MessageLogin message = new com.example.multiroomlocalization.messages.connection.MessageLogin(user);
                 String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();

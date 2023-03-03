@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.multiroomlocalization.socket.ClientSocket;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText userInput;
@@ -22,6 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     boolean userEmpty;
     boolean passwordEmpty;
     boolean bool;
+    ClientSocket client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,10 @@ public class LoginActivity extends AppCompatActivity {
         SpannableString content = new SpannableString( "Create an account" ) ;
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
+
+        client = new ClientSocket();
+        client.setContext(getApplicationContext());
+        client.start();
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,12 +112,16 @@ public class LoginActivity extends AppCompatActivity {
                 String email = userInput.getText().toString();
                 String password = passwordInput.getText().toString();
 
-                if(email.equals("admin") && password.equals("admin")){
+                User user= new User(email,password);
+                client.createMessageLogin(user).execute();
+                /*if(email.equals("admin") && password.equals("admin")){
                     loginSuccesfull();
                 }
                 else {
                     Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
                 }
+
+                 */
 
                 /*System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
                 // Check if the notification policy access has been granted for the app.

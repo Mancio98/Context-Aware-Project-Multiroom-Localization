@@ -3,13 +3,19 @@ package com.cas.multiroom.server;
 
 import com.cas.multiroom.server.database.DatabaseManager;
 import com.cas.multiroom.server.localization.ReferencePoint;
+<<<<<<< HEAD
 import com.cas.multiroom.server.localization.ReferencePointMap;
+=======
+//import com.cas.multiroom.server.localization.ReferencePointMap;
+>>>>>>> b9169371c0b82af5d25afc787f9ec486cabdd2da
 import com.cas.multiroom.server.localization.ScanResult;
 import com.cas.multiroom.server.messages.localization.MessageFingerprint;
 import com.cas.multiroom.server.messages.localization.MessageNewReferencePoint;
 import com.cas.multiroom.server.messages.localization.MessageReferencePointResult;
 import com.cas.multiroom.server.messages.connection.MessageConnection;
 import com.cas.multiroom.server.messages.connection.MessageConnectionBack;
+import com.cas.multiroom.server.messages.connection.MessageLogin;
+import com.cas.multiroom.server.messages.connection.MessageRegistration;
 import com.cas.multiroom.server.messages.Message;
 import com.cas.multiroom.server.messages.localization.MessageStartScanReferencePoint;
 
@@ -130,14 +136,25 @@ public class SocketHandler extends Thread {
 		try {
 			json = dataIn.readUTF();
 			String messageType = gson.fromJson(json, JsonObject.class).get("type").getAsString();
+			Message message;
 	        if (messageType.equals("START_MAPPING_PHASE")) {
 	        	mappingPhase(dataIn);
 	        }
 	        else if (messageType.equals("REGISTRATION")) {
+<<<<<<< HEAD
 	        	dbm.insertUser();
 	        }
 	        else if (messageType.equals("LOGIN")) {
 	        	dbm.selectUser();
+=======
+	        	message = gson.fromJson(json, MessageRegistration.class);
+	        	dbm.insertUser(((MessageRegistration) message).getUser());
+	        }
+	        else if (messageType.equals("LOGIN")) {
+	        	message= gson.fromJson(json, MessageLogin.class);
+
+	        	dbm.selectUser(((MessageLogin) message).getUser());
+>>>>>>> b9169371c0b82af5d25afc787f9ec486cabdd2da
 	        }
 		}
 		catch (IOException e) {
@@ -265,7 +282,11 @@ public class SocketHandler extends Thread {
     	LinkedHashMap<String, Integer> columns = new LinkedHashMap<String, Integer>();
     	int c = 0;
     	List<List<ScanResult>> df_scans = new ArrayList<List<ScanResult>>();
+<<<<<<< HEAD
     	List<ReferencePointMap> list = new ArrayList<ReferencePointMap>();
+=======
+    	//List<ReferencePointMap> list = new ArrayList<ReferencePointMap>();
+>>>>>>> b9169371c0b82af5d25afc787f9ec486cabdd2da
     	
     	DataInputStream dataIn = null;
         DataOutputStream dataOut = null;
