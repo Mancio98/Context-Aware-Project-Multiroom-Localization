@@ -33,7 +33,7 @@ android {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -44,11 +44,8 @@ dependencies {
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'com.sothree.slidinguppanel:library:3.4.0'
 
     implementation("com.vanniktech:android-image-cropper:4.5.0")
-
-    // dependency for exoplayer
 
     // dependency for exoplayer
     implementation 'com.google.android.exoplayer:exoplayer:2.18.4'
@@ -70,7 +67,7 @@ dependencies {
 
     // for GSON
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.4'
 
+    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.4'
 
 }

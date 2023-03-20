@@ -1,5 +1,10 @@
 package com.example.multiroomlocalization.socket;
 
+<<<<<<< HEAD
+import android.os.AsyncTask;
+
+import com.example.multiroomlocalization.localization.Fingerprint;
+=======
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +16,7 @@ import android.util.Log;
 
 import com.example.multiroomlocalization.Fingerprint;
 import com.example.multiroomlocalization.ScanService;
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 import com.example.multiroomlocalization.messages.Message;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
@@ -19,11 +25,26 @@ import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+<<<<<<< HEAD
+import java.io.ObjectInputStream;
+=======
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClientSocket extends Thread {
+<<<<<<< HEAD
+    private final int port = 49152;
+    private Socket socket;
+    private DataInputStream dataIn;
+    private DataOutputStream dataOut;
+
+    private String ip;
+
+    @Override
+    public void run() {
+=======
     private final int port = 8777;
     private Socket socket;
     private DataInputStream dataIn;
@@ -40,6 +61,7 @@ public class ClientSocket extends Thread {
     public void run() {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
         try {
             socket = new Socket(ip, port);
             dataIn = new DataInputStream(socket.getInputStream());
@@ -49,6 +71,30 @@ public class ClientSocket extends Thread {
             e.printStackTrace();
         }
 
+<<<<<<< HEAD
+
+        while(true) {
+            Fingerprint fingerprint = new Fingerprint();
+            // CHIAMARE METODO PER PER LE FINGERPRINT
+
+            MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
+
+            Gson gson = new Gson();
+            try {
+                dataOut.writeUTF(gson.toJson(messageFingerprint, MessageFingerprint.class));
+
+                String result = dataIn.readUTF();
+                System.out.print(result);
+
+                MessageReferencePointResult messageResult = gson.fromJson(result, MessageReferencePointResult.class);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+=======
         scanService = new ScanService(context);
 
         scanService.registerReceiver(new BroadcastReceiver() {
@@ -132,6 +178,7 @@ public class ClientSocket extends Thread {
 
 
 
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
     //This thread inizialize the socket and requires for a connection to the server
     public class Connect extends AsyncTask<Void,Void,Void> {
 
@@ -173,14 +220,29 @@ public class ClientSocket extends Thread {
     //classe per l'invio dei messaggi JSON all'applicativo python
     public class MessageSender extends AsyncTask<Void,Void,Void> {
 
+<<<<<<< HEAD
+        private String message;
+
+        protected MessageSender(Message message) {
+            Gson gson = new Gson();
+            this.message = gson.toJson(message, MessageFingerprint.class);
+=======
         private Message message;
 
         protected MessageSender(Message message){
             this.message = message;
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
+<<<<<<< HEAD
+
+            return null;
+        }
+    }
+}
+=======
             if(message!=null) {
                 Gson gson = new Gson();
                 try {
@@ -230,3 +292,4 @@ public class ClientSocket extends Thread {
 
 }
 
+>>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd

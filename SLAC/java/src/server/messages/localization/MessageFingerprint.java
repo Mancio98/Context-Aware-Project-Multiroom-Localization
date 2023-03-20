@@ -1,16 +1,12 @@
-package com.example.multiroomlocalization.messages.localization;
+package server.messages.localization;
 
-<<<<<<< HEAD
-import com.example.multiroomlocalization.localization.Fingerprint;
-=======
-import com.example.multiroomlocalization.Fingerprint;
->>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
-import com.example.multiroomlocalization.messages.Message;
+import server.messages.Message;
+import server.localization.Fingerprint;
 
 
 public class MessageFingerprint extends Message {
 <<<<<<< HEAD
-	private Fingerprint fingerprint;
+	public Fingerprint fingerprint;
 
 	public MessageFingerprint(Fingerprint fingerprint) {
 		super("FINGERPRINT");
@@ -23,7 +19,7 @@ public class MessageFingerprint extends Message {
         super("FINGERPRINT");
         this.fingerprint = fingerprint;
     }
->>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
+>>>>>>> c9ee19ca7f8f0b4b3e357cd6ae29bfbb2e65ab9b
 
     public Fingerprint getFingerprint() {
         return this.fingerprint;
@@ -32,4 +28,4 @@ public class MessageFingerprint extends Message {
 }
 =======
 }
->>>>>>> ac03508371086e2bae36ec6c0e1a3ba394c9c5cd
+>>>>>>> c9ee19ca7f8f0b4b3e357cd6ae29bfbb2e65ab9b
