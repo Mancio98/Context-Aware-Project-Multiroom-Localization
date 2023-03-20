@@ -97,7 +97,6 @@ public class ListBluetoothAdapter extends ArrayAdapter<ListRoomsElement> {
             }
         });
         spinner.setAdapter(adapter);
-        room.setSpinner(spinner);
 
         return listItem;
     }

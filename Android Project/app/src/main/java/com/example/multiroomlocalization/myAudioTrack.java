@@ -2,10 +2,10 @@ package com.example.multiroomlocalization;
 
 public class myAudioTrack {
 
-    private String path;
-    private String title;
-    private String author;
-    private String duration;
+    private final String path;
+    private final String title;
+    private final String author;
+    private final String duration;
 
     public myAudioTrack(String path, String title, String author, String duration) {
         this.path = path;

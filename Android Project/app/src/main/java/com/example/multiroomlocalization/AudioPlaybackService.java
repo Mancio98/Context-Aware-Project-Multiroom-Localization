@@ -14,10 +14,12 @@ import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -35,8 +37,10 @@ import androidx.media.session.MediaButtonReceiver;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
+
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import java.util.List;
@@ -68,7 +72,8 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     private boolean ongoingCall = false;
 
     private final List<myAudioTrack> trackList = Arrays.asList(new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
-            null, null, null), new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", null, null, null));
+            "ah non lo so io", "lucacotu", null),
+            new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null));
 
     private int playerState = PlaybackState.STATE_NONE;
     private final Handler handler = new Handler();
@@ -122,7 +127,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             super.onSkipToNext();
             if(exoPlayer != null){
                 exoPlayer.seekToNext();
-                System.out.println("vai o no?");
+
                 if(!exoPlayer.isPlaying())
                     exoPlayer.play();
             }
@@ -188,7 +193,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         if(isPlaying) {
             playerState = PlaybackState.STATE_PLAYING;
             MediaMetadataCompat mediaMetadata = new MediaMetadataCompat.Builder()
-                    .putString(MediaMetadata.METADATA_KEY_TITLE, "Song Title")
                     .putLong(MediaMetadata.METADATA_KEY_DURATION, exoPlayer.getDuration())
                     .build();
             mediaSession.setMetadata(mediaMetadata);
@@ -196,6 +200,21 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         }
         else
             playerState = PlaybackState.STATE_PAUSED;
+    }
+
+    @Override
+    public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+        Player.Listener.super.onMediaItemTransition(mediaItem, reason);
+
+
+        MediaMetadataCompat mediaMetadata = null;
+        if (mediaItem != null) {
+            mediaMetadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadata.METADATA_KEY_TITLE, trackList.get(currentTrack).getTitle())
+                    .putString(MediaMetadata.METADATA_KEY_ARTIST, trackList.get(currentTrack).getAuthor())
+                    .build();
+        }
+        mediaSession.setMetadata(mediaMetadata);
     }
 
 
@@ -253,7 +272,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         callStateListener();
         mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
-        updatePlaybackState();
+
 
         // MySessionCallback() has methods that handle callbacks from a media controller
         mediaSession.setCallback(myMediaSessionCallback);
@@ -263,7 +282,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         mediaSession.setActive(true);
 
-
+        updatePlaybackState();
         //downloadAudioTracks();
     }
 
@@ -292,9 +311,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        MediaButtonReceiver.handleIntent(mediaSession, intent);
-        Notification notification = buildNotification();
-        startForeground(1,notification);
+        //MediaButtonReceiver.handleIntent(mediaSession, intent);
+        //Notification notification = buildNotification();
+        ///startForeground(1,notification);
         startExoPlayer();
         return super.onStartCommand(intent, flags, startId);
     }
@@ -364,18 +383,18 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             // Add the media items to be played.
             exoPlayer.addMediaItem(firstItem);
 
-
         }
 
         exoPlayer.setAudioAttributes(attrs2, true);
 
         exoPlayer.addListener(this);
-        mediaSessionConnector = new MediaSessionConnector(mediaSession);
-        mediaSessionConnector.setPlayer(exoPlayer);
+        //mediaSessionConnector = new MediaSessionConnector(mediaSession);
+        //mediaSessionConnector.setPlayer(exoPlayer);
     }
 
     private void startExoPlayer(){
         exoPlayer.prepare();
+        exoPlayer.seekTo(currentTrack,0);
         exoPlayer.play();
 
     }
@@ -446,9 +465,27 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         return new BrowserRoot(MY_EMPTY_MEDIA_ROOT_ID, null);
     }
 
+    private List<MediaBrowserCompat.MediaItem> buildListMediaItem(){
+
+        List<MediaBrowserCompat.MediaItem> list = new ArrayList<>();
+        // Add media items to the children list
+        for(int i=0; i< trackList.size(); i++) {
+            list.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
+                            .setTitle(trackList.get(i).getTitle())
+                            .setMediaUri(Uri.parse(trackList.get(i).getPath()))
+                            .setMediaId("media_item_"+i)
+                            .build(),
+                    MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+        }
+        return list;
+    }
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
 
-        result.sendResult(null);
+        List<MediaBrowserCompat.MediaItem> children = buildListMediaItem();
+
+        result.sendResult(children);
+
     }
 }

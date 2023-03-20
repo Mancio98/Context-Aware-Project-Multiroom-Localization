@@ -23,8 +23,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
         viewBinding true
@@ -51,26 +51,26 @@ dependencies {
     // dependency for exoplayer
 
     // dependency for exoplayer
-    implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.4'
 
     // for core support in exoplayer.
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.18.4'
 
     // for adding dash support in our exoplayer.
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer-dash:2.18.4'
 
     // for adding hls support in exoplayer.
-    implementation 'com.google.android.exoplayer:exoplayer-hls:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer-hls:2.18.4'
 
     // for smooth streaming of video in our exoplayer.
-    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.4'
 
     // for generating default ui of exoplayer
-    implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.2'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.4'
 
     // for GSON
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.2'
+    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.4'
 
 
 }

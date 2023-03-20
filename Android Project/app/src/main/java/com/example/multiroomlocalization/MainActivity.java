@@ -11,6 +11,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
@@ -19,6 +20,7 @@ import android.os.Bundle;
 
 import android.os.Handler;
 
+import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -27,8 +29,10 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -42,12 +46,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.collection.ArraySet;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import java.io.Serializable;
+import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -73,14 +80,14 @@ import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
 import com.example.multiroomlocalization.socket.ClientSocket;
-//import com.yalantis.ucrop.UCrop;
+import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.exoplayer2.ui.StyledPlayerControlView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
-
-import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -135,6 +142,15 @@ public class MainActivity extends AppCompatActivity {
                     MediaControllerCompat.setMediaController(MainActivity.this, mediaController);
 
                     Log.i("connection","connected");
+
+                    mediaBrowser.subscribe("root", new MediaBrowserCompat.SubscriptionCallback() {
+                        @Override
+                        public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
+                            super.onChildrenLoaded(parentId, children);
+
+
+                        }
+                    });
                     // Finish building the UI
                     buildTransportControls();
                 }
@@ -148,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onConnectionFailed() {
                     // The Service has refused our connection
-
+                    mediaBrowser.unsubscribe("root");
                     Log.i("connection","failed");
                 }
             };
@@ -159,14 +175,25 @@ public class MainActivity extends AppCompatActivity {
                 public void onMetadataChanged(MediaMetadataCompat metadata) {
                     super.onMetadataChanged(metadata);
                     int totalDuration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
-                    audioSeekBar.setMax(totalDuration);
+                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_ARTIST));
+                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_TITLE));
+                    if(totalDuration != 0L)
+                        audioSeekBar.setMax(totalDuration);
                 }
+
 
                 @Override
                 public void onPlaybackStateChanged(PlaybackStateCompat state) {
                     if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_pause);
-                        audioSeekBar.setProgress(Math.toIntExact(state.getPosition()));
+                        long pos = state.getPosition();
+                        audioSeekBar.setProgress(Math.toIntExact(pos));
+
+                        int seconds = (int) (pos / 1000) % 60 ;
+                        int minutes = (int) ((pos / (1000*60)) % 60);
+
+                        CharSequence time = minutes+":"+seconds;
+                        timeTextView.setText(time);
 
                     } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
                         playPause.setImageResource(android.R.drawable.ic_media_play);
@@ -182,13 +209,17 @@ public class MainActivity extends AppCompatActivity {
     private int seekPosition;
     private ImageButton nextTrack;
     private ImageButton previousTrack;
-    private Serializable deviceForRoom;
+    private ArrayList<ListRoomsElement> deviceForRoom;
     private boolean onTop = false;
+    private float startPlaylistX;
+    private float startPlaylistY;
+    private ArraySet<Speaker> listSpeaker;
+    private TextView timeTextView;
 
     void buildTransportControls() {
         // Grab the view for the play/pause button
         playPause = (ImageButton) findViewById(R.id.playpause);
-
+        timeTextView = (TextView) findViewById(R.id.audio_time);
         // Attach a listener to the button
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -202,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
                 } else {
                     Log.i("button","play");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(0),null);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(1),null);
                 }
             }});
 
@@ -235,15 +266,15 @@ public class MainActivity extends AppCompatActivity {
         mediaController.registerCallback(controllerCallback);
 
     }
-    @SuppressLint("ClickableViewAccessibility")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_temp_mansio);
+
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        setContentView(R.layout.activity_main_temp_mansio);
         setSupportActionBar(binding.toolbar);
 
         binding.fab.setOnClickListener(new View.OnClickListener() {
@@ -254,41 +285,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button scanBT = (Button) findViewById(R.id.scanBT);
 
-        scanBT.setOnClickListener(askBtPermission);
         activity = this;
 
 
+        setupMusicPlayer();
 
-
-
-
-        audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
-        audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int pos, boolean fromUser) {}
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
-
-                    int progress = seekBar.getProgress();
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().seekTo(progress);
-                }
-            }
-        });
         mediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, AudioPlaybackService.class),
                 connectionCallbacks,
                 null);
-
-
-
 
         btUtility = new BluetoothUtility(this);
 
@@ -300,65 +306,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
             else
-                deviceForRoom =  result.getSerializable("requestDevice");
+                deviceForRoom = (ArrayList<ListRoomsElement>) result.getSerializable("requestDevice");
 
+            deviceForRoom.forEach( room -> {
+                listSpeaker.add(new Speaker(room.getDevice().getAddress(), room.getName()));
+            });
             //TODO send to SLAC the array
-        });
 
-
-        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
-
-        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
-        audioControllerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(onTop){
-                    Animation slideUp = AnimationUtils.loadAnimation(activity,R.anim.slide_up);
-                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                            audioPlaylistView.setVisibility(View.VISIBLE);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-
-                        }
-                    });
-                    audioControllerView.startAnimation(slideUp);
-
-
-                    onTop = true;
-                }
-                else{
-
-                    Animation slideDown = AnimationUtils.loadAnimation(activity,R.anim.slide_down);
-                    audioControllerView.setLayoutAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            audioPlaylistView.setVisibility(View.INVISIBLE);
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-
-                        }
-                    });
-                    audioControllerView.startAnimation(slideDown);
-
-                    onTop = false;
-                }
-            }
         });
         //DA RIVEDERE
 
@@ -457,6 +411,7 @@ public class MainActivity extends AppCompatActivity {
     private void stopScan(){
         mHandler.removeCallbacks(scanRunnable);
     }
+
 
 
     @Override
@@ -691,8 +646,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+       // Intent playerIntent = new Intent(this, AudioPlayerService.class);
+
+        //startService(playerIntent);
+        //bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         //DA SCOMMENTARE
-        //mediaBrowser.connect();
+        mediaBrowser.connect();
 
     }
 
@@ -723,46 +682,35 @@ public class MainActivity extends AppCompatActivity {
         serviceBound = savedInstanceState.getBoolean("ServiceState");
     }
 
-    /*
+
+    private AudioPlayerService playerService;
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
-            AudioPlaybackService.LocalBinder binder = (AudioPlaybackService.LocalBinder) service;
+            AudioPlayerService.LocalBinder binder = (AudioPlayerService.LocalBinder) service;
             playerService = binder.getService();
             serviceBound = true;
 
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
 
-            mediaController = new myAudioController(getApplicationContext());
-            mediaController.setAnchorView(findViewById(R.id.audiocontroller));
+            //StyledPlayerView exoPlayerView = (StyledPlayerView) findViewById(R.id.exoplayerview);
+
+            //exoPlayerView.setPlayer(playerService.getExoPlayer());
+            //exoPlayerView.setControllerShowTimeoutMs(-1);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Toast.makeText(MainActivity.this, "Service unBound", Toast.LENGTH_SHORT).show();
             serviceBound = false;
-            mediaController = null;
+
         }
     };
 
 
 
-    private void playPause(String media) {
-        //Check is service is active
-        if (!serviceBound) {
-            Intent playerIntent = new Intent(this, AudioPlayerService.class);
-            playerIntent.putExtra("song", media);
-            startService(playerIntent);
-            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        } else {
-            //Service is active
-            //Send media with BroadcastReceiver
-            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
-            sendBroadcast(broadcastIntent);
-        }
-    }*/
     BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
 
         @Override
@@ -864,7 +812,7 @@ public class MainActivity extends AppCompatActivity {
             for (BluetoothDevice elem : devices) {
 
                 Log.i("name", elem.getName());
-                if (elem.getName().equals("UE BOOM 2"))
+                if (elem.getName().equals("AirPods Pro di Mancio"))
                     device = elem;
             }
 
@@ -895,21 +843,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
 
     }
-    View.OnClickListener askBtPermission = new View.OnClickListener() {
 
-
-        @Override
-        public void onClick(View view) {
-
-
-
-            if(BluetoothUtility.checkPermission(activity))
-                launchAssignRAFragment();
-            //startBluetoothConnection();
-
-
-        }
-    };
 
     @Override
     protected void onDestroy() {
@@ -925,5 +859,124 @@ public class MainActivity extends AppCompatActivity {
             //service is active
             playerService.stopSelf();
         }*/
+    }
+
+    public void askBtPermission(View view) {
+
+        /*
+        if(BluetoothUtility.checkPermission(activity))
+            launchAssignRAFragment();*/
+        startBluetoothConnection();
+    }
+
+    private void setupMusicPlayer() {
+        audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
+        audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int pos, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
+
+                    int progress = seekBar.getProgress();
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().seekTo(progress);
+                }
+            }
+        });
+
+
+        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
+
+        ViewGroup.LayoutParams backupLayoutParams = audioControllerView.getLayoutParams();
+        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+
+        ArrayList<myAudioTrack> playlistTracks = new ArrayList<>();
+        ListSongAdapter playlistAdapter = new ListSongAdapter(R.id.playlist_view, getApplicationContext(), playlistTracks, activity);
+        ImageButton closePlaylistView = (ImageButton) findViewById(R.id.closePlaylistButton);
+
+        audioControllerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!onTop) {
+                    Animation slideUp = AnimationUtils.loadAnimation(activity, R.anim.slide_up);
+
+
+                    slideUp.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            System.out.println(v.getY());
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            audioPlaylistView.setVisibility(View.VISIBLE);
+                            closePlaylistView.setVisibility(View.VISIBLE);
+
+                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+                                    RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+                            params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                            v.setLayoutParams(params);
+
+                            //v.setY(0.0f);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                        }
+                    });
+                    audioControllerView.startAnimation(slideUp);
+
+
+                    onTop = true;
+                }
+
+            }
+        });
+
+
+        closePlaylistView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onTop) {
+                    Animation slideDown = AnimationUtils.loadAnimation(activity, R.anim.slide_down);
+
+                    slideDown.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            audioPlaylistView.setVisibility(View.INVISIBLE);
+                            closePlaylistView.setVisibility(View.INVISIBLE);
+                            ((RelativeLayout) v.getParent()).setLayoutParams(backupLayoutParams);
+
+                            /*DisplayMetrics displayMetrics = new DisplayMetrics();
+                            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                            float height = displayMetrics.heightPixels - ((View)v.getParent()).getHeight();
+
+                            System.out.println(height);
+                            ((View)v.getParent()).setY(height);*/
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                        }
+                    });
+                    audioControllerView.startAnimation(slideDown);
+
+                    onTop = false;
+                }
+            }
+        });
     }
 }

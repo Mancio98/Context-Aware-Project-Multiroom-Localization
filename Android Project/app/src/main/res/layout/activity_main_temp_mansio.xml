@@ -11,11 +11,7 @@
         android:id="@+id/RaRooms"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@+id/scanBT">
-
-
-    </FrameLayout>
+        android:visibility="invisible"/>
 
     <Button
         android:id="@+id/scanBT"
@@ -26,7 +22,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="150dp"/>
+        android:layout_marginBottom="120dp"/>
 
     <RelativeLayout
         android:id="@+id/audiocontroller"
@@ -43,19 +39,29 @@
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             tools:ignore="ContentDescription" />
 
-        <SeekBar
-            android:id="@+id/seekBar"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:id="@+id/time_control"
             android:layout_below="@id/closePlaylistButton"
-            android:layout_gravity="center" />
+            android:orientation="horizontal">
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/audio_time"
+                android:text="00:00"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/controller_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/seekBar"
+            android:layout_below="@id/time_control"
             android:layout_centerHorizontal="true">
 
             <ImageButton

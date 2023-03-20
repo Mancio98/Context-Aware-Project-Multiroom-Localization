@@ -25,8 +25,8 @@ public class ListSongAdapter extends ArrayAdapter<myAudioTrack> {
     Activity context;
     ArrayList<ImageButton> playButtons;
 
-    public ListSongAdapter(int resource, Context context, Activity activity) {
-        super(context, resource);
+    public ListSongAdapter(int resource, Context context, @NonNull List<myAudioTrack> objects, Activity activity) {
+        super(context, resource,objects);
         this.context = activity;
 
     }
@@ -65,9 +65,11 @@ public class ListSongAdapter extends ArrayAdapter<myAudioTrack> {
                 if (pbState == PlaybackStateCompat.STATE_PLAYING) {
 
                     MediaControllerCompat.getMediaController(context).getTransportControls().pause();
+                    //TODO change icon on play
                 }
                 else
                     MediaControllerCompat.getMediaController(context).getTransportControls().playFromMediaId(String.valueOf(position),null);
+                    //TODO change icon on pause
             }
         });
 

@@ -7,7 +7,7 @@ public class ListRoomsElement {
 
     String name;
     BluetoothDevice device;
-    Spinner spinner;
+
     public ListRoomsElement(String name) {
         this.name = name;
     }
@@ -16,13 +16,6 @@ public class ListRoomsElement {
         this.device = device;
     }
 
-    public Spinner getSpinner() {
-        return spinner;
-    }
-
-    public void setSpinner(Spinner spinner) {
-        this.spinner = spinner;
-    }
 
     public String getName() {
         return name;
