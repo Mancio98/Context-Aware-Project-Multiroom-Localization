@@ -1,9 +1,6 @@
 package com.example.multiroomlocalization.messages.connection;
 
-
 import com.example.multiroomlocalization.messages.Message;
-
-
 public class MessageConnection extends Message {
     private String id;
     private String name;
@@ -19,7 +16,6 @@ public class MessageConnection extends Message {
         this.id = id;
         this.name = null;
     }
-    
     public String getId() {
         return this.id;
     }

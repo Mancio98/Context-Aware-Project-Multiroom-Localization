@@ -26,6 +26,15 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+<<<<<<< HEAD
+=======
+
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.41.0.0</version>
+    </dependency>
+>>>>>>> luca-branch
     
     <dependency>
 		<groupId>com.google.code.gson</groupId>
@@ -34,6 +43,15 @@
 	</dependency>
 	
 	<dependency>
+<<<<<<< HEAD
+=======
+    	<groupId>tech.tablesaw</groupId>
+    	<artifactId>tablesaw-core</artifactId>
+    	<version>0.43.1</version>
+	</dependency>
+		
+	<dependency>
+>>>>>>> luca-branch
 	    <groupId>com.opencsv</groupId>
 	    <artifactId>opencsv</artifactId>
 	    <version>4.1</version>

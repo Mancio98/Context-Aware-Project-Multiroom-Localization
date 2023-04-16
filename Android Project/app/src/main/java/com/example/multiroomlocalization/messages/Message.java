@@ -15,8 +15,7 @@ public abstract class Message implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	protected String type;
-	
-	
+
 	public Message(String type) {
 		this.type = type;
 	}
