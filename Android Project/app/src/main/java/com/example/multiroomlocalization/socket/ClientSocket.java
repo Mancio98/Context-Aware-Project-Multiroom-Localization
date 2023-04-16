@@ -8,13 +8,18 @@ import com.example.multiroomlocalization.localization.Fingerprint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.util.Log;
 
+import com.example.multiroomlocalization.ReferencePoint;
+import com.example.multiroomlocalization.ScanResult;
+import com.example.multiroomlocalization.ScanService;
+import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
+import com.example.multiroomlocalization.messages.connection.MessageRegistration;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
 import com.google.gson.Gson;
 
@@ -37,7 +42,7 @@ public class ClientSocket extends Thread {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip = "10.0.2.2";
+    private String ip ="192.168.1.51";// "10.0.2.2";
     WifiManager wifiManager;
     Context context;
     int i=0;
@@ -54,8 +59,9 @@ public class ClientSocket extends Thread {
             e.printStackTrace();
         }
 
-
         scanService = new ScanService(context);
+
+        /*scanService = new ScanService(context);
 
         scanService.registerReceiver(new BroadcastReceiver() {
             @Override
@@ -78,10 +84,43 @@ public class ClientSocket extends Thread {
             }
         });
 
-            mHandler.postDelayed(scanRunnable, 0);
+            mHandler.postDelayed(scanRunnable, 0);*/
             //scanRunnable.run();
 
     }
+
+    public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
+        return new MessageStartMappingPhase();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageStartScanReferencePoint(){
+        return new MessageStartScanReferencePoint();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageNewReferencePoint(ReferencePoint ref){
+        return new MessageNewReferencePoint(ref);
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageEndMappingPhase(){
+        return new MessageEndMappingPhase();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageEndScanReferencePoint(){
+        return new MessageEndScanReferencePoint();
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageFingerprint(List<ScanResult> fingerprint){
+        return new MessageFingerprint(fingerprint);
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageRegistration(User user){
+        return new MessageRegistration(user);
+    }
+
+    public AsyncTask<Void,Void,Void> createMessageLogin(User user){
+        return new MessageLogin(user);
+    }
+
 
     public void setContext(Context context){
         this.context = context;
@@ -236,6 +275,174 @@ public class ClientSocket extends Thread {
 
     private void stopScan() {
         mHandler.removeCallbacks(scanRunnable);
+    }
+
+
+    public class MessageStartScanReferencePoint extends AsyncTask<Void,Void,Void> {
+
+        public MessageStartScanReferencePoint(){
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint();//referencePoint);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageStartMappingPhase extends AsyncTask<Void,Void,Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageEndMappingPhase extends AsyncTask<Void,Void,Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageEndScanReferencePoint extends AsyncTask<Void,Void,Void>{
+
+        public MessageEndScanReferencePoint(){}
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageNewReferencePoint extends AsyncTask<Void,Void,Void>{
+
+        ReferencePoint referencePoint;
+
+        public MessageNewReferencePoint(ReferencePoint ref){
+            this.referencePoint = ref;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageFingerprint extends AsyncTask<Void,Void,Void>{
+
+        List<ScanResult> fingerprint;
+
+        public MessageFingerprint(List<ScanResult> finger){
+            this.fingerprint = finger;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageRegistration extends AsyncTask<Void,Void,Void>{
+
+        User user;
+
+        public MessageRegistration(User user){
+            this.user = user;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.connection.MessageRegistration message = new com.example.multiroomlocalization.messages.connection.MessageRegistration(user);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public class MessageLogin extends AsyncTask<Void,Void,Void>{
+
+        User user;
+
+        public MessageLogin(User user){
+            this.user = user;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            try {
+                com.example.multiroomlocalization.messages.connection.MessageLogin message = new com.example.multiroomlocalization.messages.connection.MessageLogin(user);
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
 }

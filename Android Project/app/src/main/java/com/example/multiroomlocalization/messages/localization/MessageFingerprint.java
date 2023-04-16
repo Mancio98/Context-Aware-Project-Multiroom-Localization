@@ -1,21 +1,23 @@
 package com.example.multiroomlocalization.messages.localization;
 
-
-import com.example.multiroomlocalization.localization.Fingerprint;
-
+import com.example.multiroomlocalization.Fingerprint;
+import com.example.multiroomlocalization.ScanResult;
 import com.example.multiroomlocalization.messages.Message;
+
+import java.util.List;
 
 
 public class MessageFingerprint extends Message {
-	private Fingerprint fingerprint;
+	//private Fingerprint fingerprint;
 
-	public MessageFingerprint(Fingerprint fingerprint) {
-		super("FINGERPRINT");
-        this.fingerprint = fingerprint;
-	}
+    public List<ScanResult> fingerprint;
 
+    public MessageFingerprint(List<ScanResult> scanResult) {
+        super("FINGERPRINT");
+        this.fingerprint = scanResult;
+    }
 
-    public Fingerprint getFingerprint() {
+    public List<ScanResult> getFingerprint() {
         return this.fingerprint;
     }
 
