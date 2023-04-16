@@ -1008,7 +1008,7 @@ public class MainActivity extends AppCompatActivity {
                     MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
                 } else {
                     Log.i("button","play");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(2),null);
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(0),null);
                 }
             }});
 
