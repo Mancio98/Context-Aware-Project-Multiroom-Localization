@@ -153,11 +153,12 @@ public class AudioPlayerService  extends Service implements Player.Listener{
     private Handler handler = new Handler();
 
 
+
     private void pauseAudio() {
         if(exoPlayer.isPlaying()) {
 
             exoPlayer.pause();
-
+            
         }
     }
 

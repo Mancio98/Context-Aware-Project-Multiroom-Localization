@@ -80,6 +80,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
 import com.example.multiroomlocalization.socket.ClientSocket;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
@@ -124,88 +125,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
 
-    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
-            new MediaBrowserCompat.ConnectionCallback() {
-
-                @Override
-                public void onConnected() {
-
-                    // Get the token for the MediaSession
-                    MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
-
-                    // Create a MediaControllerCompat
-                    MediaControllerCompat mediaController =
-                            new MediaControllerCompat(MainActivity.this, // Context
-                                    token);
-
-                    // Save the controller
-                    MediaControllerCompat.setMediaController(MainActivity.this, mediaController);
-
-                    Log.i("connection","connected");
-
-                    mediaBrowser.subscribe("root", new MediaBrowserCompat.SubscriptionCallback() {
-                        @Override
-                        public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                            super.onChildrenLoaded(parentId, children);
-
-
-                        }
-                    });
-                    // Finish building the UI
-                    buildTransportControls();
-                }
-
-                @Override
-                public void onConnectionSuspended() {
-                    // The Service has crashed. Disable transport controls until it automatically reconnects
-                    Log.i("connection","suspended");
-                }
-
-                @Override
-                public void onConnectionFailed() {
-                    // The Service has refused our connection
-                    mediaBrowser.unsubscribe("root");
-                    Log.i("connection","failed");
-                }
-            };
-
-    MediaControllerCompat.Callback controllerCallback =
-            new MediaControllerCompat.Callback() {
-                @Override
-                public void onMetadataChanged(MediaMetadataCompat metadata) {
-                    super.onMetadataChanged(metadata);
-                    int totalDuration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
-                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_ARTIST));
-                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_TITLE));
-                    if(totalDuration != 0L)
-                        audioSeekBar.setMax(totalDuration);
-                }
-
-
-                @Override
-                public void onPlaybackStateChanged(PlaybackStateCompat state) {
-                    if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
-                        playPause.setImageResource(android.R.drawable.ic_media_pause);
-                        long pos = state.getPosition();
-                        audioSeekBar.setProgress(Math.toIntExact(pos));
-
-                        int seconds = (int) (pos / 1000) % 60 ;
-                        int minutes = (int) ((pos / (1000*60)) % 60);
-
-                        CharSequence time = minutes+":"+seconds;
-                        timeTextView.setText(time);
-
-                    } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
-                        playPause.setImageResource(android.R.drawable.ic_media_play);
-
-                    }
-                }
-                @Override
-                public void onSessionDestroyed() {
-                    mediaBrowser.disconnect();
-                    // maybe schedule a reconnection using a new MediaBrowser instance
-                }
-            };
     private int seekPosition;
     private ImageButton nextTrack;
     private ImageButton previousTrack;
@@ -215,57 +134,8 @@ public class MainActivity extends AppCompatActivity {
     private float startPlaylistY;
     private ArraySet<Speaker> listSpeaker;
     private TextView timeTextView;
+    private ListView audioPlaylistView;
 
-    void buildTransportControls() {
-        // Grab the view for the play/pause button
-        playPause = (ImageButton) findViewById(R.id.playpause);
-        timeTextView = (TextView) findViewById(R.id.audio_time);
-        // Attach a listener to the button
-        playPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Since this is a play/pause button, you'll need to test the current state
-                // and choose the action accordingly
-
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING) {
-                    Log.i("button","pausa");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
-                } else {
-                    Log.i("button","play");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(1),null);
-                }
-            }});
-
-        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
-        nextTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToNext();
-                }
-            }
-        });
-
-        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
-        previousTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
-
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToPrevious();
-                }
-            }
-        });
-
-        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
-
-        // Register a Callback to stay in sync
-        mediaController.registerCallback(controllerCallback);
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -291,10 +161,13 @@ public class MainActivity extends AppCompatActivity {
 
         setupMusicPlayer();
 
+
         mediaBrowser = new MediaBrowserCompat(this,
-                new ComponentName(this, AudioPlaybackService.class),
-                connectionCallbacks,
-                null);
+            new ComponentName(this, AudioPlaybackService.class),
+            connectionCallbacks,
+            null);
+
+
 
         btUtility = new BluetoothUtility(this);
 
@@ -664,10 +537,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+
         if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
             MediaControllerCompat.getMediaController(MainActivity.this).unregisterCallback(controllerCallback);
         }
-        //mediaBrowser.disconnect();
+        mediaBrowser.disconnect();
+
+        /* service
+         if(myExoPlayer != null) {
+             myExoPlayer.stop();
+             myExoPlayer = null;
+         }*/
+
     }
 
     @Override
@@ -684,7 +565,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     private AudioPlayerService playerService;
+    private ExoPlayer myExoPlayer;
     //Binding this Client to the AudioPlayer Service
+    /* service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -695,10 +578,8 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
 
-            //StyledPlayerView exoPlayerView = (StyledPlayerView) findViewById(R.id.exoplayerview);
+            myExoPlayer = playerService.getExoPlayer();
 
-            //exoPlayerView.setPlayer(playerService.getExoPlayer());
-            //exoPlayerView.setControllerShowTimeoutMs(-1);
         }
 
         @Override
@@ -707,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
             serviceBound = false;
 
         }
-    };
+    };*/
 
 
 
@@ -891,14 +772,57 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /* service
+        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
+        nextTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(myExoPlayer != null) {
+                    int pbState = myExoPlayer.getPlaybackState();
+                    if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
+                        myExoPlayer.seekToNext();
+                    }
+                }
+            }
+        });
+
+        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
+        previousTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(myExoPlayer != null){
+
+                    int pbState = myExoPlayer.getPlaybackState();
+                    if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
+                        myExoPlayer.seekToPrevious();
+                    }
+                }
+            }
+        });
+
+        playPause = (ImageButton) findViewById(R.id.playpause);
+        playPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(myExoPlayer != null){
+
+                    if (myExoPlayer.isPlaying())
+                        myExoPlayer.pause();
+                    else
+                        myExoPlayer.play();
+                }
+            }
+        });*/
+
 
         RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
 
         ViewGroup.LayoutParams backupLayoutParams = audioControllerView.getLayoutParams();
-        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+        audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
 
-        ArrayList<myAudioTrack> playlistTracks = new ArrayList<>();
-        ListSongAdapter playlistAdapter = new ListSongAdapter(R.id.playlist_view, getApplicationContext(), playlistTracks, activity);
         ImageButton closePlaylistView = (ImageButton) findViewById(R.id.closePlaylistButton);
 
         audioControllerView.setOnClickListener(new View.OnClickListener() {
@@ -979,4 +903,146 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
+            new MediaBrowserCompat.ConnectionCallback() {
+
+                @Override
+                public void onConnected() {
+
+                    // Get the token for the MediaSession
+                    MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
+
+                    // Create a MediaControllerCompat
+                    MediaControllerCompat mediaController =
+                            new MediaControllerCompat(MainActivity.this, // Context
+                                    token);
+
+                    // Save the controller
+                    MediaControllerCompat.setMediaController(MainActivity.this, mediaController);
+
+                    Log.i("connection","connected");
+
+                    mediaBrowser.subscribe("root", new MediaBrowserCompat.SubscriptionCallback() {
+                        @Override
+                        public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
+                            super.onChildrenLoaded(parentId, children);
+
+
+
+                            ListSongAdapterTwo playlistAdapter = new ListSongAdapterTwo(R.id.playlist_view, getApplicationContext(), children, activity);
+                            if(audioPlaylistView != null)
+                                audioPlaylistView.setAdapter(playlistAdapter);
+                        }
+                    });
+                    // Finish building the UI
+                    buildTransportControls();
+                }
+
+                @Override
+                public void onConnectionSuspended() {
+                    // The Service has crashed. Disable transport controls until it automatically reconnects
+                    Log.i("connection","suspended");
+                }
+
+                @Override
+                public void onConnectionFailed() {
+                    // The Service has refused our connection
+                    mediaBrowser.unsubscribe("root");
+                    Log.i("connection","failed");
+                }
+            };
+
+    MediaControllerCompat.Callback controllerCallback =
+            new MediaControllerCompat.Callback() {
+                @Override
+                public void onMetadataChanged(MediaMetadataCompat metadata) {
+                    super.onMetadataChanged(metadata);
+                    int totalDuration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_ARTIST));
+                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_TITLE));
+                    if(totalDuration != 0L)
+                        audioSeekBar.setMax(totalDuration);
+                }
+
+
+                @Override
+                public void onPlaybackStateChanged(PlaybackStateCompat state) {
+                    if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
+                        playPause.setImageResource(android.R.drawable.ic_media_pause);
+                        long pos = state.getPosition();
+                        audioSeekBar.setProgress(Math.toIntExact(pos));
+
+                        int seconds = (int) (pos / 1000) % 60 ;
+                        int minutes = (int) ((pos / (1000*60)) % 60);
+
+                        CharSequence time = minutes+":"+seconds;
+                        timeTextView.setText(time);
+
+                    } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
+                        playPause.setImageResource(android.R.drawable.ic_media_play);
+
+                    }
+                }
+                @Override
+                public void onSessionDestroyed() {
+                    mediaBrowser.disconnect();
+                    // maybe schedule a reconnection using a new MediaBrowser instance
+                }
+            };
+
+    void buildTransportControls() {
+        // Grab the view for the play/pause button
+        playPause = (ImageButton) findViewById(R.id.playpause);
+        timeTextView = (TextView) findViewById(R.id.audio_time);
+        // Attach a listener to the button
+        playPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Since this is a play/pause button, you'll need to test the current state
+                // and choose the action accordingly
+
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING) {
+                    Log.i("button","pausa");
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
+                } else {
+                    Log.i("button","play");
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(String.valueOf(2),null);
+                }
+            }});
+
+        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
+        nextTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToNext();
+                }
+            }
+        });
+
+        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
+        previousTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
+                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
+
+                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToPrevious();
+                }
+            }
+        });
+
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
+
+        // Register a Callback to stay in sync
+        mediaController.registerCallback(controllerCallback);
+
+    }
+
 }
+
+
+

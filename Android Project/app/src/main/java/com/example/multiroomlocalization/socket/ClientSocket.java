@@ -65,14 +65,14 @@ public class ClientSocket extends Thread {
                 if (success) {
                         System.out.println("QUI: " + i);
                         i++;
-                        new MessageSender(scanSuccess()).execute();
+                        //new MessageSender(scanSuccess()).execute();
                         mHandler.postDelayed(scanRunnable, intervalScan);
                 } else {
                         // scan failure handling
                         //scanFailure();
                         System.out.println("QUA: " + i);
                         i++;
-                        new MessageSender(scanFailure()).execute();
+                       // new MessageSender(scanFailure()).execute();
                         mHandler.postDelayed(scanRunnable,0);
                 }
             }
@@ -87,13 +87,14 @@ public class ClientSocket extends Thread {
         this.context = context;
     }
 
-    /*public void startScan(){
+    /*
+    public void startScan(){
         boolean success = wifiManager.startScan();
         if (!success) {
             // scan failure handling
             scanFailure();
         }
-    }*/
+    }
 
     private MessageFingerprint scanSuccess() {
         List<ScanResult> results = wifiManager.getScanResults();
@@ -115,6 +116,7 @@ public class ClientSocket extends Thread {
         return messageFingerprint;
     }
 
+
     private MessageFingerprint scanFailure() {
         // handle failure: new scan did NOT succeed
         // consider using old scan results: these are the OLD results!
@@ -134,7 +136,7 @@ public class ClientSocket extends Thread {
         MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
 
         return messageFingerprint;
-    }
+    }*/
 
 
     //This thread inizialize the socket and requires for a connection to the server

@@ -2,7 +2,6 @@ package com.example.multiroomlocalization;
 
 import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -73,7 +72,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
     private final List<myAudioTrack> trackList = Arrays.asList(new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
             "ah non lo so io", "lucacotu", null),
-            new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null));
+            new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null),
+            new myAudioTrack("https://1967-87-17-71-13.eu.ngrok.io/C:/Users/bocca/Desktop/laurea_magistrale_informatica/SCA/progetto/" +
+                    "Context-Aware-Project-Multiroom-Localization/SLAC/maven/server/Will_Clarke_Rock_with_me.mp3","asdkadn","boh",null));
 
     private int playerState = PlaybackState.STATE_NONE;
     private final Handler handler = new Handler();
@@ -460,7 +461,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-
 
         return new BrowserRoot(MY_EMPTY_MEDIA_ROOT_ID, null);
     }
