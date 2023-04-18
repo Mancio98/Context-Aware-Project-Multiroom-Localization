@@ -33,11 +33,13 @@ import androidx.core.app.NotificationCompat;
 import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +53,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     private MediaSessionCompat mediaSession;
     private PlaybackStateCompat.Builder stateBuilder;
     private Context context;
-
+    public static boolean isMyServiceRunning = false;
     private MediaPlayer mediaPlayer;
     private ExoPlayer exoPlayer;
 
@@ -63,22 +65,21 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             .build();
     private AudioFocusRequest focusRequest;
 
-    private int currentTrack = 0;
+    protected static int currentTrack = -1;
 
     private int resumePosition;
     private TelephonyManager telephonyManager;
     private PhoneStateListener phoneStateListener;
     private boolean ongoingCall = false;
 
-    private final List<myAudioTrack> trackList = Arrays.asList(new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
+    private List<MyAudioTrack> trackList = Arrays.asList(new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
             "ah non lo so io", "lucacotu", null),
-            new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null),
-            new myAudioTrack("https://1967-87-17-71-13.eu.ngrok.io/C:/Users/bocca/Desktop/laurea_magistrale_informatica/SCA/progetto/" +
-                    "Context-Aware-Project-Multiroom-Localization/SLAC/maven/server/Will_Clarke_Rock_with_me.mp3","asdkadn","boh",null));
+            new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null),
+            new MyAudioTrack("https://58e7-79-55-37-219.ngrok-free.app/Will_Clarke_Rock_with_me.mp3 ","asdkadn","boh",null));
 
     private int playerState = PlaybackState.STATE_NONE;
     private final Handler handler = new Handler();
-
+    private final Gson gson = new Gson();
     private final MediaSessionCompat.Callback myMediaSessionCallback = new MediaSessionCompat.Callback() {
 
     //private final MediaSessionConnector.PlaybackPreparer myMediaSessionCallback = new MediaSessionConnector.PlaybackPreparer() {
@@ -88,17 +89,16 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             super.onPlayFromMediaId(mediaId,extras);
                 int mediaIndex = Integer.parseInt(mediaId);
-                if(exoPlayer == null) {
+                /*if(exoPlayer == null) {
 
                     currentTrack = mediaIndex;
                     initExoPlayer();
                     Intent intent = new Intent(context, AudioPlaybackService.class);
                     startService(intent);
 
-
                 }
                 else{
-
+                    */
                     if(mediaIndex == currentTrack){
                         resumeAudio();
                     }
@@ -106,7 +106,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
                         currentTrack = mediaIndex;
                         seekToAudio();
                     }
-                }
+                //}
 
         }
 
@@ -175,15 +175,13 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     private void seekToAudio(){
         if(exoPlayer != null){
             exoPlayer.seekTo(currentTrack,0);
-            if(!exoPlayer.isPlaying())
-                exoPlayer.play();
+            resumeAudio();
         }
     }
 
     private void resumeAudio() {
         if (!exoPlayer.isPlaying())
             exoPlayer.play();
-
     }
 
 
@@ -217,7 +215,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         }
         mediaSession.setMetadata(mediaMetadata);
     }
-
 
     private void updatePlaybackState() {
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
@@ -273,8 +270,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         callStateListener();
         mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
-
-
         // MySessionCallback() has methods that handle callbacks from a media controller
         mediaSession.setCallback(myMediaSessionCallback);
 
@@ -284,13 +279,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         mediaSession.setActive(true);
 
         updatePlaybackState();
-        //downloadAudioTracks();
-    }
-
-    private void downloadAudioTracks() {
-
 
     }
+
 
     @Override
     public void onDestroy() {
@@ -308,6 +299,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         stopForeground(true);
         stopSelf();
+        isMyServiceRunning = false;
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -315,7 +307,11 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         //MediaButtonReceiver.handleIntent(mediaSession, intent);
         //Notification notification = buildNotification();
         ///startForeground(1,notification);
-        startExoPlayer();
+        String myPlaylist = intent.getStringExtra("playlist");
+        if(myPlaylist != null)
+            trackList = gson.fromJson(myPlaylist, MessagePlaylist.class).getSong();
+        initExoPlayer();
+        isMyServiceRunning = true;
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -378,7 +374,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         // Build the media items.
         exoPlayer = new ExoPlayer.Builder(context).build();
-        for (myAudioTrack track : trackList) {
+        for (MyAudioTrack track : trackList) {
 
             MediaItem firstItem = MediaItem.fromUri(track.getPath());
             // Add the media items to be played.
@@ -389,16 +385,13 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         exoPlayer.setAudioAttributes(attrs2, true);
 
         exoPlayer.addListener(this);
+        exoPlayer.prepare();
+        exoPlayer.seekTo(0,0);
+        exoPlayer.play();
         //mediaSessionConnector = new MediaSessionConnector(mediaSession);
         //mediaSessionConnector.setPlayer(exoPlayer);
     }
 
-    private void startExoPlayer(){
-        exoPlayer.prepare();
-        exoPlayer.seekTo(currentTrack,0);
-        exoPlayer.play();
-
-    }
 
 
 /*
@@ -465,8 +458,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         return new BrowserRoot(MY_EMPTY_MEDIA_ROOT_ID, null);
     }
 
-    private List<MediaBrowserCompat.MediaItem> buildListMediaItem(){
 
+
+    private List<MediaBrowserCompat.MediaItem> buildListMediaItem(){
         List<MediaBrowserCompat.MediaItem> list = new ArrayList<>();
         // Add media items to the children list
         for(int i=0; i< trackList.size(); i++) {
@@ -484,7 +478,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
 
         List<MediaBrowserCompat.MediaItem> children = buildListMediaItem();
-
+        result.detach();
         result.sendResult(children);
 
     }

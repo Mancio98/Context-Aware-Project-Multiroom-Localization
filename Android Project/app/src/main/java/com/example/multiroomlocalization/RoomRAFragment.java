@@ -76,15 +76,16 @@ public class RoomRAFragment extends Fragment {
                     .setCancelable(true)
                     .create();
             alertDialog.show();
-            //Toast.makeText(activity, "Cannot assign same speaker to different rooms. Reassign them", Toast.LENGTH_LONG).show();
+
         }
 
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-
+    public void onStop() {
         bluetoothControl.closeControl();
+        super.onStop();
+
     }
+
 }

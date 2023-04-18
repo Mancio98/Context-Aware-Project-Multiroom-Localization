@@ -45,16 +45,24 @@
             android:id="@+id/time_control"
             android:layout_below="@id/closePlaylistButton"
             android:orientation="horizontal">
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="wrap_content"
+            <TableRow
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/audio_time"
-                android:text="00:00"/>
+                android:orientation="horizontal">
+                <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/audio_time"
+                    android:layout_gravity="right"
+                    android:paddingRight="5dp"
+                    android:text="00:00"/>
+            </TableRow>
         </LinearLayout>
 
         <LinearLayout

@@ -1,19 +1,12 @@
 package com.example.multiroomlocalization;
 
-import static androidx.core.content.PackageManagerCompat.LOG_TAG;
-
 import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
-import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
@@ -27,17 +20,14 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
 
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -143,9 +133,9 @@ public class AudioPlayerService  extends Service implements Player.Listener{
 
     // Binder given to clients
     private final IBinder iBinder = new LocalBinder();
-    private final List<myAudioTrack> trackList = Arrays.asList(new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
+    private final List<MyAudioTrack> trackList = Arrays.asList(new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
                     "ah non lo so io", "lucacotu", null),
-            new myAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null));
+            new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null));
     private Context context;
     private MediaSessionCompat mediaSession;
     private ExoPlayer exoPlayer;
@@ -340,7 +330,7 @@ public class AudioPlayerService  extends Service implements Player.Listener{
 
         // Build the media items.
 
-        for (myAudioTrack track : trackList) {
+        for (MyAudioTrack track : trackList) {
 
             MediaItem firstItem = MediaItem.fromUri(track.getPath());
             // Add the media items to be played.

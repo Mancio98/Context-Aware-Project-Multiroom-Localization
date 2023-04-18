@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.MediaController;
 
-public class myAudioController extends MediaController implements MediaController.MediaPlayerControl {
+public class MyAudioController extends MediaController implements MediaController.MediaPlayerControl {
 
     private Context myContext;
 
-    public myAudioController(Context context) {
+    public MyAudioController(Context context) {
         super(context);
         myContext = context;
         setMediaPlayer(this);
