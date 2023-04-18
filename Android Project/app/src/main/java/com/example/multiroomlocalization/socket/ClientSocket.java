@@ -3,24 +3,21 @@ package com.example.multiroomlocalization.socket;
 import android.os.AsyncTask;
 
 import com.example.multiroomlocalization.ScanService;
-import com.example.multiroomlocalization.localization.Fingerprint;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.util.Log;
+import android.os.Looper;
+import android.util.ArraySet;
 
 import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
-import com.example.multiroomlocalization.ScanService;
+import com.example.multiroomlocalization.Speaker;
 import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
-import com.example.multiroomlocalization.messages.connection.MessageRegistration;
-import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
-import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
+import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
+import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
 import com.google.gson.Gson;
 
 import java.io.DataInputStream;
@@ -28,13 +25,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-public class ClientSocket extends Thread {
+public class ClientSocket extends Thread implements Serializable {
 
-    private final int port = 8777;
+    private final int port =19585;
     private Socket socket;
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
@@ -42,10 +43,10 @@ public class ClientSocket extends Thread {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="192.168.1.51";// "10.0.2.2";
+    private String ip ="4.tcp.eu.ngrok.io";// "10.0.2.2";
     WifiManager wifiManager;
     Context context;
-    int i=0;
+
     @Override
     public void run() {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -119,6 +120,14 @@ public class ClientSocket extends Thread {
 
     public AsyncTask<Void,Void,Void> createMessageLogin(User user){
         return new MessageLogin(user);
+    }
+
+    public TaskRunner<String> createMessageReqPlaylist(){
+        return new TaskRunner<String>(new RequestPlaylist());
+    }
+
+    public TaskRunner<Void> createMessageSendListSpeaker(ArraySet<Speaker> listSpeaker){
+        return new TaskRunner<Void>(new SendSpeakerList(listSpeaker));
     }
 
 
@@ -442,6 +451,101 @@ public class ClientSocket extends Thread {
                 e.printStackTrace();
             }
             return null;
+        }
+    }
+
+
+    public class RequestPlaylist implements Callable<String> {
+
+        private final Handler handler = new Handler(Looper.myLooper());
+        public RequestPlaylist() {
+
+        }
+
+        @Override
+        public String call() {
+            Gson gson = new Gson();
+            try {
+                MessageRequestPlaylist message = new MessageRequestPlaylist();
+                String json = gson.toJson(message);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String jsonPlaylist;
+
+            try {
+                jsonPlaylist = dataIn.readUTF();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return jsonPlaylist;
+        }
+
+
+    }
+
+    public class SendSpeakerList implements Callable<Void> {
+
+        private final ArraySet<Speaker> listSpeaker;
+
+        public SendSpeakerList(ArraySet<Speaker> list) {
+            this.listSpeaker = list;
+        }
+
+        @Override
+        public Void call() {
+            Gson gson = new Gson();
+            try {
+                MessageListSpeaker message = new MessageListSpeaker(this.listSpeaker);
+                String json = gson.toJson(message);
+                System.out.println("json: "+json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+
+    }
+
+    public static class TaskRunner<R> {
+        private final Executor executor = Executors.newSingleThreadExecutor(); // change according to your requirements
+        private final Handler handler = new Handler(Looper.getMainLooper());
+        private final Callable<R> callable;
+
+        public TaskRunner(Callable<R> callable) {
+
+            this.callable = callable;
+        }
+
+        public interface Callback<R> {
+            void onComplete(R result);
+        }
+
+        public void executeAsync(Callback<R> callback) {
+            executor.execute(() -> {
+                final R result;
+                try {
+                    result = this.callable.call();
+                    if( callback != null)
+                        handler.post(() -> {
+                            callback.onComplete(result);
+                        });
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            });
         }
     }
 

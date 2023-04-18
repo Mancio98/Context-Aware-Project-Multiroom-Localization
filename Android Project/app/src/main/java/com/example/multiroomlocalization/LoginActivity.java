@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -16,6 +17,9 @@ import android.widget.Toast;
 
 import com.example.multiroomlocalization.socket.ClientSocket;
 
+
+import java.util.concurrent.atomic.AtomicReference;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText userInput;
@@ -24,7 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     boolean userEmpty;
     boolean passwordEmpty;
     boolean bool;
-    ClientSocket client;
+    protected static ClientSocket client;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,15 +118,15 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordInput.getText().toString();
 
                 User user= new User(email,password);
-                client.createMessageLogin(user).execute();
-                /*if(email.equals("admin") && password.equals("admin")){
-                    loginSuccesfull();
+                //client.createMessageLogin(user).execute();
+                if(email.equals("admin") && password.equals("admin")){
+                    loginSuccessfull();
                 }
                 else {
                     Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
                 }
 
-                 */
+
 
                 /*System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
                 // Check if the notification policy access has been granted for the app.
@@ -146,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void loginSuccesfull(){
+    private void loginSuccessfull(){
         Intent changeActivity = new Intent(this,MainActivity.class);
         startActivity(changeActivity);
     }

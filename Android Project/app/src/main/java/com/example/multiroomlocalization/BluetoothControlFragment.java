@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -101,7 +102,11 @@ public class BluetoothControlFragment {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        myActivity.registerReceiver(receiver, filter);
+        try {
+            myActivity.registerReceiver(receiver, filter);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -122,8 +127,10 @@ public class BluetoothControlFragment {
 
                     if (deviceName != null) {
                         Log.i("devices_scan", deviceName);
-                        discoveredDevices.add(device);
-                        roomsAdapter.addBluetoothDevice(device);
+                        if(!discoveredDevices.contains(device)) {
+                            discoveredDevices.add(device);
+                            roomsAdapter.addBluetoothDevice(device);
+                        }
                          //add device on the list that user is looking
                     }
                     Log.i("devices_scan", deviceHardwareAddress);
@@ -179,9 +186,17 @@ public class BluetoothControlFragment {
 
     public void closeControl(){
 
+
         checkPermission(myActivity);
         if(bluetoothAdapter.isDiscovering())
             bluetoothAdapter.cancelDiscovery();
-        myActivity.unregisterReceiver(receiver);
+
+        try{
+            LocalBroadcastManager.getInstance(myActivity).unregisterReceiver(receiver);
+            myActivity.unregisterReceiver(receiver);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 }

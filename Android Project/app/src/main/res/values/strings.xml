@@ -19,7 +19,7 @@
     <string name="choose_room">choose room</string>
     <string name="discovered_devices">Discovered Devices</string>
     <string name="playmusic">play</string>
-    <string name="assignspeaker_room">Assign 1 speaker to a room</string>
+    <string name="assignspeaker_room">Assign only 1 speaker for each room</string>
     <string name="choose_device">choose device</string>
 
     <string name="addReferencePointpopup">Adesso che hai caricato la tua mappa seleziona tutte le stanze della casa e aggiungi il nome con cui indicarla</string>
