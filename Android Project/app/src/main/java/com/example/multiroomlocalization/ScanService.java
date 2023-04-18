@@ -71,6 +71,7 @@ public class ScanService extends IntentService {
         for ( ScanResult res : results ) {
             System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
         }
+        System.out.println("FINE SCAN");
     }
 
     private void scanFailure() {

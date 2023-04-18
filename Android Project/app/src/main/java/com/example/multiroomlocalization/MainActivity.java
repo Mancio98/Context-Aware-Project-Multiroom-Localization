@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -20,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 
 import android.os.IBinder;
@@ -54,6 +56,7 @@ import androidx.collection.ArraySet;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.File;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.io.DataInputStream;
@@ -62,6 +65,7 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +100,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
 import android.view.Menu;
@@ -137,7 +142,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean first = true;
     private boolean newImage = true;
     private int intervalScan = 30000;
-    private int timerScanTraining = 60000; //* 5 //60000 = 1 min
+    private int timerScanTraining = 10000; //* 5 //60000 = 1 min
+    private FloatingActionButton fab;
 
     private ClientSocket clientSocket;
 
@@ -164,35 +170,37 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setContentView(R.layout.activity_main_temp_mansio);
+        setContentView(R.layout.activity_main);//_temp_mansio);
         setSupportActionBar(binding.toolbar);
 
-        binding.fab.setEnabled(false);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        fab = findViewById(R.id.fab);
+        fab.setEnabled(false);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1);
-                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
             }
         });
 
 
         activity = this;
 
+        clientSocket = new ClientSocket();
+        clientSocket.setContext(getApplicationContext());
+        clientSocket.start();
 
-        setupMusicPlayer();
+
+        //setupMusicPlayer();
 
 
-        mediaBrowser = new MediaBrowserCompat(this,
+        /*mediaBrowser = new MediaBrowserCompat(this,
             new ComponentName(this, AudioPlaybackService.class),
             connectionCallbacks,
             null);
+*/
 
 
-
-        btUtility = new BluetoothUtility(this);
+        /*btUtility = new BluetoothUtility(this);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.setFragmentResultListener("requestDevice", this, (requestKey, result) -> {
@@ -210,12 +218,49 @@ public class MainActivity extends AppCompatActivity {
             //TODO send to SLAC the array
 
         });
+        */
         //DA RIVEDERE
 
 
 
 
-        //imageView = (ImageView) findViewById(R.id.map);
+        imageView = (ImageView) findViewById(R.id.map);
+
+        if(imageView.getDrawable() == null){
+            dialogBuilder = new AlertDialog.Builder(this);
+            final View popup = getLayoutInflater().inflate(R.layout.popup_upload_map, null);
+            upload = (Button) popup.findViewById(R.id.upload);
+
+            dialogBuilder.setView(popup);
+            dialog = dialogBuilder.create();
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show();
+
+            upload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    // create an instance of the
+                    // intent of the type image
+                    Intent i = new Intent();
+                    i.setType("image/*");
+                    i.setAction(Intent.ACTION_GET_CONTENT);
+
+                    someActivityResultLauncher.launch(i);
+                }
+            });
+
+        }else{
+
+            imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+
+            imageView.setOnTouchListener(touchListener);
+
+        }
+
+    }
+
+
 /*
         imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -251,9 +296,6 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });*/
-
-
-    }
 
     View.OnTouchListener touchListener = new View.OnTouchListener() {
         @SuppressLint("ClickableViewAccessibility")
@@ -355,10 +397,12 @@ public class MainActivity extends AppCompatActivity {
         }
         else if(id==R.id.action_client){
 
-            ClientSocket client = new ClientSocket();
+            // DA SISTEMARE
+
+            /*ClientSocket client = new ClientSocket();
             client.setContext(getApplicationContext());
             client.start();
-
+            */
             return true;
         }
 
@@ -386,7 +430,24 @@ public class MainActivity extends AppCompatActivity {
                             cv.setTouchButton(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "Title", null);
+                                    /*File sdcard = Environment.getExternalStorageDirectory();
+                                    if (sdcard != null) {
+                                        File mediaDir = new File(sdcard, "DCIM/Camera");
+                                        if (!mediaDir.exists()) {
+                                            mediaDir.mkdirs();
+                                        }
+                                    }
+
+                                    ContentValues values=new ContentValues();
+                                    values.put(MediaStore.Images.Media.TITLE,"Title");
+                                    values.put(MediaStore.Images.Media.DESCRIPTION,"From Camera");
+                                    Uri path=getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
+                                    */
+
+
+                                    checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,3);
+                                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                                    System.out.println("PATH: " + path);
 
                                     imageView.setImageURI(Uri.parse(path));
                                     imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
@@ -447,16 +508,16 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             switch (requestCode){
+                case 1:
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                    break;
                 case 2:
-
-                    clientSocket = new ClientSocket();
-                    clientSocket.setContext(getApplicationContext());
-                    clientSocket.start();
-
-                    //new ClientSocket.MessageStartMappingPhase().execute();
                     clientSocket.createMessageStartMappingPhase().execute();
-
                     createPopupStartTraining();
+                    break;
+                case 3:
+                    System.out.println("CASO 3");
+                    break;
             }
 
 
@@ -551,7 +612,7 @@ public class MainActivity extends AppCompatActivity {
                 ReferencePoint ref = new ReferencePoint(x,y,labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
-                binding.fab.setEnabled(true);
+                fab.setEnabled(true);
                 dialog.cancel();
             }
         });
@@ -567,7 +628,7 @@ public class MainActivity extends AppCompatActivity {
         //startService(playerIntent);
         //bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         //DA SCOMMENTARE
-        mediaBrowser.connect();
+        // mediaBrowser.connect();
 
     }
 
@@ -581,11 +642,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
+       /* if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
             MediaControllerCompat.getMediaController(MainActivity.this).unregisterCallback(controllerCallback);
         }
         mediaBrowser.disconnect();
-
+*/
         /* service
          if(myExoPlayer != null) {
              myExoPlayer.stop();
@@ -708,11 +769,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             case 1: //DEFINIRE CODICE RICHIESTA
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-
+                    Toast.makeText(MainActivity.this, "Localization Permission Granted", Toast.LENGTH_SHORT) .show();
                 }
                 else {
-                    Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Localization Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 return;
 
@@ -790,7 +850,7 @@ public class MainActivity extends AppCompatActivity {
         startBluetoothConnection();
     }
 
-    private void setupMusicPlayer() {
+   /* private void setupMusicPlayer() {
         audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
         audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -856,7 +916,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });*/
-
+/*
 
         RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
 
@@ -930,6 +990,7 @@ public class MainActivity extends AppCompatActivity {
 
                             System.out.println(height);
                             ((View)v.getParent()).setY(height);*/
+/*
                         }
 
                         @Override
@@ -1082,6 +1143,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    */
     private void createPopupRoomTraining(ReferencePoint point,int index){
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
@@ -1232,6 +1295,7 @@ public class MainActivity extends AppCompatActivity {
                listScan.add(scan);
                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
            }
+           System.out.println("FINE SCAN");
            clientSocket.createMessageFingerprint(listScan).execute();
 
        }

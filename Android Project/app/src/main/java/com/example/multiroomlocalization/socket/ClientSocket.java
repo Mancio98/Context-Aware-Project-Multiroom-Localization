@@ -34,7 +34,7 @@ import java.util.List;
 
 public class ClientSocket extends Thread {
 
-    private final int port = 8777;
+    private final int port = 19585;//8777;
     private Socket socket;
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
@@ -42,10 +42,9 @@ public class ClientSocket extends Thread {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="192.168.1.51";// "10.0.2.2";
+    private String ip ="4.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
     WifiManager wifiManager;
     Context context;
-    int i=0;
     @Override
     public void run() {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -55,7 +54,12 @@ public class ClientSocket extends Thread {
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
         }
-        catch(IOException e) {
+        /*catch(IOException e) {
+            System.out.println("catch");
+            e.printStackTrace();
+        }*/
+        catch(Exception e){
+            System.out.println("catch");
             e.printStackTrace();
         }
 
@@ -176,6 +180,7 @@ public class ClientSocket extends Thread {
 
         return messageFingerprint;
     }*/
+
 
 
     //This thread inizialize the socket and requires for a connection to the server
@@ -418,6 +423,13 @@ public class ClientSocket extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            try {
+                System.out.println(dataIn.readUTF());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             return null;
         }
     }
@@ -441,6 +453,13 @@ public class ClientSocket extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            try {
+                System.out.println(dataIn.readUTF());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             return null;
         }
     }

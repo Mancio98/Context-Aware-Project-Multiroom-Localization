@@ -46,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         client.setContext(getApplicationContext());
         client.start();
 
+
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -120,8 +121,8 @@ public class LoginActivity extends AppCompatActivity {
                 else {
                     Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
                 }
+                */
 
-                 */
 
                 /*System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
                 // Check if the notification policy access has been granted for the app.
