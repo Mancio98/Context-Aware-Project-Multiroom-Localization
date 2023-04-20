@@ -12,9 +12,10 @@ import android.util.ArraySet;
 
 import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
-import com.example.multiroomlocalization.Speaker;
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
+import com.example.multiroomlocalization.messages.connection.MessageConnectionClose;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
 import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
 import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
@@ -25,17 +26,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 
-import java.io.Serializable;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class ClientSocket extends Thread implements Serializable {
+public class ClientSocket extends Thread {
 
-    private final int port =19585;
+    private final int port = 10361;
     private Socket socket;
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
@@ -43,14 +42,19 @@ public class ClientSocket extends Thread implements Serializable {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="4.tcp.eu.ngrok.io";// "10.0.2.2";
+    private String ip ="5.tcp.eu.ngrok.io";// "10.0.2.2";
     WifiManager wifiManager;
     Context context;
+    Gson gson = new Gson();
+
+    public ClientSocket(Context context) {
+        this.context = context;
+    }
 
     @Override
     public void run() {
+        super.run();
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-
         try {
             socket = new Socket(ip, port);
             dataIn = new DataInputStream(socket.getInputStream());
@@ -61,8 +65,8 @@ public class ClientSocket extends Thread implements Serializable {
         }
 
         scanService = new ScanService(context);
-
-        /*scanService = new ScanService(context);
+       //
+        /*
 
         scanService.registerReceiver(new BroadcastReceiver() {
             @Override
@@ -86,9 +90,12 @@ public class ClientSocket extends Thread implements Serializable {
         });
 
             mHandler.postDelayed(scanRunnable, 0);*/
-            //scanRunnable.run();
-
+        //scanRunnable.run();
     }
+
+
+
+
 
     public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
         return new MessageStartMappingPhase();
@@ -240,7 +247,6 @@ public class ClientSocket extends Thread implements Serializable {
         protected Void doInBackground(Void... voids) {
 
             if(message!=null) {
-                Gson gson = new Gson();
                 try {
                     String json = gson.toJson(message);
                     System.out.println(json);
@@ -311,7 +317,7 @@ public class ClientSocket extends Thread implements Serializable {
     public class MessageStartMappingPhase extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
                 String json = gson.toJson(message);
@@ -328,7 +334,7 @@ public class ClientSocket extends Thread implements Serializable {
     public class MessageEndMappingPhase extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
                 String json = gson.toJson(message);
@@ -348,7 +354,7 @@ public class ClientSocket extends Thread implements Serializable {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
                 String json = gson.toJson(message);
@@ -371,7 +377,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
                 String json = gson.toJson(message);
@@ -394,7 +400,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
                 String json = gson.toJson(message);
@@ -417,7 +423,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.connection.MessageRegistration message = new com.example.multiroomlocalization.messages.connection.MessageRegistration(user);
                 String json = gson.toJson(message);
@@ -440,7 +446,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
         @Override
         protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
+
             try {
                 com.example.multiroomlocalization.messages.connection.MessageLogin message = new com.example.multiroomlocalization.messages.connection.MessageLogin(user);
                 String json = gson.toJson(message);
@@ -499,7 +505,7 @@ public class ClientSocket extends Thread implements Serializable {
 
         @Override
         public Void call() {
-            Gson gson = new Gson();
+
             try {
                 MessageListSpeaker message = new MessageListSpeaker(this.listSpeaker);
                 String json = gson.toJson(message);
@@ -549,4 +555,27 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
+
+    public void closeConnection() {
+        Executor executor = Executors.newSingleThreadExecutor();
+        MessageConnectionClose msg = new MessageConnectionClose();
+
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String json = gson.toJson(msg);
+                    dataOut.writeUTF(json);
+                    dataOut.flush();
+                    socket.close();
+                    dataIn.close();
+                    dataOut.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+
+    }
 }

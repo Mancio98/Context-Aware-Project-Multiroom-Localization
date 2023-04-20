@@ -1,19 +1,24 @@
 package com.example.multiroomlocalization.speaker;
 
-
 public class Speaker {
-    private String mac;
-    private String name;
-
-    public Speaker(String id, String name) {
+    private final String name;
+    public String mac;
+    public String room;
+    public Speaker(String mac, String room, String name) {
+        this.mac = mac;
         this.name = name;
+        this.room = room;
     }
 
-    public String getMAC() {
-        return this.mac;
+    public String getMac() {
+        return mac;
     }
 
     public String getName() {
-        return this.name;
+        return name;
+    }
+
+    public String getRoom() {
+        return room;
     }
 }

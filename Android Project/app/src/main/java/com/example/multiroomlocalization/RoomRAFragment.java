@@ -12,16 +12,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
+
+import com.example.multiroomlocalization.Bluetooth.BluetoothControlFragment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RoomRAFragment extends Fragment {
 
 
     private BluetoothControlFragment bluetoothControl;
-
+    private Context context;
 
 
     @Nullable
@@ -34,7 +34,11 @@ public class RoomRAFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_assignra, container, false);
     }
 
-
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
+    }
 
     @Override
     public void onStart() {
@@ -49,15 +53,19 @@ public class RoomRAFragment extends Fragment {
 
         bluetoothControl = new BluetoothControlFragment(this);
 
-        bluetoothControl.setupBluetoothAndScan();
+
     }
 
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        bluetoothControl.setupBluetoothAndScan(context);
+    }
     private void doneAssignments(View view) {
 
         ArrayList<ListRoomsElement> deviceForRoom = bluetoothControl.getRoomsChoices();
         if(deviceForRoom != null) {
-            bluetoothControl.closeControl();
+            bluetoothControl.closeControl(context);
             getParentFragmentManager().popBackStack();
 
             Bundle bundle = new Bundle();
@@ -82,10 +90,11 @@ public class RoomRAFragment extends Fragment {
     }
 
     @Override
-    public void onStop() {
-        bluetoothControl.closeControl();
-        super.onStop();
-
+    public void onPause() {
+        super.onPause();
+        bluetoothControl.closeControl(context);
     }
+
+
 
 }

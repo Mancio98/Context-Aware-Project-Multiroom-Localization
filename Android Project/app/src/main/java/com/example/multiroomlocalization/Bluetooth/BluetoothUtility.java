@@ -1,6 +1,4 @@
-package com.example.multiroomlocalization;
-
-import static com.example.multiroomlocalization.MainActivity.BT_CONNECT_AND_SCAN;
+package com.example.multiroomlocalization.Bluetooth;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,11 +15,14 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCaller;
 import androidx.core.app.ActivityCompat;
 
+import com.example.multiroomlocalization.BetterActivityResult;
+
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BluetoothUtility {
     BetterActivityResult<Intent, ActivityResult> activityLauncher;
+    public static final int BT_CONNECT_AND_SCAN = 101;
     public BluetoothUtility(ActivityResultCaller caller) {
 
         activityLauncher = BetterActivityResult.registerActivityForResult(caller);

@@ -1,7 +1,7 @@
 package com.example.multiroomlocalization.messages.music;
 
 import com.example.multiroomlocalization.messages.Message;
-import com.example.multiroomlocalization.MyAudioTrack;
+import com.example.multiroomlocalization.Music.MyAudioTrack;
 
 import java.util.List;
 

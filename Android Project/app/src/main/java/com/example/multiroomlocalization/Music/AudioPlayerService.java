@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Music;
 
 import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
@@ -24,6 +24,7 @@ import android.telephony.TelephonyManager;
 import androidx.core.app.NotificationCompat;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.example.multiroomlocalization.R;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;

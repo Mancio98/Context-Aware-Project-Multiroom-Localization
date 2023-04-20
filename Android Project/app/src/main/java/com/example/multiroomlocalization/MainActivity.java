@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization;
 
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
+
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
@@ -7,12 +9,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -23,10 +23,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.os.Parcelable;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
@@ -56,7 +53,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -81,9 +77,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothThread;
+import com.example.multiroomlocalization.Music.AudioPlayerService;
+import com.example.multiroomlocalization.Music.ListSongAdapter;
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
-import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.example.multiroomlocalization.socket.ClientSocket;
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.gson.Gson;
 
@@ -94,16 +94,14 @@ import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
-    protected static final int BT_CONNECT_AND_SCAN = 101;
+
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.example.multiroomlocalization.PlayNewAudio";
-    private ServerSLAC server;
-    private Activity activity;
+    protected static Activity activity;
     private ConnectBluetoothThread connectBluetoothThread;
     protected static BluetoothUtility btUtility;
 
     boolean serviceBound = false;
 
-    private MediaBrowserCompat mediaBrowser;
 
     private ImageView playPause;
     private SeekBar audioSeekBar;
@@ -143,11 +141,15 @@ public class MainActivity extends AppCompatActivity {
     private ListView audioPlaylistView;
     private ListSongAdapter playlistAdapter;
 
+
+    private final Gson gson = new Gson();
+    private ControlAudioService setupAudioService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        clientSocket = LoginActivity.client;
+        clientSocket = LoginActivity.clientSocket;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -171,11 +173,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupMusicPlayer();
 
-
-        mediaBrowser = new MediaBrowserCompat(this,
-            new ComponentName(this, AudioPlaybackService.class),
-            connectionCallbacks,
-            null);
+        setupAudioService = new ControlAudioService(activity,((View)findViewById(R.id.mainLayout)), playlistAdapter);
 
         btUtility = new BluetoothUtility(this);
 
@@ -195,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     listSpeaker.add(new Speaker(room.getDevice().getAddress(), room.getName(), room.getDevice().getName()));
                 });
 
-                clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
+                //clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
             }
 
         });
@@ -241,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        downloadAudioTracks();
+        //downloadAudioTracks();
     }
 
     View.OnTouchListener touchListener = new View.OnTouchListener() {
@@ -252,7 +250,6 @@ public class MainActivity extends AppCompatActivity {
             int y1 = (int) event.getY();
 
             System.out.println("X: " + x1 + " Y: " + y1);
-
             int tempx = x1;
             int tempy = y1;
 
@@ -433,10 +430,10 @@ public class MainActivity extends AppCompatActivity {
         else {
             switch (requestCode){
                 case 2:
-
+                    /*
                     clientSocket = new ClientSocket();
                     clientSocket.setContext(getApplicationContext());
-                    clientSocket.start();
+                    clientSocket.start();*/
 
                     //new ClientSocket.MessageStartMappingPhase().execute();
                     clientSocket.createMessageStartMappingPhase().execute();
@@ -547,12 +544,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-       // Intent playerIntent = new Intent(this, AudioPlayerService.class);
-
-        //startService(playerIntent);
-        //bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-        //DA SCOMMENTARE
-        mediaBrowser.connect();
+        setupAudioService.connectMediaBrowser();
 
     }
 
@@ -566,16 +558,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if (MediaControllerCompat.getMediaController(MainActivity.this) != null) {
-            MediaControllerCompat.getMediaController(MainActivity.this).unregisterCallback(controllerCallback);
-        }
-        mediaBrowser.disconnect();
-
-        /* service
-         if(myExoPlayer != null) {
-             myExoPlayer.stop();
-             myExoPlayer = null;
-         }*/
+        setupAudioService.unregisterCallback();
 
     }
 
@@ -590,34 +573,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         serviceBound = savedInstanceState.getBoolean("ServiceState");
     }
-
-
-    private AudioPlayerService playerService;
-    private ExoPlayer myExoPlayer;
-    //Binding this Client to the AudioPlayer Service
-    /* service
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            AudioPlayerService.LocalBinder binder = (AudioPlayerService.LocalBinder) service;
-            playerService = binder.getService();
-            serviceBound = true;
-
-            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
-
-            myExoPlayer = playerService.getExoPlayer();
-
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Toast.makeText(MainActivity.this, "Service unBound", Toast.LENGTH_SHORT).show();
-            serviceBound = false;
-
-        }
-    };*/
-
 
 
     BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
@@ -751,7 +706,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        server.interrupt();
+
         try {
             LocalBroadcastManager.getInstance(activity).unregisterReceiver(connectA2dpReceiver);
 
@@ -759,9 +714,9 @@ public class MainActivity extends AppCompatActivity {
         }catch (Exception e){
             e.printStackTrace();
         }
-        server = null;
-        activity = null;
 
+        activity = null;
+        clientSocket = null;
         /*
         if (serviceBound) {
             unbindService(serviceConnection);
@@ -851,7 +806,7 @@ public class MainActivity extends AppCompatActivity {
         RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
 
         ViewGroup.LayoutParams backupLayoutParams = audioControllerView.getLayoutParams();
-        audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
+
 
         ImageButton closePlaylistView = (ImageButton) findViewById(R.id.closePlaylistButton);
 
@@ -934,178 +889,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
-            new MediaBrowserCompat.ConnectionCallback() {
-
-                @Override
-                public void onConnected() {
-
-                    // Get the token for the MediaSession
-                    MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
-
-                    // Create a MediaControllerCompat
-                    MediaControllerCompat mediaController =
-                            new MediaControllerCompat(MainActivity.this, // Context
-                                    token);
-
-                    // Save the controller
-                    MediaControllerCompat.setMediaController(MainActivity.this, mediaController);
-
-                    Log.i("connection","connected");
-
-                    // Finish building the UI
-                    buildTransportControls();
-                }
-
-                @Override
-                public void onConnectionSuspended() {
-                    // The Service has crashed. Disable transport controls until it automatically reconnects
-                    Log.i("connection","suspended");
-                }
-
-                @Override
-                public void onConnectionFailed() {
-                    // The Service has refused our connection
-                    mediaBrowser.unsubscribe("root");
-                    Log.i("connection","failed");
-                }
-            };
-
-    MediaControllerCompat.Callback controllerCallback =
-            new MediaControllerCompat.Callback() {
-                @Override
-                public void onMetadataChanged(MediaMetadataCompat metadata) {
-                    super.onMetadataChanged(metadata);
-                    int totalDuration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
-                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_ARTIST));
-                    System.out.println(metadata.getText(MediaMetadataCompat.METADATA_KEY_TITLE));
-                    if(totalDuration != 0L)
-                        audioSeekBar.setMax(totalDuration);
-                }
 
 
-                @Override
-                public void onPlaybackStateChanged(PlaybackStateCompat state) {
-                    if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
 
-                        Drawable.ConstantState drawableState = activity.getDrawable(android.R.drawable.ic_media_pause).getConstantState();
-                        if(playPause.getDrawable().getConstantState().equals(drawableState))
-                            playPause.setImageResource(android.R.drawable.ic_media_pause);
-
-                        if(playlistAdapter != null){
-                            int current = AudioPlaybackService.currentTrack;
-                            if(current >= 0) {
-                               ImageButton btn = playlistAdapter.getPlayButtons().get(current);
-                               if(btn.getDrawable().getConstantState().equals(drawableState))
-                                    btn.setImageResource(android.R.drawable.ic_media_pause);
-                            }
-                        }
-
-                        long pos = state.getPosition();
-                        audioSeekBar.setProgress(Math.toIntExact(pos));
-
-                        int seconds = (int) (pos / 1000) % 60 ;
-                        int minutes = (int) ((pos / (1000*60)) % 60);
-
-                        CharSequence time = minutes+":"+seconds;
-                        timeTextView.setText(time);
-
-                    } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
-
-                        Drawable.ConstantState drawableState = activity.getDrawable(android.R.drawable.ic_media_play).getConstantState();
-                        if(playPause.getDrawable().getConstantState().equals(drawableState))
-                            playPause.setImageResource(android.R.drawable.ic_media_play);
-
-                        if(playlistAdapter != null){
-                            int current = AudioPlaybackService.currentTrack;
-                            if(current >= 0) {
-                                ImageButton btn = playlistAdapter.getPlayButtons().get(current);
-                                if(btn.getDrawable().getConstantState().equals(drawableState))
-                                    btn.setImageResource(android.R.drawable.ic_media_play);
-                            }
-                        }
-                    }
-                }
-                @Override
-                public void onSessionDestroyed() {
-                    mediaBrowser.disconnect();
-                    // maybe schedule a reconnection using a new MediaBrowser instance
-                }
-            };
-    AtomicReference<String> myPlaylist = new AtomicReference<>();
-    private final Gson gson = new Gson();
-    private void downloadAudioTracks() {
-
-        clientSocket.createMessageReqPlaylist().executeAsync((playlist) -> {
-
-            myPlaylist.set(playlist);
-
-            playlistAdapter = new ListSongAdapter(R.id.playlist_view, activity, gson.fromJson(playlist, MessagePlaylist.class).getSong(), activity);
-            if(audioPlaylistView != null)
-                audioPlaylistView.setAdapter(playlistAdapter);
-        });
-
-    }
-    void buildTransportControls() {
-        // Grab the view for the play/pause button
-        playPause = (ImageButton) findViewById(R.id.playpause);
-        timeTextView = (TextView) findViewById(R.id.audio_time);
-        // Attach a listener to the button
-        playPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Since this is a play/pause button, you'll need to test the current state
-                // and choose the action accordingly
-
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING) {
-                    Log.i("button","pausa");
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().pause();
-                } else {
-                    Log.i("button","play");
-
-                    if(!AudioPlaybackService.isMyServiceRunning){
-
-                        if(myPlaylist.get() != null) {
-                            Intent intent = new Intent(activity, AudioPlaybackService.class);
-                            intent.putExtra("playlist", myPlaylist.get());
-                            startService(intent);
-                        }else
-                            Toast.makeText(activity,"Waiting for playlist...", Toast.LENGTH_LONG).show();
-                    }else
-                        MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().play();
-                }
-            }});
-
-        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
-        nextTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToNext();
-                }
-            }
-        });
-
-        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
-        previousTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
-
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().skipToPrevious();
-                }
-            }
-        });
-
-        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
-
-        // Register a Callback to stay in sync
-        mediaController.registerCallback(controllerCallback);
-
-    }
 
     private void createPopupRoomTraining(ReferencePoint point,int index){
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);

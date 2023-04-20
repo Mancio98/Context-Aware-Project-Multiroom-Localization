@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
@@ -13,6 +13,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+import com.example.multiroomlocalization.ListRoomsElement;
+import com.example.multiroomlocalization.R;
 
 import java.util.ArrayList;
 import java.util.List;

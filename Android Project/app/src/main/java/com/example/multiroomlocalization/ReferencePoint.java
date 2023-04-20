@@ -1,7 +1,6 @@
 package com.example.multiroomlocalization;
 
-import java.util.HashMap;
-import java.util.List;
+import com.example.multiroomlocalization.speaker.Speaker;
 
 public class ReferencePoint {
 

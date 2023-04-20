@@ -1,6 +1,6 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.BluetoothUtility.checkPermission;
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
 
 
 import android.app.Activity;
@@ -10,10 +10,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.Toast;
@@ -23,8 +19,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
-
-import kotlin.jvm.internal.FunctionImpl;
 
 public class ConnectBluetoothThread extends Thread {
 

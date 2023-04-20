@@ -4,7 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -17,9 +18,6 @@ import android.widget.Toast;
 
 import com.example.multiroomlocalization.socket.ClientSocket;
 
-
-import java.util.concurrent.atomic.AtomicReference;
-
 public class LoginActivity extends AppCompatActivity {
 
     EditText userInput;
@@ -28,12 +26,14 @@ public class LoginActivity extends AppCompatActivity {
     boolean userEmpty;
     boolean passwordEmpty;
     boolean bool;
-    protected static ClientSocket client;
+    protected static ClientSocket clientSocket;
+    private LoginActivity activity;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        activity = this;
         setContentView(R.layout.activity_login);
         userInput = findViewById(R.id.editMailRegistration);
         passwordInput = findViewById(R.id.editPasswordRegistration);
@@ -46,10 +46,9 @@ public class LoginActivity extends AppCompatActivity {
         SpannableString content = new SpannableString( "Create an account" ) ;
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
+        clientSocket = new ClientSocket(activity);
 
-        client = new ClientSocket();
-        client.setContext(getApplicationContext());
-        client.start();
+
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 User user= new User(email,password);
                 //client.createMessageLogin(user).execute();
                 if(email.equals("admin") && password.equals("admin")){
-                    loginSuccessfull();
+                    loginSuccessful();
                 }
                 else {
                     Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
@@ -150,10 +149,24 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        clientSocket.start();
+    }
 
-    private void loginSuccessfull(){
+    private void loginSuccessful(){
         Intent changeActivity = new Intent(this,MainActivity.class);
         startActivity(changeActivity);
     }
 
+
+    @Override
+    protected void onDestroy() {
+
+        clientSocket.closeConnection();
+
+        super.onDestroy();
+
+    }
 }

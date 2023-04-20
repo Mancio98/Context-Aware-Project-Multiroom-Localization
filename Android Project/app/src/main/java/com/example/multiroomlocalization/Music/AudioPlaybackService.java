@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Music;
 
 import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
@@ -33,6 +33,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.example.multiroomlocalization.R;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -65,7 +66,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             .build();
     private AudioFocusRequest focusRequest;
 
-    protected static int currentTrack = -1;
+    public static int currentTrack = -1;
 
     private int resumePosition;
     private TelephonyManager telephonyManager;

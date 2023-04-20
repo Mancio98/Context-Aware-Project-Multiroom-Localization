@@ -71,7 +71,7 @@
         </receiver>
 
         <service
-            android:name=".AudioPlaybackService"
+            android:name=".Music.AudioPlaybackService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -80,7 +80,7 @@
 
             </intent-filter>
         </service>
-        <service android:name=".AudioPlayerService" />
+        <service android:name=".Music.AudioPlayerService" />
 
         <activity
             android:name=".MainActivity"

@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Music;
 
 public class MyAudioTrack {
 

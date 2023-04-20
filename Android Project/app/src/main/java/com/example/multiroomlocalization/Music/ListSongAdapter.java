@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Music;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.example.multiroomlocalization.R;
 
 import java.util.ArrayList;
 import java.util.List;

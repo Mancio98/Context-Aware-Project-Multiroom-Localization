@@ -1,8 +1,8 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.BluetoothUtility.checkPermission;
-import static com.example.multiroomlocalization.BluetoothUtility.getBondedDevices;
-import static com.example.multiroomlocalization.BluetoothUtility.scan;
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.getBondedDevices;
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.scan;
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.bluetooth.BluetoothAdapter;
@@ -19,10 +19,11 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.example.multiroomlocalization.ListRoomsElement;
+import com.example.multiroomlocalization.R;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,10 +78,9 @@ public class BluetoothControlFragment {
     }
 
     //setup adapter to display list on my view and start scanning
-    public void setupBluetoothAndScan() {
+    public void setupBluetoothAndScan(Context context) {
 
-        setupReceiver();
-
+        setupReceiver(context);
 
         if(btUtility.enableBluetooth(bluetoothAdapter)) {
             populateBondedDevices();
@@ -95,7 +95,7 @@ public class BluetoothControlFragment {
     }
 
     //method to setup my listener for bluetooth actions
-    private void setupReceiver(){
+    private void setupReceiver(Context context){
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -103,7 +103,7 @@ public class BluetoothControlFragment {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
         try {
-            myActivity.registerReceiver(receiver, filter);
+            context.registerReceiver(receiver, filter);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -184,7 +184,7 @@ public class BluetoothControlFragment {
 
     }
 
-    public void closeControl(){
+    public void closeControl(Context context){
 
 
         checkPermission(myActivity);
@@ -192,8 +192,8 @@ public class BluetoothControlFragment {
             bluetoothAdapter.cancelDiscovery();
 
         try{
-            LocalBroadcastManager.getInstance(myActivity).unregisterReceiver(receiver);
-            myActivity.unregisterReceiver(receiver);
+            //LocalBroadcastManager.getInstance(myActivity).unregisterReceiver(receiver);
+            context.unregisterReceiver(receiver);
         }catch (Exception e){
             e.printStackTrace();
         }

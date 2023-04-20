@@ -3,6 +3,7 @@ package com.example.multiroomlocalization;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,7 +19,7 @@ public class RegistrationActivity  extends AppCompatActivity {
     boolean passwordEmpty;
     EditText username;
     EditText password;
-    ClientSocket client;
+    ClientSocket clientSocket;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,9 +32,9 @@ public class RegistrationActivity  extends AppCompatActivity {
         username = findViewById(R.id.editMailRegistration);
         password = findViewById(R.id.editPasswordRegistration);
 
-        client = new ClientSocket();
-        client.setContext(getApplicationContext());
-        client.start();
+
+        clientSocket = LoginActivity.clientSocket;
+
 
         username.addTextChangedListener(new TextWatcher() {
             @Override
@@ -90,7 +91,7 @@ public class RegistrationActivity  extends AppCompatActivity {
             public void onClick(View view) {
                 User user = new User(username.getText().toString(),password.getText().toString());
 
-                client.createMessageRegistration(user).execute();
+                clientSocket.createMessageRegistration(user).execute();
 
             }
         });
