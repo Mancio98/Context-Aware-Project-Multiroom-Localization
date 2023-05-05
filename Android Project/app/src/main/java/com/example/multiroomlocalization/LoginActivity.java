@@ -47,10 +47,11 @@ public class LoginActivity extends AppCompatActivity {
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
 
+        /*
         client = new ClientSocket();
         client.setContext(getApplicationContext());
         client.start();
-
+        */
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +120,7 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordInput.getText().toString();
 
                 User user= new User(email,password);
+                loginSuccessfull();
                 //client.createMessageLogin(user).execute();
                 /*if(email.equals("admin") && password.equals("admin")){
                     loginSuccessfull();
@@ -154,6 +156,11 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loginSuccessfull(){
         Intent changeActivity = new Intent(this,MainActivity.class);
+        String address = userInput.getText().toString();
+        Integer port = Integer.parseInt(passwordInput.getText().toString());
+
+        changeActivity.putExtra("add", address);
+        changeActivity.putExtra("port",port);
         startActivity(changeActivity);
     }
 

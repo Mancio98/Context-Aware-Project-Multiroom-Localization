@@ -181,6 +181,15 @@ public class MainActivity extends AppCompatActivity {
 
         clientSocket = new ClientSocket();
         clientSocket.setContext(getApplicationContext());
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String address = extras.getString("add");
+            Integer port = extras.getInt("port");
+            //The key argument here must match that used in the other activity
+            clientSocket.setAddress(address, port);
+        }
+
         clientSocket.start();
 
 

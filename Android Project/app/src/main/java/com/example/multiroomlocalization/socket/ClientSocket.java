@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private final int port = 19585;//8777;
+    private int port = 19585;//8777;
 
     private Socket socket;
     private DataInputStream dataIn;
@@ -93,6 +93,12 @@ public class ClientSocket extends Thread implements Serializable {
             mHandler.postDelayed(scanRunnable, 0);*/
             //scanRunnable.run();
 
+    }
+
+
+    public void setAddress(String addNgrok,Integer portNgrok){
+        ip = addNgrok;
+        port = portNgrok;
     }
 
     public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
