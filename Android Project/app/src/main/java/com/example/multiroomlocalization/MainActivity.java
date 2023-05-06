@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
         activity = this;
 
-        clientSocket = new ClientSocket();
+       /* clientSocket = new ClientSocket();
         clientSocket.setContext(getApplicationContext());
 
         Bundle extras = getIntent().getExtras();
@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         clientSocket.start();
-
+        */
 
         //setupMusicPlayer();
 
