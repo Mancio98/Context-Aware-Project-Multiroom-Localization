@@ -90,7 +90,18 @@ public class RegistrationActivity  extends AppCompatActivity {
             public void onClick(View view) {
                 User user = new User(username.getText().toString(),password.getText().toString());
 
-                client.createMessageRegistration(user).execute();
+                client.createMessageRegistration(user).executeAsync((response) -> {
+                    if (response == "REGISTRATIONDONE"){
+                        // REGISTRAZIONE ANDATA A BUON FINE
+                    }
+                    else {
+                        // ESEGUIRE CASI ERRORE REGISTRAZIONE
+                        // 1) UTENTE GIà REGISTRATO
+                        // 2) NOME GIà IN USO
+                        // 3) ALTRO
+                    }
+
+                } );
 
             }
         });

@@ -121,13 +121,17 @@ public class LoginActivity extends AppCompatActivity {
 
                 User user= new User(email,password);
                 loginSuccessfull();
-                //client.createMessageLogin(user).execute();
-                /*if(email.equals("admin") && password.equals("admin")){
-                    loginSuccessfull();
-                }
-                else {
-                    Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
-                }
+
+                //DA SCOMMENTARE PER IL LOGIN CORRETTO CON MESSAGGIO AL DATABASE
+                /*
+                client.createMessageLogin(user).executeAsync((response)-> {
+                    if(response == "LOGINDONE"){
+                        loginSuccessfull();
+                    }
+                    else {
+                        Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
+                    }
+                });
                 */
 
 
@@ -158,7 +162,8 @@ public class LoginActivity extends AppCompatActivity {
         Intent changeActivity = new Intent(this,MainActivity.class);
         String address = userInput.getText().toString();
         Integer port = Integer.parseInt(passwordInput.getText().toString());
-
+        System.out.println("address: " + address);
+        System.out.println("Port: " + port);
         changeActivity.putExtra("add", address);
         changeActivity.putExtra("port",port);
         startActivity(changeActivity);

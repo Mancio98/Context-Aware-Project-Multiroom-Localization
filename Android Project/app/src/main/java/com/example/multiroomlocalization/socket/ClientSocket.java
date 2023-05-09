@@ -1,5 +1,6 @@
 package com.example.multiroomlocalization.socket;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 
 import com.example.multiroomlocalization.ScanService;
@@ -9,6 +10,7 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.ArraySet;
+import android.widget.Toast;
 
 import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
@@ -35,7 +37,7 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 19585;//8777;
+    private int port = 14443;//8777;
 
     private Socket socket;
     private DataInputStream dataIn;
@@ -44,7 +46,7 @@ public class ClientSocket extends Thread implements Serializable {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="4.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
+    private String ip ="5.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
     WifiManager wifiManager;
     Context context;
     @Override
@@ -52,9 +54,21 @@ public class ClientSocket extends Thread implements Serializable {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         try {
+            System.out.println("Ip: "+ ip);
+            System.out.println("Port: "+ port);
             socket = new Socket(ip, port);
+            System.out.println("socket: "+ socket);
             dataIn = new DataInputStream(socket.getInputStream());
+            System.out.println("dataIn: "+ dataIn);
             dataOut = new DataOutputStream(socket.getOutputStream());
+            System.out.println("dataOut: "+ dataOut);
+            ((Activity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Socket Connesso", Toast.LENGTH_LONG).show();
+                }
+            });
+
         }
         /*catch(IOException e) {
             System.out.println("catch");
@@ -62,6 +76,12 @@ public class ClientSocket extends Thread implements Serializable {
         }*/
         catch(Exception e){
             System.out.println("catch");
+            ((Activity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
             e.printStackTrace();
         }
 
@@ -101,36 +121,36 @@ public class ClientSocket extends Thread implements Serializable {
         port = portNgrok;
     }
 
-    public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
-        return new MessageStartMappingPhase();
+    public TaskRunner<Void> createMessageStartMappingPhase(){
+        return new TaskRunner<Void>(new MessageStartMappingPhase());
     }
 
-    public AsyncTask<Void,Void,Void> createMessageStartScanReferencePoint(){
-        return new MessageStartScanReferencePoint();
+    public TaskRunner<Void> createMessageStartScanReferencePoint(){
+        return new TaskRunner<Void>(new MessageStartScanReferencePoint());
     }
 
-    public AsyncTask<Void,Void,Void> createMessageNewReferencePoint(ReferencePoint ref){
-        return new MessageNewReferencePoint(ref);
+    public TaskRunner<Void>createMessageNewReferencePoint(ReferencePoint ref){
+        return new TaskRunner<Void>(new MessageNewReferencePoint(ref));
     }
 
-    public AsyncTask<Void,Void,Void> createMessageEndMappingPhase(){
-        return new MessageEndMappingPhase();
+    public TaskRunner<Void> createMessageEndMappingPhase(){
+        return new TaskRunner<Void>(new MessageEndMappingPhase());
     }
 
-    public AsyncTask<Void,Void,Void> createMessageEndScanReferencePoint(){
-        return new MessageEndScanReferencePoint();
+    public TaskRunner<Void> createMessageEndScanReferencePoint(){
+        return new TaskRunner<Void>(new MessageEndScanReferencePoint());
     }
 
-    public AsyncTask<Void,Void,Void> createMessageFingerprint(List<ScanResult> fingerprint){
-        return new MessageFingerprint(fingerprint);
+    public TaskRunner<Void> createMessageFingerprint(List<ScanResult> fingerprint){
+        return new TaskRunner<Void>(new MessageFingerprint(fingerprint));
     }
 
-    public AsyncTask<Void,Void,Void> createMessageRegistration(User user){
-        return new MessageRegistration(user);
+    public TaskRunner<String> createMessageRegistration(User user){
+        return new TaskRunner<String>(new MessageRegistration(user));
     }
 
-    public AsyncTask<Void,Void,Void> createMessageLogin(User user){
-        return new MessageLogin(user);
+    public TaskRunner<String> createMessageLogin(User user){
+        return new TaskRunner<String>(new MessageLogin(user));
     }
 
     public TaskRunner<String> createMessageReqPlaylist(){
@@ -240,7 +260,6 @@ public class ClientSocket extends Thread implements Serializable {
     //classe per l'invio dei messaggi JSON all'applicativo python
     public class MessageSender extends AsyncTask<Void,Void,Void> {
 
-
         private Message message;
 
         protected MessageSender(Message message){
@@ -299,13 +318,11 @@ public class ClientSocket extends Thread implements Serializable {
     }
 
 
-    public class MessageStartScanReferencePoint extends AsyncTask<Void,Void,Void> {
+    public class MessageStartScanReferencePoint implements Callable<Void> {
 
-        public MessageStartScanReferencePoint(){
-        }
-
+        public MessageStartScanReferencePoint(){}
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint();//referencePoint);
@@ -320,9 +337,9 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageStartMappingPhase extends AsyncTask<Void,Void,Void>{
+    public class MessageStartMappingPhase implements Callable<Void>{
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
@@ -337,9 +354,9 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageEndMappingPhase extends AsyncTask<Void,Void,Void>{
+    public class MessageEndMappingPhase implements Callable<Void>{
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
@@ -354,12 +371,12 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageEndScanReferencePoint extends AsyncTask<Void,Void,Void>{
+    public class MessageEndScanReferencePoint implements Callable<Void>{
 
         public MessageEndScanReferencePoint(){}
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
@@ -374,15 +391,14 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageNewReferencePoint extends AsyncTask<Void,Void,Void>{
+    public class MessageNewReferencePoint implements Callable<Void>{
 
         ReferencePoint referencePoint;
 
-        public MessageNewReferencePoint(ReferencePoint ref){
-            this.referencePoint = ref;
-        }
+        public MessageNewReferencePoint(ReferencePoint ref){ this.referencePoint = ref; }
+
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
@@ -397,15 +413,16 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageFingerprint extends AsyncTask<Void,Void,Void>{
+    public class MessageFingerprint implements Callable<Void>{
 
         List<ScanResult> fingerprint;
 
         public MessageFingerprint(List<ScanResult> finger){
             this.fingerprint = finger;
         }
+
         @Override
-        protected Void doInBackground(Void... voids) {
+        public Void call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
@@ -420,15 +437,17 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageRegistration extends AsyncTask<Void,Void,Void>{
+    public class MessageRegistration implements Callable<String>{
 
         User user;
+        String registrationResult;
 
         public MessageRegistration(User user){
             this.user = user;
         }
+
         @Override
-        protected Void doInBackground(Void... voids) {
+        public String call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.connection.MessageRegistration message = new com.example.multiroomlocalization.messages.connection.MessageRegistration(user);
@@ -441,24 +460,27 @@ public class ClientSocket extends Thread implements Serializable {
             }
 
             try {
-                System.out.println(dataIn.readUTF());
+                registrationResult = dataIn.readUTF();
+                System.out.println(registrationResult);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            return null;
+            return registrationResult;
         }
     }
 
-    public class MessageLogin extends AsyncTask<Void,Void,Void>{
+    public class MessageLogin implements Callable<String> {
 
         User user;
+        String loginResult;
 
         public MessageLogin(User user){
             this.user = user;
         }
+
         @Override
-        protected Void doInBackground(Void... voids) {
+        public String call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.connection.MessageLogin message = new com.example.multiroomlocalization.messages.connection.MessageLogin(user);
@@ -471,12 +493,13 @@ public class ClientSocket extends Thread implements Serializable {
             }
 
             try {
-                System.out.println(dataIn.readUTF());
+                loginResult = dataIn.readUTF();
+                System.out.println(loginResult);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            return null;
+            return loginResult;
         }
     }
 
@@ -484,9 +507,7 @@ public class ClientSocket extends Thread implements Serializable {
     public class RequestPlaylist implements Callable<String> {
 
         private final Handler handler = new Handler(Looper.myLooper());
-        public RequestPlaylist() {
-
-        }
+        public RequestPlaylist() { }
 
         @Override
         public String call() {
