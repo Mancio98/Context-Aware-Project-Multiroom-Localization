@@ -5,9 +5,7 @@ import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CO
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,10 +20,8 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 
-import android.os.Parcelable;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -46,13 +42,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import android.util.ArraySet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -79,12 +75,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothThread;
-import com.example.multiroomlocalization.Music.AudioPlayerService;
 import com.example.multiroomlocalization.Music.ListSongAdapter;
 import com.example.multiroomlocalization.databinding.ActivityMainBinding;
+import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.example.multiroomlocalization.speaker.Speaker;
-import com.google.android.exoplayer2.ExoPlayer;
+
 import com.google.gson.Gson;
 
 import android.view.Menu;
@@ -96,10 +93,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.example.multiroomlocalization.PlayNewAudio";
-    protected static Activity activity;
+    public static Activity activity;
     private ConnectBluetoothThread connectBluetoothThread;
-    protected static BluetoothUtility btUtility;
-
+    public static BluetoothUtility btUtility;
+    public static WeakReference<MainActivity> weakActivity;
     boolean serviceBound = false;
 
 
@@ -125,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected ClientSocket clientSocket;
 
-    private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
+    private ArrayList<com.example.multiroomlocalization.ReferencePoint> referencePoints = new ArrayList<com.example.multiroomlocalization.ReferencePoint>();
     private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
     private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
@@ -169,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         activity = this;
-
+        weakActivity = new WeakReference<>(MainActivity.this);
 
         setupMusicPlayer();
 
@@ -190,10 +187,19 @@ public class MainActivity extends AppCompatActivity {
             if(deviceForRoom != null) {
                 listSpeaker = new ArraySet<>();
                 deviceForRoom.forEach(room -> {
-                    listSpeaker.add(new Speaker(room.getDevice().getAddress(), room.getName(), room.getDevice().getName()));
+                    BluetoothDevice device = room.getDevice();
+                    listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName(), device.getBluetoothClass().getDeviceClass()));
                 });
 
-                //clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
+
+                clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
+                connectBluetoothThread = new ConnectBluetoothThread(activity);
+
+                IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+                filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+                filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+                filter.addAction(BluetoothDevice.ACTION_UUID);
+                registerReceiver(btUtility.getConnectA2dpReceiver(), filter);
             }
 
         });
@@ -287,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             scanService.startScan();
             mHandler.postDelayed(scanRunnable, intervalScan);
+
         }
     };
 
@@ -294,11 +301,19 @@ public class MainActivity extends AppCompatActivity {
         mHandler.removeCallbacks(scanRunnable);
     }
 
+    public static MainActivity getInstance(){
+        return weakActivity.get();
+    }
+    public void connectBluetoothDevice(Speaker speaker){
+        if(connectBluetoothThread!= null)
+            connectBluetoothThread.connectDevice(speaker);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -575,61 +590,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
 
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            String action = intent.getAction();
-            Log.d("a2dp", "receive intent for action : " + action);
-            if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
-                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_DISCONNECTED);
-                if (state == BluetoothA2dp.STATE_CONNECTED) {
-                    //setIsA2dpReady(true);
-                    Log.i("connesso2", "diocane");
-                    //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
-                } else if (state == BluetoothA2dp.STATE_DISCONNECTED) {
-                    //setIsA2dpReady(false);
-                }
-            } else if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
-                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_NOT_PLAYING);
-                if (state == BluetoothA2dp.STATE_PLAYING) {
-                    Log.d("a2dp", "A2DP start playing");
-                    Toast.makeText(activity, "A2dp is playing", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d("a2dp", "A2DP not playing");
-                    Toast.makeText(activity, "A2dp not playing", Toast.LENGTH_SHORT).show();
-                }
-            } else if(action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
-
-                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_BONDED);
-                if (state == BluetoothDevice.BOND_BONDED) {
-                    Log.d("bonded", "bonded");
-
-                } else {
-                    Log.d("bonded", "not bonded");
-
-                }
-            }
-            else if (BluetoothDevice.ACTION_UUID.equals(action)) {
-                // This is when we can be assured that fetchUuidsWithSdp has completed.
-                Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-
-                if (uuidExtra != null) {
-                    for (Parcelable p : uuidExtra) {
-                        System.out.println("uuidExtra - " + p);
-                    }
-                    if (connectBluetoothThread != null){
-                        connectBluetoothThread.start();
-                    }
-
-                } else {
-                    System.out.println("uuidExtra is still null");
-                }
-
-            }
-
-        }
-    };
 
     //listener to get if user granted permission for bluetooth connect and scan (only for sdk > 30)
     @Override
@@ -657,35 +618,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startBluetoothConnection() {
-        BluetoothManager manager = getSystemService(BluetoothManager.class);
-        BluetoothAdapter adapter = manager.getAdapter();
 
-        BluetoothUtility.checkPermission(this);
-        Set<BluetoothDevice> devices = adapter.getBondedDevices();
-
-        BluetoothDevice device = null;
-        if (devices.size() <= 0)
-            Log.i("name", "vaffanculo");
-        else {
-            for (BluetoothDevice elem : devices) {
-
-                Log.i("name", elem.getName());
-                if (elem.getName().equals("AirPods Pro di Mancio"))
-                    device = elem;
-            }
-
-            IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-            filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
-            filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-            filter.addAction(BluetoothDevice.ACTION_UUID);
-            registerReceiver(connectA2dpReceiver, filter);
-
-
-            connectBluetoothThread = new ConnectBluetoothThread(this, adapter);
-            connectBluetoothThread.connectDevice(device);
-        }
-    }
     private void launchAssignRAFragment(){
 
         FrameLayout frame = findViewById(R.id.RaRooms);
@@ -708,14 +641,18 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         try {
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(connectA2dpReceiver);
+            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
 
-            activity.unregisterReceiver(connectA2dpReceiver);
+            activity.unregisterReceiver(btUtility.getConnectA2dpReceiver());
         }catch (Exception e){
             e.printStackTrace();
         }
 
+        if(connectBluetoothThread != null)
+            connectBluetoothThread.disconnect();
+
         activity = null;
+        weakActivity = null;
         clientSocket = null;
         /*
         if (serviceBound) {
@@ -730,9 +667,36 @@ public class MainActivity extends AppCompatActivity {
     public void askBtPermission(View view) {
 
 
-        if(BluetoothUtility.checkPermission(activity))
+        /*if(BluetoothUtility.checkPermission(activity))
             launchAssignRAFragment();
         //startBluetoothConnection();
+
+        /*
+        clientSocket.createMessageNewReferencePoint(new com.example.multiroomlocalization.localization.ReferencePoint(
+                "a",
+                new Speaker("F8:FF:C2:54:C1:28","Cucina","MacBook Pro di Mancio",0)
+        )).execute();
+        clientSocket.createMessageNewReferencePoint(new com.example.multiroomlocalization.localization.ReferencePoint(
+                "a",
+                new Speaker("45689","salotto","speaker2",0)
+        )).execute();*/
+
+        List<com.example.multiroomlocalization.ScanResult> list = new ArrayList<>();
+
+
+        if(connectBluetoothThread != null)
+            connectBluetoothThread = new ConnectBluetoothThread(activity);
+
+        /*IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_UUID);
+        registerReceiver(btUtility.getConnectA2dpReceiver(), filter);*/
+
+
+        String messageFingerPrint = gson.toJson(new MessageFingerprint(list));
+        clientSocket.sendMessageFingerPrint(messageFingerPrint);
+
     }
 
     private void setupMusicPlayer() {
@@ -807,7 +771,7 @@ public class MainActivity extends AppCompatActivity {
 
         ViewGroup.LayoutParams backupLayoutParams = audioControllerView.getLayoutParams();
 
-
+        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
         ImageButton closePlaylistView = (ImageButton) findViewById(R.id.closePlaylistButton);
 
         audioControllerView.setOnClickListener(new View.OnClickListener() {
@@ -893,7 +857,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void createPopupRoomTraining(ReferencePoint point,int index){
+    private void createPopupRoomTraining(com.example.multiroomlocalization.ReferencePoint point,int index){
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
         dialogBuilder.setView(popup);
@@ -907,7 +871,7 @@ public class MainActivity extends AppCompatActivity {
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
 
-        clientSocket.createMessageNewReferencePoint(point).execute();
+        //clientSocket.createMessageNewReferencePoint(point).execute();
 
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 

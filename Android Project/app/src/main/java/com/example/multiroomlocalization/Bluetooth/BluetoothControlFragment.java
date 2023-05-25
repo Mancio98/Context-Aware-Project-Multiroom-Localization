@@ -6,12 +6,15 @@ import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.scan;
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Parcelable;
 import android.util.Log;
 import android.widget.ListView;
@@ -24,6 +27,7 @@ import com.example.multiroomlocalization.ListRoomsElement;
 import com.example.multiroomlocalization.R;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,24 +37,20 @@ public class BluetoothControlFragment {
     private final FragmentActivity myActivity;
     private final ListView listRooms;
 
-    private BluetoothAdapter bluetoothAdapter;
-    private Set<BluetoothDevice> pairedDevices;
-    private ArrayList<BluetoothDevice> discoveredDevices;
-    private ConnectBluetoothThread connectBtThread;
     private final BluetoothDevice foundDevice = null;
     private final String[] roomsArray;
     private ListBluetoothAdapter roomsAdapter;
-
+    private final ScanBluetooth scanBluetoothManager;
+    private ArrayList<BluetoothDevice> discoveredDevices;
     public BluetoothControlFragment(Fragment fragment) {
 
         myActivity = fragment.requireActivity();
 
-        //get bluetooth adapter, main object to perform all actions
-        BluetoothManager bluetoothManager = myActivity.getSystemService(BluetoothManager.class);
-        bluetoothAdapter = bluetoothManager.getAdapter();
         listRooms = (ListView) myActivity.findViewById(R.id.rooms_list);
 
         roomsArray = myActivity.getResources().getStringArray(R.array.rooms_array);
+
+        scanBluetoothManager = new ScanBluetooth(fragment.getContext(), myActivity, receiver);
     }
 
     //return rooms choices both for discovered and paired devices (to finish)
@@ -69,44 +69,14 @@ public class BluetoothControlFragment {
 
         }
 
-
-        checkPermission(myActivity);
-        if(bluetoothAdapter.isDiscovering())
-            bluetoothAdapter.cancelDiscovery();
+        scanBluetoothManager.interruptScan();
 
         return deviceForRoom;
     }
 
-    //setup adapter to display list on my view and start scanning
-    public void setupBluetoothAndScan(Context context) {
 
-        setupReceiver(context);
-
-        if(btUtility.enableBluetooth(bluetoothAdapter)) {
-            populateBondedDevices();
-            scan(myActivity,bluetoothAdapter);
-            // Register for broadcasts when a device is discovered.
-
-        }
-        else
-            Toast.makeText(myActivity,"Enable Bluetooth to continue!",Toast.LENGTH_LONG).show();
-
-
-    }
-
-    //method to setup my listener for bluetooth actions
-    private void setupReceiver(Context context){
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-
-        try {
-            context.registerReceiver(receiver, filter);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+    public void startScanning(){
+        scanBluetoothManager.setupBluetoothAndScan();
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -127,13 +97,29 @@ public class BluetoothControlFragment {
 
                     if (deviceName != null) {
                         Log.i("devices_scan", deviceName);
+                        Log.i("devices_scan", deviceHardwareAddress);
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
+
+                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
+                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
+                        }
+                        else{
+                            System.out.println("device type: "+device.getBluetoothClass().getDeviceClass());
+                            System.out.println("device uuid: "+ Arrays.toString(device.getUuids()));
+
+
+                        }
+
+
                         if(!discoveredDevices.contains(device)) {
                             discoveredDevices.add(device);
                             roomsAdapter.addBluetoothDevice(device);
                         }
                          //add device on the list that user is looking
                     }
-                    Log.i("devices_scan", deviceHardwareAddress);
+
 
                 }
 
@@ -151,11 +137,12 @@ public class BluetoothControlFragment {
                 List<ListRoomsElement> arrayRoomsElem = new ArrayList<>();
                 for(String room : roomsArray)
                     arrayRoomsElem.add(new ListRoomsElement(room));
-                roomsAdapter = new ListBluetoothAdapter(context, R.id.rooms_list, arrayRoomsElem, myActivity, pairedDevices);
+                roomsAdapter = new ListBluetoothAdapter(context, R.id.rooms_list, arrayRoomsElem,
+                        myActivity, scanBluetoothManager.getPairedDevices());
 
                 listRooms.setAdapter(roomsAdapter);
-
                 discoveredDevices = new ArrayList<>();
+
             //use it when i call fetchforuuid method to get fresh uuid (probably i will delete it)
             } else if (BluetoothDevice.ACTION_UUID.equals(action)) {
                 // This is when we can be assured that fetchUuidsWithSdp has completed.
@@ -164,9 +151,6 @@ public class BluetoothControlFragment {
                 if (uuidExtra != null) {
                     for (Parcelable p : uuidExtra) {
                         System.out.println("uuidExtra - " + p);
-                    }
-                    if (connectBtThread != null){
-                        //connectBtThread.start();
                     }
 
                 } else {
@@ -177,26 +161,9 @@ public class BluetoothControlFragment {
         }
     };
 
-    //populate adapter with list of bonded devices
-    protected void populateBondedDevices() {
 
-        pairedDevices = getBondedDevices(bluetoothAdapter,myActivity);
-
-    }
-
-    public void closeControl(Context context){
-
-
-        checkPermission(myActivity);
-        if(bluetoothAdapter.isDiscovering())
-            bluetoothAdapter.cancelDiscovery();
-
-        try{
-            //LocalBroadcastManager.getInstance(myActivity).unregisterReceiver(receiver);
-            context.unregisterReceiver(receiver);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
+    public void closeControl(){
+        scanBluetoothManager.interruptScan();
+        scanBluetoothManager.unregisterReceiver();
     }
 }

@@ -53,19 +53,18 @@ public class RoomRAFragment extends Fragment {
 
         bluetoothControl = new BluetoothControlFragment(this);
 
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        bluetoothControl.setupBluetoothAndScan(context);
+        bluetoothControl.startScanning();
     }
     private void doneAssignments(View view) {
 
         ArrayList<ListRoomsElement> deviceForRoom = bluetoothControl.getRoomsChoices();
         if(deviceForRoom != null) {
-            bluetoothControl.closeControl(context);
+            bluetoothControl.closeControl();
             getParentFragmentManager().popBackStack();
 
             Bundle bundle = new Bundle();
@@ -92,7 +91,7 @@ public class RoomRAFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        bluetoothControl.closeControl(context);
+        bluetoothControl.closeControl();
     }
 
 

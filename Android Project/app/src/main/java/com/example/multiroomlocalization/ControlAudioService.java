@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.example.multiroomlocalization.Music.AudioPlaybackService;
 import com.example.multiroomlocalization.Music.ListSongAdapter;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
+import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
 import com.google.gson.Gson;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,7 +72,7 @@ public class ControlAudioService {
                     MediaControllerCompat.setMediaController(activity, mediaController);
 
                     Log.i("connection","connected");
-
+                    downloadAudioTracks();
                     // Finish building the UI
                     buildTransportControls();
                 }
@@ -108,15 +109,17 @@ public class ControlAudioService {
                 public void onPlaybackStateChanged(PlaybackStateCompat state) {
                     if (PlaybackStateCompat.STATE_PLAYING == state.getState()) {
 
-                        Drawable.ConstantState drawableState = context.getDrawable(android.R.drawable.ic_media_pause).getConstantState();
-                        if(playPause.getDrawable().getConstantState().equals(drawableState))
+                        Drawable drawablePause = context.getDrawable(android.R.drawable.ic_media_pause);
+
+                        System.out.println(playPause.getDrawable().equals(drawablePause));
+                        if(!playPause.getDrawable().equals(drawablePause))
                             playPause.setImageResource(android.R.drawable.ic_media_pause);
 
                         if(playlistAdapter != null){
                             int current = AudioPlaybackService.currentTrack;
                             if(current >= 0) {
                                 ImageButton btn = playlistAdapter.getPlayButtons().get(current);
-                                if(btn.getDrawable().getConstantState().equals(drawableState))
+                                if(!btn.getDrawable().equals(drawablePause))
                                     btn.setImageResource(android.R.drawable.ic_media_pause);
                             }
                         }
@@ -132,15 +135,15 @@ public class ControlAudioService {
 
                     } else if (PlaybackStateCompat.STATE_PAUSED == state.getState()) {
 
-                        Drawable.ConstantState drawableState = context.getDrawable(android.R.drawable.ic_media_play).getConstantState();
-                        if(playPause.getDrawable().getConstantState().equals(drawableState))
+                        Drawable drawablePlay = context.getDrawable(android.R.drawable.ic_media_play);
+                        if(!playPause.getDrawable().equals(drawablePlay))
                             playPause.setImageResource(android.R.drawable.ic_media_play);
 
                         if(playlistAdapter != null){
                             int current = AudioPlaybackService.currentTrack;
                             if(current >= 0) {
                                 ImageButton btn = playlistAdapter.getPlayButtons().get(current);
-                                if(btn.getDrawable().getConstantState().equals(drawableState))
+                                if(!btn.getDrawable().equals(drawablePlay))
                                     btn.setImageResource(android.R.drawable.ic_media_play);
                             }
                         }
@@ -155,15 +158,22 @@ public class ControlAudioService {
 
     private void downloadAudioTracks() {
 
-        clientSocket.createMessageReqPlaylist().executeAsync((playlist) -> {
 
+        String messageReqPlaylist = gson.toJson(new MessageRequestPlaylist());
+        clientSocket.sendMessageReqPlaylist((playlist) -> {
+
+            System.out.println(playlist);
             myPlaylist.set(playlist);
 
             playlistAdapter = new ListSongAdapter(R.id.playlist_view, activity, gson.fromJson(playlist, MessagePlaylist.class).getSong(), activity);
+
+
             ListView audioPlaylistView = (ListView) view.findViewById(R.id.playlist_view);
             if(audioPlaylistView != null)
                 audioPlaylistView.setAdapter(playlistAdapter);
-        });
+        },
+            messageReqPlaylist
+                );
 
     }
     private void buildTransportControls() {

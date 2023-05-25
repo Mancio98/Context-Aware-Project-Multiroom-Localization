@@ -8,9 +8,9 @@ public class ReferencePoint {
     private String id;
     private Speaker speaker;
 
-    public ReferencePoint(String id) {
+    public ReferencePoint(String id, Speaker speaker) {
         this.id = id;
-        this.speaker = null;
+        this.speaker = speaker;
     }
 
     public String getId() {

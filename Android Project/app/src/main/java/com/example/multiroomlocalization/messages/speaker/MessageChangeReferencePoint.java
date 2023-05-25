@@ -1,23 +1,24 @@
 package com.example.multiroomlocalization.messages.speaker;
 
 
-import com.example.multiroomlocalization.speaker.Speaker;
+import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageChangeReferencePoint extends Message {
 	
-	public Speaker speaker;
-	
-	public MessageChangeReferencePoint(Speaker speaker) {
-		super("CHANGE_REFERENCE_POINT");
-		this.speaker = speaker;
+	public ReferencePoint referencePoint;
+	public static String type = "CHANGE_REFERENCE_POINT";
+
+	public MessageChangeReferencePoint(ReferencePoint referencePoint) {
+		super(type);
+		this.referencePoint = referencePoint;
 	}
 	
-	public Speaker getSpeaker() {
-		return this.speaker;
+	public ReferencePoint getReferencePoint() {
+		return this.referencePoint;
 	}
 	
-	public void setSpeaker(Speaker speaker) {
-		this.speaker = speaker;
+	public void setReferencePoint(ReferencePoint referencePoint) {
+		this.referencePoint = referencePoint;
 	}
 }

@@ -1,21 +1,30 @@
 package com.example.multiroomlocalization.Bluetooth;
 
+import static com.example.multiroomlocalization.MainActivity.activity;
+
 import android.Manifest;
 import android.app.Activity;
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCaller;
 import androidx.core.app.ActivityCompat;
 
 import com.example.multiroomlocalization.BetterActivityResult;
+import com.example.multiroomlocalization.MainActivity;
+import com.example.multiroomlocalization.speaker.Speaker;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -98,5 +107,66 @@ public class BluetoothUtility {
             }
 
         return true;
+    }
+
+    private BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context ctx, Intent intent) {
+            String action = intent.getAction();
+            Log.d("a2dp", "receive intent for action : " + action);
+            if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
+                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_DISCONNECTED);
+                if (state == BluetoothA2dp.STATE_CONNECTED) {
+                    //setIsA2dpReady(true);
+                    Log.i("connesso2", "diocane");
+                    //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
+                } else if (state == BluetoothA2dp.STATE_DISCONNECTED) {
+                    //setIsA2dpReady(false);
+                }
+            } else if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
+                int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_NOT_PLAYING);
+                if (state == BluetoothA2dp.STATE_PLAYING) {
+                    Log.d("a2dp", "A2DP start playing");
+                    Toast.makeText(activity, "A2dp is playing", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d("a2dp", "A2DP not playing");
+                    Toast.makeText(activity, "A2dp not playing", Toast.LENGTH_SHORT).show();
+                }
+            } else if(action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
+
+                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_BONDED);
+                if (state == BluetoothDevice.BOND_BONDED) {
+                    Log.d("bonded", "bonded");
+
+                } else {
+                    Log.d("bonded", "not bonded");
+
+                }
+            }
+            else if (BluetoothDevice.ACTION_UUID.equals(action)) {
+                // This is when we can be assured that fetchUuidsWithSdp has completed.
+                Parcelable[] uuidExtra = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
+
+                if (uuidExtra != null) {
+                    for (Parcelable p : uuidExtra) {
+                        System.out.println("uuidExtra - " + p);
+                    }
+                    /*
+                    if (connectBluetoothThread != null){
+                        connectBluetoothThread.start();
+                    }*/
+
+                } else {
+                    System.out.println("uuidExtra is still null");
+                }
+
+            }
+
+        }
+    };
+
+    public BroadcastReceiver getConnectA2dpReceiver() {
+        return connectA2dpReceiver;
     }
 }

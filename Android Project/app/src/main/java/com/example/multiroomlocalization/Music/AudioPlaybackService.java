@@ -309,6 +309,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         //Notification notification = buildNotification();
         ///startForeground(1,notification);
         String myPlaylist = intent.getStringExtra("playlist");
+        System.out.println(myPlaylist);
         if(myPlaylist != null)
             trackList = gson.fromJson(myPlaylist, MessagePlaylist.class).getSong();
         initExoPlayer();
@@ -392,7 +393,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         //mediaSessionConnector = new MediaSessionConnector(mediaSession);
         //mediaSessionConnector.setPlayer(exoPlayer);
     }
-
 
 
 /*

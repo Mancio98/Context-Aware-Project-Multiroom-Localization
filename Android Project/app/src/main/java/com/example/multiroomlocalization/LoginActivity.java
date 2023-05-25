@@ -47,8 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
         clientSocket = new ClientSocket(activity);
-
-
+        clientSocket.start();
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -152,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        clientSocket.start();
+        //clientSocket.start();
     }
 
     private void loginSuccessful(){

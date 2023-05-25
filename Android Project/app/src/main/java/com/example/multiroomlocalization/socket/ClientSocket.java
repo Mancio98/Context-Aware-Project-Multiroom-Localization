@@ -2,6 +2,7 @@ package com.example.multiroomlocalization.socket;
 
 import android.os.AsyncTask;
 
+import com.example.multiroomlocalization.MainActivity;
 import com.example.multiroomlocalization.ScanService;
 
 import android.content.Context;
@@ -10,8 +11,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.ArraySet;
 
-import com.example.multiroomlocalization.ReferencePoint;
+import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
@@ -20,6 +22,7 @@ import com.example.multiroomlocalization.messages.localization.MessageReferenceP
 import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
 import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -34,7 +37,7 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread {
 
-    private final int port = 10361;
+    private final int port = 15124;
     private Socket socket;
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
@@ -42,14 +45,71 @@ public class ClientSocket extends Thread {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="5.tcp.eu.ngrok.io";// "10.0.2.2";
-    WifiManager wifiManager;
-    Context context;
-    Gson gson = new Gson();
+    private String ip ="4.tcp.eu.ngrok.io";// "10.0.2.2";
+    private WifiManager wifiManager;
+    private Context context;
+    private Gson gson = new Gson();
+    private IncomingMsgHandler incomingMsgHandler;
+    private Callback<String> reqPlaylistCallback;
+    private Callback<String> fingerPrintCallback;
 
-    public ClientSocket(Context context) {
-        this.context = context;
+    public interface Callback<R> {
+        void onComplete(R result);
     }
+    private class IncomingMsgHandler extends Thread {
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        @Override
+        public void run() {
+            super.run();
+
+            while(isAlive()){
+                try {
+                    System.out.println("sono attivo diocane");
+                    String msg = dataIn.readUTF();
+
+                    msgHandler(msg);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void interrupt() {
+            super.interrupt();
+        }
+
+        private void msgHandler(String msg){
+
+            System.out.println(msg);
+            String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
+
+            if(messageType.equals(MessageChangeReferencePoint.type)){
+                Speaker speakerToChange = gson.fromJson(msg, MessageChangeReferencePoint.class)
+                        .getReferencePoint().getSpeaker();
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.getInstance().connectBluetoothDevice(speakerToChange);
+                    }
+                });
+
+            }
+            else if(messageType.equals(MessageRequestPlaylist.type)){
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        reqPlaylistCallback.onComplete(msg);
+                    }
+                });
+
+            }
+        }
+    }
+    public ClientSocket(Context context) { this.context = context; }
 
     @Override
     public void run() {
@@ -65,6 +125,8 @@ public class ClientSocket extends Thread {
         }
 
         scanService = new ScanService(context);
+        incomingMsgHandler = new IncomingMsgHandler();
+        incomingMsgHandler.start();
        //
         /*
 
@@ -129,7 +191,8 @@ public class ClientSocket extends Thread {
         return new MessageLogin(user);
     }
 
-    public TaskRunner<String> createMessageReqPlaylist(){
+    public TaskRunner<String> createMessageReqPlaylist(Callback<String> callback){
+        reqPlaylistCallback = callback;
         return new TaskRunner<String>(new RequestPlaylist());
     }
 
@@ -137,6 +200,39 @@ public class ClientSocket extends Thread {
         return new TaskRunner<Void>(new SendSpeakerList(listSpeaker));
     }
 
+    public TaskRunner<String> createMessageSendFingerprint(List<ScanResult> list){
+        return new TaskRunner<String>(new SendFingerprint(list));
+    }
+
+    public void sendMessageListSpeaker(String message){
+        sendMessage(message);
+    }
+    public void sendMessageFingerPrint(String message){
+        sendMessage(message);
+
+    }
+    public void sendMessageReqPlaylist(Callback<String> callback, String message){
+
+        reqPlaylistCallback = callback;
+        sendMessage(message);
+    }
+
+    private void sendMessage(String message){
+
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dataOut.writeUTF(message);
+                    dataOut.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+    }
 
     public void setContext(Context context){
         this.context = context;
@@ -381,6 +477,7 @@ public class ClientSocket extends Thread {
             try {
                 com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
                 String json = gson.toJson(message);
+                System.out.println(json);
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -404,6 +501,7 @@ public class ClientSocket extends Thread {
             try {
                 com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
                 String json = gson.toJson(message);
+
                 dataOut.writeUTF(json);
                 dataOut.flush();
 
@@ -412,6 +510,43 @@ public class ClientSocket extends Thread {
             }
             return null;
         }
+    }
+
+    public class SendFingerprint implements Callable<String> {
+
+        List<ScanResult> fingerPrint;
+
+        public SendFingerprint(List<ScanResult> fingerprint) {
+            this.fingerPrint = fingerprint;
+        }
+
+        @Override
+        public String call() {
+
+            try {
+                com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerPrint);
+                String json = gson.toJson(message);
+                System.out.println(json);
+                dataOut.writeUTF(json);
+                dataOut.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            String jsonResp;
+            try {
+                 jsonResp = dataIn.readUTF();
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return jsonResp;
+        }
+
+
     }
 
     public class MessageRegistration extends AsyncTask<Void,Void,Void>{
@@ -485,13 +620,13 @@ public class ClientSocket extends Thread {
 
             try {
                 jsonPlaylist = dataIn.readUTF();
+                System.out.println(jsonPlaylist);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
             return jsonPlaylist;
         }
-
 
     }
 
@@ -555,7 +690,6 @@ public class ClientSocket extends Thread {
         }
     }
 
-
     public void closeConnection() {
         Executor executor = Executors.newSingleThreadExecutor();
         MessageConnectionClose msg = new MessageConnectionClose();
@@ -576,6 +710,7 @@ public class ClientSocket extends Thread {
 
             }
         });
+        incomingMsgHandler.interrupt();
 
     }
 }
