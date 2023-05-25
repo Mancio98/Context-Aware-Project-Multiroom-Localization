@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 14443;//8777;
+    private int port = 12424;//8777;
 
     private Socket socket;
     private DataInputStream dataIn;
@@ -46,7 +46,7 @@ public class ClientSocket extends Thread implements Serializable {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="5.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
+    private String ip ="4.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
     WifiManager wifiManager;
     Context context;
     @Override
@@ -133,8 +133,8 @@ public class ClientSocket extends Thread implements Serializable {
         return new TaskRunner<Void>(new MessageNewReferencePoint(ref));
     }
 
-    public TaskRunner<Void> createMessageEndMappingPhase(){
-        return new TaskRunner<Void>(new MessageEndMappingPhase());
+    public TaskRunner<Void> createMessageEndMappingPhase(String password){
+        return new TaskRunner<Void>(new MessageEndMappingPhase(password));
     }
 
     public TaskRunner<Void> createMessageEndScanReferencePoint(){
@@ -355,11 +355,14 @@ public class ClientSocket extends Thread implements Serializable {
     }
 
     public class MessageEndMappingPhase implements Callable<Void>{
+        private String password;
+
+        public MessageEndMappingPhase(String pass){ this.password = pass;}
         @Override
         public Void call() throws Exception {
             Gson gson = new Gson();
             try {
-                com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
+                com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase(password);
                 String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();

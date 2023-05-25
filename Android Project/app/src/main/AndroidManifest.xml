@@ -96,9 +96,8 @@
                 android:value="" />
         </activity>
 
-        <activity android:name=".RegistrationActivity">
-
-        </activity>
+        <activity android:name=".RegistrationActivity"></activity>
+        <activity android:name=".ListMapActivity"></activity>
 
         <service
             android:name=".ScanService"

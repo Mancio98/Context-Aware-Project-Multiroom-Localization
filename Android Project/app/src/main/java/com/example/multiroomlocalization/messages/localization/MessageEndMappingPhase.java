@@ -4,8 +4,10 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageEndMappingPhase extends Message {
 
-    public MessageEndMappingPhase() {
+    String password;
+    public MessageEndMappingPhase(String pass) {
         super("END_MAPPING_PHASE");
+        password= pass;
     }
 
 }

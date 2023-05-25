@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
             String address = extras.getString("add");
             Integer port = extras.getInt("port");
             //The key argument here must match that used in the other activity
-            clientSocket.setAddress(address, port);
+            //clientSocket.setAddress(address, port);
         }
 
         clientSocket.start();
@@ -1217,9 +1217,63 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(View view) {
                                     clientSocket.createMessageEndScanReferencePoint().executeAsync(null);
-                                    clientSocket.createMessageEndMappingPhase().executeAsync(null);
-                                    // SALVATAGGIO DATI
                                     dialog.cancel();
+
+                                    dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                    final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
+                                    dialogBuilder.setView(popup);
+                                    dialog = dialogBuilder.create();
+                                    dialog.setCanceledOnTouchOutside(false);
+
+                                    Button button = popup.findViewById(R.id.buttonSendPassword);
+                                    EditText password = popup.findViewById(R.id.passwordInputMap);
+
+                                    password.addTextChangedListener(new TextWatcher() {
+                                        @Override
+                                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                                        }
+
+                                        @Override
+                                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                            if(charSequence.toString().trim().length()==0){
+                                                button.setEnabled(false);
+                                            } else {
+                                                button.setEnabled(true);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void afterTextChanged(Editable editable) {
+
+                                        }
+                                    });
+
+                                    button.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            button.setEnabled(false);
+                                            clientSocket.createMessageEndMappingPhase(password.getText().toString()).executeAsync(null);/*(respose) -> {
+
+
+                                                // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
+                                                // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
+                                                // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
+                                                // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
+                                            });
+                                            */
+
+
+                                        }
+                                    });
+
+                                    dialog.show();
+
+
+                                    // SALVATAGGIO DATI
+
+
+
                                 }
                             });
                         }
@@ -1307,7 +1361,7 @@ public class MainActivity extends AppCompatActivity {
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for (ScanResult res : results) {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
-                listScan.add(scan);
+                Toast.makeText(getApplicationContext(),"RIUSCITO",Toast.LENGTH_LONG).show();
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
             }
             clientSocket.createMessageFingerprint(listScan).executeAsync(null);
@@ -1316,13 +1370,13 @@ public class MainActivity extends AppCompatActivity {
 
         private void scanFailure() {
             List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
-           List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-           for ( ScanResult res : results ) {
-               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-               listScan.add(scan);
-               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-           }
-           clientSocket.createMessageFingerprint(listScan).executeAsync(null);
+            List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
+            for ( ScanResult res : results ) {
+                com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+                Toast.makeText(getApplicationContext(),"ERRORE QUI",Toast.LENGTH_LONG).show();
+                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+            }
+            clientSocket.createMessageFingerprint(listScan).executeAsync(null);
        }
 
 

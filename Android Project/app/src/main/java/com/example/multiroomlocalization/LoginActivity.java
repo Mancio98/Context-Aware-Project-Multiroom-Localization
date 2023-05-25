@@ -16,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.multiroomlocalization.socket.ClientSocket;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,11 +49,11 @@ public class LoginActivity extends AppCompatActivity {
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
 
-        /*
-        client = new ClientSocket();
-        client.setContext(getApplicationContext());
+
+       /* client = new ClientSocket();
+        client.setContext(LoginActivity.this);
         client.start();
-        */
+*/
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,13 +125,16 @@ public class LoginActivity extends AppCompatActivity {
                 loginSuccessfull();
 
                 //DA SCOMMENTARE PER IL LOGIN CORRETTO CON MESSAGGIO AL DATABASE
-                /*
-                client.createMessageLogin(user).executeAsync((response)-> {
-                    if(response == "LOGINDONE"){
+
+                /*client.createMessageLogin(user).executeAsync((response)-> {
+                    System.out.println(response);
+                    Gson gson = new Gson();
+                    String messageType = gson.fromJson(response, JsonObject.class).get("type").getAsString();
+                    if(messageType.equals( "SUCCESSFUL_LOGIN")){
                         loginSuccessfull();
                     }
                     else {
-                        Toast.makeText(LoginActivity.this, "ERROR LOGIN", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "ERROR: CREDENZIALI NON CORRETTE", Toast.LENGTH_LONG).show();
                     }
                 });
                 */
@@ -159,13 +164,16 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void loginSuccessfull(){
-        Intent changeActivity = new Intent(this,MainActivity.class);
+        //Intent changeActivity = new Intent(this,MainActivity.class);
+        Intent changeActivity = new Intent(this,ListMapActivity.class);
+        /*
         String address = userInput.getText().toString();
         Integer port = Integer.parseInt(passwordInput.getText().toString());
         System.out.println("address: " + address);
         System.out.println("Port: " + port);
         changeActivity.putExtra("add", address);
         changeActivity.putExtra("port",port);
+        */
         startActivity(changeActivity);
     }
 
