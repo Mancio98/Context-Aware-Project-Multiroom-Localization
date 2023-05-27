@@ -12,9 +12,9 @@ import android.os.Looper;
 import android.util.ArraySet;
 import android.widget.Toast;
 
-import com.example.multiroomlocalization.ReferencePoint;
+import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.ScanResult;
-import com.example.multiroomlocalization.Speaker;
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
 import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
@@ -22,14 +22,15 @@ import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
 import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
 import com.google.gson.Gson;
 
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -37,31 +38,31 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 12424;//8777;
+    private int port = 10785;//8777;
 
     private Socket socket;
     private DataInputStream dataIn;
-    private DataOutputStream dataOut;
+    private static DataOutputStream dataOut;
     private Handler mHandler = new Handler();
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="4.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
+    private String ip ="6.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
     WifiManager wifiManager;
     Context context;
+
+    public static OutputStream getDataOutputStream() {
+        return dataOut;
+    }
+
     @Override
     public void run() {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         try {
-            System.out.println("Ip: "+ ip);
-            System.out.println("Port: "+ port);
             socket = new Socket(ip, port);
-            System.out.println("socket: "+ socket);
             dataIn = new DataInputStream(socket.getInputStream());
-            System.out.println("dataIn: "+ dataIn);
             dataOut = new DataOutputStream(socket.getOutputStream());
-            System.out.println("dataOut: "+ dataOut);
             ((Activity) context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -70,10 +71,6 @@ public class ClientSocket extends Thread implements Serializable {
             });
 
         }
-        /*catch(IOException e) {
-            System.out.println("catch");
-            e.printStackTrace();
-        }*/
         catch(Exception e){
             System.out.println("catch");
             ((Activity) context).runOnUiThread(new Runnable() {
@@ -121,20 +118,23 @@ public class ClientSocket extends Thread implements Serializable {
         port = portNgrok;
     }
 
-    public TaskRunner<Void> createMessageStartMappingPhase(){
-        return new TaskRunner<Void>(new MessageStartMappingPhase());
+    public TaskRunner<String> createMessageStartMappingPhase(int len){
+        return new TaskRunner<String>(new MessageStartMappingPhase(len));
     }
+    public TaskRunner<Void> createByte(byte[] bb){
+        return new TaskRunner<Void>(new MessageByte(bb));
+    };
 
     public TaskRunner<Void> createMessageStartScanReferencePoint(){
         return new TaskRunner<Void>(new MessageStartScanReferencePoint());
     }
 
-    public TaskRunner<Void>createMessageNewReferencePoint(ReferencePoint ref){
-        return new TaskRunner<Void>(new MessageNewReferencePoint(ref));
+    public TaskRunner<Void>createMessageNewReferencePoint(int x, int y, ReferencePoint ref){
+        return new TaskRunner<Void>(new MessageNewReferencePoint(x,y,ref));
     }
 
-    public TaskRunner<Void> createMessageEndMappingPhase(String password){
-        return new TaskRunner<Void>(new MessageEndMappingPhase(password));
+    public TaskRunner<String> createMessageEndMappingPhase(String password){
+        return new TaskRunner<String>(new MessageEndMappingPhase(password));
     }
 
     public TaskRunner<Void> createMessageEndScanReferencePoint(){
@@ -337,12 +337,17 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageStartMappingPhase implements Callable<Void>{
+    public class MessageStartMappingPhase implements Callable<String>{
+
+        int len;
+        String response;
+
+        MessageStartMappingPhase(int len){this.len = len;}
         @Override
-        public Void call() throws Exception {
+        public String call() throws Exception {
             Gson gson = new Gson();
             try {
-                com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
+                com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase(len);
                 String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
@@ -350,16 +355,41 @@ public class ClientSocket extends Thread implements Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            try {
+                response = dataIn.readUTF();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return response;
+        }
+    }
+
+    public class MessageByte implements Callable<Void>{
+        byte[] bb;
+
+        MessageByte(byte[] bb){this.bb = bb;}
+        @Override
+        public Void call() throws Exception {
+            DataOutputStream bytesOut = new DataOutputStream(new BufferedOutputStream(dataOut));
+            try {
+                dataOut.write(bb);
+                dataOut.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return null;
         }
     }
 
-    public class MessageEndMappingPhase implements Callable<Void>{
+    public class MessageEndMappingPhase implements Callable<String>{
         private String password;
+        private String response;
 
         public MessageEndMappingPhase(String pass){ this.password = pass;}
         @Override
-        public Void call() throws Exception {
+        public String call() throws Exception {
             Gson gson = new Gson();
             try {
                 com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase(password);
@@ -370,7 +400,15 @@ public class ClientSocket extends Thread implements Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return null;
+
+
+            try {
+                response = dataIn.readUTF();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return response;
         }
     }
 
@@ -397,14 +435,16 @@ public class ClientSocket extends Thread implements Serializable {
     public class MessageNewReferencePoint implements Callable<Void>{
 
         ReferencePoint referencePoint;
+        int x;
+        int y;
 
-        public MessageNewReferencePoint(ReferencePoint ref){ this.referencePoint = ref; }
+        public MessageNewReferencePoint(int x,int y,ReferencePoint ref){this.x = x;this.y=y; this.referencePoint = ref; }
 
         @Override
         public Void call() throws Exception {
             Gson gson = new Gson();
             try {
-                com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
+                com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(x,y,referencePoint);
                 String json = gson.toJson(message);
                 dataOut.writeUTF(json);
                 dataOut.flush();
@@ -497,7 +537,6 @@ public class ClientSocket extends Thread implements Serializable {
 
             try {
                 loginResult = dataIn.readUTF();
-                System.out.println(loginResult);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -38,9 +38,7 @@ public class RegistrationActivity  extends AppCompatActivity {
         username = findViewById(R.id.editMailRegistration);
         password = findViewById(R.id.editPasswordRegistration);
 
-        client = new ClientSocket();
-        client.setContext(RegistrationActivity.this);
-        client.start();
+        client = LoginActivity.client;
 
         username.addTextChangedListener(new TextWatcher() {
             @Override

@@ -4,10 +4,13 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageEndMappingPhase extends Message {
 
-    String password;
-    public MessageEndMappingPhase(String pass) {
+    public String key;
+    public MessageEndMappingPhase(String key) {
         super("END_MAPPING_PHASE");
-        password= pass;
+        this.key=key;
     }
 
+    public String getKey(){ return key; }
+
+    public void setKey(String key){ this.key = key; }
 }

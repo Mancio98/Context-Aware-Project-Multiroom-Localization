@@ -15,11 +15,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LoginActivity extends AppCompatActivity {
@@ -50,10 +52,10 @@ public class LoginActivity extends AppCompatActivity {
         textRegistration.setText(content) ;
 
 
-       /* client = new ClientSocket();
+        client = new ClientSocket();
         client.setContext(LoginActivity.this);
         client.start();
-*/
+
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,22 +124,23 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordInput.getText().toString();
 
                 User user= new User(email,password);
-                loginSuccessfull();
+                //loginSuccessfull();
 
                 //DA SCOMMENTARE PER IL LOGIN CORRETTO CON MESSAGGIO AL DATABASE
 
-                /*client.createMessageLogin(user).executeAsync((response)-> {
+                client.createMessageLogin(user).executeAsync((response)-> {
                     System.out.println(response);
                     Gson gson = new Gson();
                     String messageType = gson.fromJson(response, JsonObject.class).get("type").getAsString();
-                    if(messageType.equals( "SUCCESSFUL_LOGIN")){
-                        loginSuccessfull();
+                    if(messageType.equals("SUCCESSFUL_LOGIN")){
+                        ArrayList<Map> accountMap =  gson.fromJson(response, MessageSuccessfulLogin.class).getMapList();
+                        loginSuccessfull(accountMap);
                     }
                     else {
                         Toast.makeText(LoginActivity.this, "ERROR: CREDENZIALI NON CORRETTE", Toast.LENGTH_LONG).show();
                     }
                 });
-                */
+
 
 
                 /*System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
@@ -163,9 +166,18 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void loginSuccessfull(){
-        //Intent changeActivity = new Intent(this,MainActivity.class);
-        Intent changeActivity = new Intent(this,ListMapActivity.class);
+    private void loginSuccessfull(ArrayList<Map> accountMap){
+        Intent changeActivity;
+       /* if(accountMap.size() > 0){
+            changeActivity = new Intent(this,ListMapActivity.class);
+            changeActivity.putExtra("Map",accountMap);
+        }
+        else {
+
+        */
+            changeActivity = new Intent(this,MainActivity.class);
+        //}
+        //Intent changeActivity = new Intent(this,ListMapActivity.class);
         /*
         String address = userInput.getText().toString();
         Integer port = Integer.parseInt(passwordInput.getText().toString());

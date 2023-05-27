@@ -45,7 +45,11 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
     public void onBindViewHolder(@NonNull MapListHolder holder,int position) {
         Map currentData = list.get(position);
         holder.idMap.setText(currentData.id);
-        holder.isReady.setText(currentData.isReady);
+        if(currentData.isReady == true){
+            holder.isReady.setText("Ready");
+        }
+        else holder.isReady.setText("Not ready");
+
         holder.selectMap.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {

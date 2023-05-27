@@ -2,7 +2,7 @@ package com.example.multiroomlocalization.messages.speaker;
 
 import android.util.ArraySet;
 
-import com.example.multiroomlocalization.Speaker;
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.messages.Message;
 
 import java.util.ArrayList;

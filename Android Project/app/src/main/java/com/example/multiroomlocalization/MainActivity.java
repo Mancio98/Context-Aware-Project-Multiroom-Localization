@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization;
 
+import com.example.multiroomlocalization.speaker.Speaker;
+import com.example.multiroomlocalization.localization.ReferencePoint;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
@@ -25,11 +27,13 @@ import android.os.Environment;
 import android.os.Handler;
 
 import android.os.Parcelable;
+import android.os.SystemClock;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +55,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 
@@ -136,6 +145,10 @@ public class MainActivity extends AppCompatActivity {
     private int imageViewWidth;
     private boolean first = true;
     private boolean newImage = true;
+    private String imageMap;
+    private int len;
+    private byte[] bb;
+
     private int intervalScan = 30000;
     private int timerScanTraining = 10000; //* 5 //60000 = 1 min
     private FloatingActionButton fab;
@@ -181,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
 
         activity = this;
 
+        /*
         clientSocket = new ClientSocket();
         clientSocket.setContext(MainActivity.this);
 
@@ -193,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         clientSocket.start();
-
+        /*
 
         //setupMusicPlayer();
 
@@ -443,6 +457,16 @@ public class MainActivity extends AppCompatActivity {
 
                                     cv.cancel();
 
+
+                                    imageView.buildDrawingCache();
+                                    Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                    bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                                    bb = bos.toByteArray();
+                                    imageMap = Base64.encodeToString(bb,0);
+
+                                    len = bb.length;
+
                                     startPopup();
                                     return false;
                                 }
@@ -495,7 +519,11 @@ public class MainActivity extends AppCompatActivity {
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
                     break;
                 case 2:
-                    clientSocket.createMessageStartMappingPhase().executeAsync(null);
+                    clientSocket.createMessageStartMappingPhase(len).executeAsync((response) ->{
+                        System.out.println("response");
+                        System.out.println(response);
+                        clientSocket.createByte(bb).executeAsync(null);
+                    });
                     createPopupStartTraining();
                     break;
                 case 3:
@@ -1179,7 +1207,7 @@ public class MainActivity extends AppCompatActivity {
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
 
-        clientSocket.createMessageNewReferencePoint(point).executeAsync(null);
+        clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);
 
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
@@ -1253,15 +1281,15 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(View view) {
                                             button.setEnabled(false);
-                                            clientSocket.createMessageEndMappingPhase(password.getText().toString()).executeAsync(null);/*(respose) -> {
+                                            clientSocket.createMessageEndMappingPhase(password.getText().toString()).executeAsync((response) -> {
+                                                System.out.println(password.getText().toString());
+                                                System.out.println(response);
 
-
-                                                // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
-                                                // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
-                                                // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
-                                                // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
+                                                    // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
+                                                    // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
+                                                    // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
+                                                    // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
                                             });
-                                            */
 
 
                                         }
@@ -1361,9 +1389,11 @@ public class MainActivity extends AppCompatActivity {
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for (ScanResult res : results) {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
-                Toast.makeText(getApplicationContext(),"RIUSCITO",Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(),"RIUSCITO",Toast.LENGTH_LONG).show();
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
+                listScan.add(scan);
             }
+
             clientSocket.createMessageFingerprint(listScan).executeAsync(null);
 
         }
@@ -1375,6 +1405,7 @@ public class MainActivity extends AppCompatActivity {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
                 Toast.makeText(getApplicationContext(),"ERRORE QUI",Toast.LENGTH_LONG).show();
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+                listScan.add(scan);
             }
             clientSocket.createMessageFingerprint(listScan).executeAsync(null);
        }
