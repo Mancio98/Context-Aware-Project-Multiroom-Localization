@@ -204,17 +204,21 @@ public class ClientSocket extends Thread {
         return new TaskRunner<String>(new SendFingerprint(list));
     }
 
-    public void sendMessageListSpeaker(String message){
-        sendMessage(message);
+    public void sendMessageListSpeaker(ArraySet<Speaker> list){
+
+        String messageListSpeaker = gson.toJson(new MessageListSpeaker(list));
+        sendMessage(messageListSpeaker);
     }
-    public void sendMessageFingerPrint(String message){
-        sendMessage(message);
+    public void sendMessageFingerPrint(List<ScanResult> list){
+        String messageFingerPrint = gson.toJson(new MessageFingerprint(list));
+        sendMessage(messageFingerPrint);
 
     }
-    public void sendMessageReqPlaylist(Callback<String> callback, String message){
+    public void sendMessageReqPlaylist(Callback<String> callback){
 
         reqPlaylistCallback = callback;
-        sendMessage(message);
+        String messageReqPlaylist = gson.toJson(new MessageRequestPlaylist());
+        sendMessage(messageReqPlaylist);
     }
 
     private void sendMessage(String message){

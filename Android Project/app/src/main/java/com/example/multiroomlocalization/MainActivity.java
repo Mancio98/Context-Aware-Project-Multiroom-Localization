@@ -191,15 +191,16 @@ public class MainActivity extends AppCompatActivity {
                     listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName(), device.getBluetoothClass().getDeviceClass()));
                 });
 
+                clientSocket.sendMessageListSpeaker(listSpeaker);
 
-                clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
+                /* fare metodo per inizializzre il thread
                 connectBluetoothThread = new ConnectBluetoothThread(activity);
 
                 IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
                 filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_UUID);
-                registerReceiver(btUtility.getConnectA2dpReceiver(), filter);
+                registerReceiver(btUtility.getConnectA2dpReceiver(), filter); */
             }
 
         });
@@ -694,8 +695,8 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(btUtility.getConnectA2dpReceiver(), filter);*/
 
 
-        String messageFingerPrint = gson.toJson(new MessageFingerprint(list));
-        clientSocket.sendMessageFingerPrint(messageFingerPrint);
+
+        clientSocket.sendMessageFingerPrint(list);
 
     }
 
