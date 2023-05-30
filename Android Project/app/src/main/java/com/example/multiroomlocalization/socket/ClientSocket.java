@@ -1,26 +1,27 @@
 package com.example.multiroomlocalization.socket;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 
+import com.example.multiroomlocalization.LoginActivity;
 import com.example.multiroomlocalization.ScanService;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.ArraySet;
 import android.widget.Toast;
 
-import com.example.multiroomlocalization.localization.ReferencePoint;
-import com.example.multiroomlocalization.ScanResult;
+import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
+import com.example.multiroomlocalization.messages.connection.MessageRegistrationSuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageRegistrationUnsuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
+import com.example.multiroomlocalization.messages.connection.MessageUnsuccessfulLogin;
+import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
-import com.example.multiroomlocalization.User;
-import com.example.multiroomlocalization.messages.Message;
-import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
 import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
-import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -31,14 +32,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 10785;//8777;
+    private int port = 11925;//8777;
 
     private Socket socket;
     private DataInputStream dataIn;
@@ -47,9 +47,123 @@ public class ClientSocket extends Thread implements Serializable {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="6.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
-    WifiManager wifiManager;
-    Context context;
+    private String ip ="4.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
+    private WifiManager wifiManager;
+    private Context context;
+    private Gson gson = new Gson();
+    private IncomingMsgHandler incomingMsgHandler;
+    private Callback<String> reqPlaylistCallback;
+    private Callback<String> fingerPrintCallback;
+    private Callback<String> startMappingPhaseCallback;
+    private Callback<String> loginSuccessfulCallback;
+    private Callback<String> loginUnsuccessfulCallback;
+    private Callback<String> endMappingPhaseCallback;
+    private Callback<String> registrationSuccessfulCallback;
+    private Callback<String> registrationUnsuccessfulCallback;
+
+    public interface Callback<R> {
+        void onComplete(R result);
+    }
+
+    public IncomingMsgHandler getIncomingMsgHandler(){
+        return incomingMsgHandler;
+    }
+
+    private class IncomingMsgHandler extends Thread {
+        Handler handler = new Handler(Looper.getMainLooper());
+        @Override
+        public void run() {
+            super.run();
+
+            while(isAlive()){
+                try {
+                    System.out.println("Attivo");
+                    String msg = dataIn.readUTF();
+
+                    msgHandler(msg);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        public IncomingMsgHandler(Handler handler) {
+            //this.handler = handler;
+        }
+
+        @Override
+        public void interrupt() {
+            super.interrupt();
+        }
+
+        private void msgHandler(String msg){
+
+            System.out.println(msg);
+            String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
+
+            if(messageType.equals(MessageChangeReferencePoint.type)){
+                Speaker speakerToChange = gson.fromJson(msg, MessageChangeReferencePoint.class)
+                        .getReferencePoint().getSpeaker();
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                       // MainActivity.getInstance().connectBluetoothDevice(speakerToChange);
+                    }
+                });
+
+            }
+            else if(messageType.equals(MessageRequestPlaylist.type)){
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        reqPlaylistCallback.onComplete(msg);
+                    }
+                });
+
+            }
+            else if(messageType.equals(MessageAcknowledge.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { startMappingPhaseCallback.onComplete(msg);
+                    }
+                });
+            }
+
+            else if(messageType.equals(MessageSuccessfulLogin.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { loginSuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageUnsuccessfulLogin.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { loginUnsuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageRegistrationSuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { registrationSuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageRegistrationUnsuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { registrationUnsuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+
+        }
+    }
+    public ClientSocket(Context context) { this.context = context; }
+
+
 
     public static OutputStream getDataOutputStream() {
         return dataOut;
@@ -83,32 +197,8 @@ public class ClientSocket extends Thread implements Serializable {
         }
 
         scanService = new ScanService(context);
-
-        /*scanService = new ScanService(context);
-
-        scanService.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                boolean success = intent.getBooleanExtra(
-                        WifiManager.EXTRA_RESULTS_UPDATED, false);
-                if (success) {
-                        System.out.println("QUI: " + i);
-                        i++;
-                        //new MessageSender(scanSuccess()).execute();
-                        mHandler.postDelayed(scanRunnable, intervalScan);
-                } else {
-                        // scan failure handling
-                        //scanFailure();
-                        System.out.println("QUA: " + i);
-                        i++;
-                       // new MessageSender(scanFailure()).execute();
-                        mHandler.postDelayed(scanRunnable,0);
-                }
-            }
-        });
-
-            mHandler.postDelayed(scanRunnable, 0);*/
-            //scanRunnable.run();
+        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
+        incomingMsgHandler.start();
 
     }
 
@@ -118,20 +208,67 @@ public class ClientSocket extends Thread implements Serializable {
         port = portNgrok;
     }
 
-    public TaskRunner<String> createMessageStartMappingPhase(int len){
-        return new TaskRunner<String>(new MessageStartMappingPhase(len));
-    }
-    public TaskRunner<Void> createByte(byte[] bb){
-        return new TaskRunner<Void>(new MessageByte(bb));
+    public TaskRunner<Void> createByte(byte[] bb,Handler handler){
+        return new TaskRunner<>(new MessageByte(bb),handler);
     };
 
+    public void sendMessageListSpeaker(String message){
+        sendMessage(message);
+    }
+    public void sendMessageReqPlaylist(Callback<String> callback, String message){
+        reqPlaylistCallback = callback;
+        sendMessage(message);
+    }
+
+    public void sendMessageStartMappingPhase(Callback<String> callback, String message){
+        startMappingPhaseCallback = callback;
+        sendMessage(message);
+    }
+
+    public void sendMessageLogin(Callback<String> callback,Callback<String> callback2, String message){
+        loginSuccessfulCallback = callback;
+        loginUnsuccessfulCallback = callback2;
+        sendMessage(message);
+    }
+
+    public void sendMessageEndMappingPhase(Callback<String> callback,String message){
+        endMappingPhaseCallback = callback;
+        sendMessage(message);
+    }
+
+    public void sendMessageStartScanReferencePoint(String message){sendMessage(message);}
+
+    public void sendMessageNewReferencePoint(String message){sendMessage(message);}
+
+    public void sendMessageEndScanReferencePoint(String message){sendMessage(message);}
+
+    public void sendMessageFingerprint(String message){ sendMessage(message);}
+
+    public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){
+        registrationSuccessfulCallback = callback;
+        registrationUnsuccessfulCallback = callback2;
+        sendMessage(message);
+    }
+
+/*
+    public TaskRunner<String> createMessageStartMappingPhase(int len){
+        return new TaskRunner<String>(new MessageStartMappingPhaseTemp(len));
+    }
+*/
+
+
+
+/*
     public TaskRunner<Void> createMessageStartScanReferencePoint(){
         return new TaskRunner<Void>(new MessageStartScanReferencePoint());
     }
 
+
+
     public TaskRunner<Void>createMessageNewReferencePoint(int x, int y, ReferencePoint ref){
         return new TaskRunner<Void>(new MessageNewReferencePoint(x,y,ref));
     }
+
 
     public TaskRunner<String> createMessageEndMappingPhase(String password){
         return new TaskRunner<String>(new MessageEndMappingPhase(password));
@@ -160,10 +297,28 @@ public class ClientSocket extends Thread implements Serializable {
     public TaskRunner<Void> createMessageSendListSpeaker(ArraySet<Speaker> listSpeaker){
         return new TaskRunner<Void>(new SendSpeakerList(listSpeaker));
     }
-
+*/
 
     public void setContext(Context context){
         this.context = context;
+    }
+
+
+    private void sendMessage(String message){
+
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dataOut.writeUTF(message);
+                    dataOut.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
     }
 
     /*
@@ -218,7 +373,7 @@ public class ClientSocket extends Thread implements Serializable {
     }*/
 
 
-
+/*
     //This thread inizialize the socket and requires for a connection to the server
     public class Connect extends AsyncTask<Void,Void,Void> {
 
@@ -290,21 +445,8 @@ public class ClientSocket extends Thread implements Serializable {
             return null;
         }
 
-        /*
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-        }
-        */
-
-        /*
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-        }
-         */
     }
-
+*/
     private Runnable scanRunnable = new Runnable() {
         @Override
         public void run() {
@@ -317,7 +459,7 @@ public class ClientSocket extends Thread implements Serializable {
         mHandler.removeCallbacks(scanRunnable);
     }
 
-
+/*
     public class MessageStartScanReferencePoint implements Callable<Void> {
 
         public MessageStartScanReferencePoint(){}
@@ -337,12 +479,12 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
-    public class MessageStartMappingPhase implements Callable<String>{
+    public class MessageStartMappingPhaseTemp implements Callable<String>{
 
         int len;
         String response;
 
-        MessageStartMappingPhase(int len){this.len = len;}
+        MessageStartMappingPhaseTemp(int len){this.len = len;}
         @Override
         public String call() throws Exception {
             Gson gson = new Gson();
@@ -365,11 +507,11 @@ public class ClientSocket extends Thread implements Serializable {
             return response;
         }
     }
-
-    public class MessageByte implements Callable<Void>{
+*/
+    public static class MessageByte implements Callable<Void>{
         byte[] bb;
 
-        MessageByte(byte[] bb){this.bb = bb;}
+        public MessageByte(byte[] bb){this.bb = bb;}
         @Override
         public Void call() throws Exception {
             DataOutputStream bytesOut = new DataOutputStream(new BufferedOutputStream(dataOut));
@@ -383,6 +525,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
+/*
     public class MessageEndMappingPhase implements Callable<String>{
         private String password;
         private String response;
@@ -412,6 +555,8 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
+
+
     public class MessageEndScanReferencePoint implements Callable<Void>{
 
         public MessageEndScanReferencePoint(){}
@@ -432,7 +577,9 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 
+
     public class MessageNewReferencePoint implements Callable<Void>{
+
 
         ReferencePoint referencePoint;
         int x;
@@ -455,6 +602,7 @@ public class ClientSocket extends Thread implements Serializable {
             return null;
         }
     }
+
 
     public class MessageFingerprint implements Callable<Void>{
 
@@ -606,14 +754,15 @@ public class ClientSocket extends Thread implements Serializable {
 
 
     }
+*/
 
     public static class TaskRunner<R> {
         private final Executor executor = Executors.newSingleThreadExecutor(); // change according to your requirements
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final Callable<R> callable;
 
-        public TaskRunner(Callable<R> callable) {
-
+        public TaskRunner(Callable<R> callable,Handler handler) {
+            //this.handler = handler;
             this.callable = callable;
         }
 
@@ -637,5 +786,6 @@ public class ClientSocket extends Thread implements Serializable {
             });
         }
     }
+
 
 }

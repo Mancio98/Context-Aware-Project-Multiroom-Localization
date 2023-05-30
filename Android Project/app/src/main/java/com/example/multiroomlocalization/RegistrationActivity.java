@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.multiroomlocalization.messages.connection.MessageLogin;
+import com.example.multiroomlocalization.messages.connection.MessageRegistration;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -95,6 +97,45 @@ public class RegistrationActivity  extends AppCompatActivity {
             public void onClick(View view) {
                 User user = new User(username.getText().toString(),password.getText().toString());
                 registration.setEnabled(false);
+                ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                    @Override
+                    public void onComplete(String result) {
+                        dialogBuilder = new AlertDialog.Builder(RegistrationActivity.this);
+                        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+                        dialogBuilder.setView(popup);
+                        dialog = dialogBuilder.create();
+                        dialog.setCanceledOnTouchOutside(false);
+                        dialog.show();
+
+                        Button button = (Button) popup.findViewById(R.id.buttonPopup);
+                        TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+                        button.setText("CONFERMA");
+                        text.setText(R.string.registrationDone);
+
+                        button.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                finish();
+                            }
+                        });
+                    }
+                };
+                ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
+
+                    @Override
+                    public void onComplete(String result) {
+                        Gson gson = new Gson();
+                        String messageDescription = gson.fromJson(result, JsonObject.class).get("description").getAsString();
+                        Toast.makeText(RegistrationActivity.this, messageDescription, Toast.LENGTH_LONG).show();
+                        registration.setEnabled(true);
+                    }
+                };
+                MessageRegistration message = new MessageRegistration(user);
+                Gson gson = new Gson();
+                String json = gson.toJson(message);
+                client.sendMessageRegistration(callbackSuccessful,callbackUnsuccessful,json);
+                /*
                 client.createMessageRegistration(user).executeAsync((response) -> {
                     System.out.println("fatto");
                     System.out.println(response);
@@ -130,6 +171,7 @@ public class RegistrationActivity  extends AppCompatActivity {
                     }
 
                 } );
+                */
 
             }
         });

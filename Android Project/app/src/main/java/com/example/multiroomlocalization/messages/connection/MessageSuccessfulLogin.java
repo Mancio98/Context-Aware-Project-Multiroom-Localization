@@ -6,9 +6,10 @@ import com.example.multiroomlocalization.messages.Message;
 import java.util.ArrayList;
 
 public class MessageSuccessfulLogin extends Message {
+    public static String type = "SUCCESSFUL_LOGIN";
     public ArrayList<Map> mapList;
     public MessageSuccessfulLogin(ArrayList<Map> mapList) {
-        super("SUCCESSFUL_LOGIN");
+        super(type);
         this.mapList = mapList;
     }
 

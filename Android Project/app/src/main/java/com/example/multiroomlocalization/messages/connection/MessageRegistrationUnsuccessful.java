@@ -4,10 +4,11 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageRegistrationUnsuccessful extends Message {
 
-	public String description;
+    public static String type = "REGISTRATION UNSUCCESSFUL";
+    public String description;
 	
     public MessageRegistrationUnsuccessful(String description) {
-        super("REGISTRATION UNSUCCESSFUL");
+        super(type);
         this.description = description;
     }
     

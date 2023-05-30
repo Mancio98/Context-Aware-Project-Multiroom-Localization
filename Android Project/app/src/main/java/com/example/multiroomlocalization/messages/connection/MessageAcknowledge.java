@@ -2,10 +2,11 @@ package com.example.multiroomlocalization.messages.connection;
 
 import com.example.multiroomlocalization.messages.Message;
 
-public class MessageUnsuccessfulLogin extends Message {
-    public static String type="UNSUCCESSFUL_LOGIN";
+public class MessageAcknowledge extends Message {
 
-    public MessageUnsuccessfulLogin() {
+    public static String type = "ACKNOWLEDGMENT";
+
+    public MessageAcknowledge() {
         super(type);
     }
 }

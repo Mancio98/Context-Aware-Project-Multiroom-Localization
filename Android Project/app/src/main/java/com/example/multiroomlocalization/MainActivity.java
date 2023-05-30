@@ -1,5 +1,12 @@
 package com.example.multiroomlocalization;
 
+import com.example.multiroomlocalization.messages.connection.MessageLogin;
+import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
+import com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint;
+import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
+import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
+import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import android.Manifest;
@@ -519,11 +526,24 @@ public class MainActivity extends AppCompatActivity {
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
                     break;
                 case 2:
-                    clientSocket.createMessageStartMappingPhase(len).executeAsync((response) ->{
-                        System.out.println("response");
-                        System.out.println(response);
-                        clientSocket.createByte(bb).executeAsync(null);
-                    });
+                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                        @Override
+                        public void onComplete(String result) {
+                            System.out.println("response");
+                            System.out.println(result);
+
+                            //clientSocket.getIncomingMsgHandler().setCallable(new ClientSocket.MessageByte(bb));
+                            //clientSocket.createByte(bb).getIncomingMsgHandler().executeAsync(null);
+                            clientSocket.createByte(bb,LoginActivity.handler).executeAsync(null);
+                        }
+                    };
+                    Gson gson = new Gson();
+                    MessageStartMappingPhase message = new MessageStartMappingPhase(len);
+                    String json = gson.toJson(message);
+                    clientSocket.sendMessageStartMappingPhase(callback, json);
+                    /*clientSocket.createMessageStartMappingPhase(len).executeAsync((response) ->{
+
+                    });*/
                     createPopupStartTraining();
                     break;
                 case 3:
@@ -1207,7 +1227,11 @@ public class MainActivity extends AppCompatActivity {
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
 
-        clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);
+        MessageNewReferencePoint message = new MessageNewReferencePoint(point.getX(),point.getY(),point);
+        Gson gson = new Gson();
+        String json = gson.toJson(message);
+        clientSocket.sendMessageNewReferencePoint(json);
+        /*clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);*/
 
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
@@ -1235,7 +1259,11 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(View view) {
                                     dialog.cancel();
-                                    clientSocket.createMessageEndScanReferencePoint().executeAsync(null);
+                                    Gson gson = new Gson();
+                                    MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
+                                    String json = gson.toJson(message);
+                                    clientSocket.sendMessageEndScanReferencePoint(json);
+                                    /*clientSocket.createMessageEndScanReferencePoint().executeAsync(null);*/
                                     createPopupRoomTraining(referencePoints.get(index + 1), index + 1);
                                 }
                             });
@@ -1244,7 +1272,11 @@ public class MainActivity extends AppCompatActivity {
                             buttonNext.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    clientSocket.createMessageEndScanReferencePoint().executeAsync(null);
+                                    Gson gson = new Gson();
+                                    MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
+                                    String json = gson.toJson(message);
+                                    clientSocket.sendMessageEndScanReferencePoint(json);
+                                    /*clientSocket.createMessageEndScanReferencePoint().executeAsync(null);*/
                                     dialog.cancel();
 
                                     dialogBuilder = new AlertDialog.Builder(MainActivity.this);
@@ -1281,6 +1313,26 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(View view) {
                                             button.setEnabled(false);
+
+                                            ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                                @Override
+                                                public void onComplete(String result) {
+                                                    System.out.println(password.getText().toString());
+                                                    System.out.println(result);
+
+                                                    // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
+                                                    // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
+                                                    // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
+                                                    // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
+                                                }
+                                            };
+
+                                            Gson gson = new Gson();
+                                            MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString());
+                                            String json = gson.toJson(message);
+                                            clientSocket.sendMessageEndMappingPhase(callback,json);
+
+                                            /*
                                             clientSocket.createMessageEndMappingPhase(password.getText().toString()).executeAsync((response) -> {
                                                 System.out.println(password.getText().toString());
                                                 System.out.println(response);
@@ -1290,7 +1342,7 @@ public class MainActivity extends AppCompatActivity {
                                                     // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
                                                     // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
                                             });
-
+                                            */
 
                                         }
                                     });
@@ -1335,7 +1387,12 @@ public class MainActivity extends AppCompatActivity {
 
                 countDownTimer.start();
 
-                clientSocket.createMessageStartScanReferencePoint().executeAsync(null);
+                Gson gson = new Gson();
+                MessageStartScanReferencePoint message = new MessageStartScanReferencePoint();
+                String json = gson.toJson(message);
+                clientSocket.sendMessageStartScanReferencePoint(json);
+
+                /*clientSocket.createMessageStartScanReferencePoint().executeAsync(null);*/
 
                 buttonNext.setEnabled(false);
             }
@@ -1394,7 +1451,11 @@ public class MainActivity extends AppCompatActivity {
                 listScan.add(scan);
             }
 
-            clientSocket.createMessageFingerprint(listScan).executeAsync(null);
+            Gson gson = new Gson();
+            MessageFingerprint message = new MessageFingerprint(listScan);
+            String json = gson.toJson(message);
+            clientSocket.sendMessageFingerprint(json);
+            /*clientSocket.createMessageFingerprint(listScan).executeAsync(null);*/
 
         }
 
@@ -1407,7 +1468,12 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
                 listScan.add(scan);
             }
-            clientSocket.createMessageFingerprint(listScan).executeAsync(null);
+
+            Gson gson = new Gson();
+            MessageFingerprint message = new MessageFingerprint(listScan);
+            String json = gson.toJson(message);
+            clientSocket.sendMessageFingerprint(json);
+            /*clientSocket.createMessageFingerprint(listScan).executeAsync(null);*/
        }
 
 

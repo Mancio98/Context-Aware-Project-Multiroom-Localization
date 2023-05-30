@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.text.Editable;
 import android.text.SpannableString;
@@ -15,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
@@ -33,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     boolean passwordEmpty;
     boolean bool;
     protected static ClientSocket client;
+    public static Handler handler;
 
 
     @Override
@@ -50,9 +54,10 @@ public class LoginActivity extends AppCompatActivity {
         SpannableString content = new SpannableString( "Create an account" ) ;
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
+        handler = new Handler(Looper.getMainLooper());
 
 
-        client = new ClientSocket();
+        client = new ClientSocket(LoginActivity.this);
         client.setContext(LoginActivity.this);
         client.start();
 
@@ -127,8 +132,29 @@ public class LoginActivity extends AppCompatActivity {
                 //loginSuccessfull();
 
                 //DA SCOMMENTARE PER IL LOGIN CORRETTO CON MESSAGGIO AL DATABASE
+                ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                    @Override
+                    public void onComplete(String result) {
+                        System.out.println(result);
+                        Gson gson = new Gson();
+                        ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
+                        loginSuccessfull(accountMap);
+                    }
+                };
+                ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
+                    @Override
+                    public void onComplete(String result) {
+                        Toast.makeText(LoginActivity.this, "ERROR: CREDENZIALI NON CORRETTE", Toast.LENGTH_LONG).show();
+                    }
+                };
 
-                client.createMessageLogin(user).executeAsync((response)-> {
+
+
+                Gson gson = new Gson();
+                MessageLogin message = new MessageLogin(user);
+                String json = gson.toJson(message);
+                client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
+                /*client.createMessageLogin(user).executeAsync((response)-> {
                     System.out.println(response);
                     Gson gson = new Gson();
                     String messageType = gson.fromJson(response, JsonObject.class).get("type").getAsString();
@@ -139,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
                     else {
                         Toast.makeText(LoginActivity.this, "ERROR: CREDENZIALI NON CORRETTE", Toast.LENGTH_LONG).show();
                     }
-                });
+                });*/
 
 
 
