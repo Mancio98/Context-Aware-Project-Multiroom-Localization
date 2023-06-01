@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.vanniktech:android-image-cropper:4.5.0@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/faa4ea7dade6bec565d67ebe0cb42ff8/transformed/jetified-android-image-cropper-4.5.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/faa4ea7dade6bec565d67ebe0cb42ff8/transformed/jetified-android-image-cropper-4.5.0/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/faa4ea7dade6bec565d67ebe0cb42ff8/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.vanniktech/android-image-cropper/4.5.0/812d17cd7779cb1e3ad0b6247a02ddc4007a4c63/android-image-cropper-4.5.0-javadoc.jar!/" />

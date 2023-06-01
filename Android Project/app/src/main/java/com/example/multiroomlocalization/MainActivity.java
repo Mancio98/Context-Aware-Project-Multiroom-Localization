@@ -1,5 +1,6 @@
 package com.example.multiroomlocalization;
 
+import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint;
@@ -7,6 +8,7 @@ import com.example.multiroomlocalization.messages.localization.MessageFingerprin
 import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import android.Manifest;
@@ -116,6 +118,7 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -464,7 +467,6 @@ public class MainActivity extends AppCompatActivity {
 
                                     cv.cancel();
 
-
                                     imageView.buildDrawingCache();
                                     Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
                                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -528,23 +530,28 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                         @Override
-                        public void onComplete(String result) {
+                        public void onComplete(String result){
                             System.out.println("response");
                             System.out.println(result);
 
-                            //clientSocket.getIncomingMsgHandler().setCallable(new ClientSocket.MessageByte(bb));
-                            //clientSocket.createByte(bb).getIncomingMsgHandler().executeAsync(null);
-                            clientSocket.createByte(bb,LoginActivity.handler).executeAsync(null);
+                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                @Override
+                                public void onComplete(String result) {
+                                    fab.setEnabled(true);
+                                    createPopupStartTraining();
+                                }
+                            };
+
+                            clientSocket.sendImage(bb,callback1);
                         }
                     };
                     Gson gson = new Gson();
                     MessageStartMappingPhase message = new MessageStartMappingPhase(len);
                     String json = gson.toJson(message);
-                    clientSocket.sendMessageStartMappingPhase(callback, json);
-                    /*clientSocket.createMessageStartMappingPhase(len).executeAsync((response) ->{
 
-                    });*/
-                    createPopupStartTraining();
+                    clientSocket.sendMessageStartMappingPhase(callback, json);
+                    fab.setEnabled(false);
+
                     break;
                 case 3:
                     System.out.println("CASO 3");
@@ -555,39 +562,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // This function is called when the user accepts or decline the permission.
-    // Request Code is used to check which permission called this function.
-    // This request code is provided when the user is prompt for permission.
- /*   @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
-    {
-        super.onRequestPermissionsResult(requestCode,
-                permissions,
-                grantResults);
-
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-                scanService = new ScanService(getApplicationContext());
-
-                mHandler.postDelayed(scanRunnable, intervalScan);
-            }
-            else {
-                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT) .show();
-            }
-        }
-        else if (requestCode == 0) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-*/
     private void createDialog(int x, int y) {
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_room, null);
@@ -794,12 +768,45 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
-            case 1: //DEFINIRE CODICE RICHIESTA
+                break;
+            case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, "Localization Permission Granted", Toast.LENGTH_SHORT).show();
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                    System.out.println("CASE1");
                 } else {
-                    Toast.makeText(MainActivity.this, "Localization Permission Denied", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
                 }
+                break;
+            case 2:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("CASE2");
+                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                        @Override
+                        public void onComplete(String result){
+                            System.out.println("response");
+                            System.out.println(result);
+
+                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                @Override
+                                public void onComplete(String result) {
+                                    fab.setEnabled(true);
+                                    createPopupStartTraining();
+                                }
+                            };
+
+                            clientSocket.sendImage(bb,callback1);
+                        }
+                    };
+                    Gson gson = new Gson();
+                    MessageStartMappingPhase message = new MessageStartMappingPhase(len);
+                    String json = gson.toJson(message);
+
+                    clientSocket.sendMessageStartMappingPhase(callback, json);
+                    fab.setEnabled(false);
+                } else {
+                    Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
+                }
+                break;
 
         }
     }
@@ -1259,12 +1266,17 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(View view) {
                                     dialog.cancel();
+                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                        @Override
+                                        public void onComplete(String result) {
+                                            createPopupRoomTraining(referencePoints.get(index + 1), index + 1);
+                                        }
+                                    };
                                     Gson gson = new Gson();
                                     MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
                                     String json = gson.toJson(message);
-                                    clientSocket.sendMessageEndScanReferencePoint(json);
-                                    /*clientSocket.createMessageEndScanReferencePoint().executeAsync(null);*/
-                                    createPopupRoomTraining(referencePoints.get(index + 1), index + 1);
+                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
+                                    /* clientSocket.createMessageEndScanReferencePoint().executeAsync(null); */
                                 }
                             });
                         } else {
@@ -1272,96 +1284,93 @@ public class MainActivity extends AppCompatActivity {
                             buttonNext.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
+
+                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                        @Override
+                                        public void onComplete(String result) {
+
+                                            dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                            final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
+                                            dialogBuilder.setView(popup);
+                                            dialog = dialogBuilder.create();
+                                            dialog.setCanceledOnTouchOutside(false);
+
+                                            Button button = popup.findViewById(R.id.buttonSendPassword);
+                                            button.setEnabled(false);
+                                            EditText password = popup.findViewById(R.id.passwordInputMap);
+
+                                            password.addTextChangedListener(new TextWatcher() {
+                                                @Override
+                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                                                }
+
+                                                @Override
+                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                    if(charSequence.toString().trim().length()==0){
+                                                        button.setEnabled(false);
+                                                    } else {
+                                                        button.setEnabled(true);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void afterTextChanged(Editable editable) {
+
+                                                }
+                                            });
+
+                                            button.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+                                                    button.setEnabled(false);
+
+                                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                                        @Override
+                                                        public void onComplete(String result) {
+                                                            System.out.println(password.getText().toString());
+                                                            System.out.println(result);
+
+                                                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                                                @Override
+                                                                public void onComplete(String result) {
+                                                                    Toast.makeText(getApplicationContext(), gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint().getId(),Toast.LENGTH_LONG).show();
+                                                                }
+                                                            };
+                                                            clientSocket.addCallbackChangeReferencePoint(callback1);
+                                                            //AGGIUNTO PER PROVARE CON MATTI POI SARà DA ELIMINARE
+                                                            mHandler.postDelayed(scanRunnable, 5000);
+
+
+
+                                                            // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
+                                                            // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
+                                                            // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
+                                                            // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
+                                                        }
+                                                    };
+
+                                                    Gson gson = new Gson();
+                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString());
+                                                    String json = gson.toJson(message);
+                                                    clientSocket.sendMessageEndMappingPhase(callback,json);
+
+                                                }
+                                            });
+                                            dialog.show();
+                                        }
+                                    };
+
                                     Gson gson = new Gson();
                                     MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
                                     String json = gson.toJson(message);
-                                    clientSocket.sendMessageEndScanReferencePoint(json);
-                                    /*clientSocket.createMessageEndScanReferencePoint().executeAsync(null);*/
+                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
                                     dialog.cancel();
-
-                                    dialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                                    final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
-                                    dialogBuilder.setView(popup);
-                                    dialog = dialogBuilder.create();
-                                    dialog.setCanceledOnTouchOutside(false);
-
-                                    Button button = popup.findViewById(R.id.buttonSendPassword);
-                                    EditText password = popup.findViewById(R.id.passwordInputMap);
-
-                                    password.addTextChangedListener(new TextWatcher() {
-                                        @Override
-                                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                                        }
-
-                                        @Override
-                                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                                            if(charSequence.toString().trim().length()==0){
-                                                button.setEnabled(false);
-                                            } else {
-                                                button.setEnabled(true);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void afterTextChanged(Editable editable) {
-
-                                        }
-                                    });
-
-                                    button.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            button.setEnabled(false);
-
-                                            ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
-                                                @Override
-                                                public void onComplete(String result) {
-                                                    System.out.println(password.getText().toString());
-                                                    System.out.println(result);
-
-                                                    // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
-                                                    // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
-                                                    // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
-                                                    // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
-                                                }
-                                            };
-
-                                            Gson gson = new Gson();
-                                            MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString());
-                                            String json = gson.toJson(message);
-                                            clientSocket.sendMessageEndMappingPhase(callback,json);
-
-                                            /*
-                                            clientSocket.createMessageEndMappingPhase(password.getText().toString()).executeAsync((response) -> {
-                                                System.out.println(password.getText().toString());
-                                                System.out.println(response);
-
-                                                    // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
-                                                    // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
-                                                    // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
-                                                    // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
-                                            });
-                                            */
-
-                                        }
-                                    });
-
-                                    dialog.show();
-
-
-                                    // SALVATAGGIO DATI
-
-
-
                                 }
                             });
                         }
-
                     }
                 });
-
-
             }
         };
 
@@ -1384,16 +1393,12 @@ public class MainActivity extends AppCompatActivity {
                 scanService.registerReceiver(broadcastReceiverScan);
 
                 scanResultArrayList.clear();
-
                 countDownTimer.start();
 
                 Gson gson = new Gson();
                 MessageStartScanReferencePoint message = new MessageStartScanReferencePoint();
                 String json = gson.toJson(message);
                 clientSocket.sendMessageStartScanReferencePoint(json);
-
-                /*clientSocket.createMessageStartScanReferencePoint().executeAsync(null);*/
-
                 buttonNext.setEnabled(false);
             }
         });
@@ -1446,17 +1451,26 @@ public class MainActivity extends AppCompatActivity {
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for (ScanResult res : results) {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
-                //Toast.makeText(getApplicationContext(),"RIUSCITO",Toast.LENGTH_LONG).show();
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
                 listScan.add(scan);
             }
 
+            /*
+            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f5","",-52));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f6","",-54));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f7","",-47));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:d7:aa:62:0e:91","",-54));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:d7:aa:62:0e:8c","",-68));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("68:3f:7d:0d:7c:d5","",-82));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("7c:c1:77:aa:79:e0","",-89));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:3c:04:8e:6b:84","",-85));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:3c:04:8e:6b:80","",-81));
+            listScan.add(new com.example.multiroomlocalization.ScanResult("8c:97:ea:8f:ef:a4","",-67));
+            */
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
             clientSocket.sendMessageFingerprint(json);
-            /*clientSocket.createMessageFingerprint(listScan).executeAsync(null);*/
-
         }
 
         private void scanFailure() {
@@ -1473,7 +1487,6 @@ public class MainActivity extends AppCompatActivity {
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
             clientSocket.sendMessageFingerprint(json);
-            /*clientSocket.createMessageFingerprint(listScan).executeAsync(null);*/
        }
 
 

@@ -12,6 +12,9 @@ import android.os.Looper;
 import android.widget.Toast;
 
 import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
+import com.example.multiroomlocalization.messages.connection.MessageImageFinish;
+import com.example.multiroomlocalization.messages.connection.MessageMappingPhaseFinish;
+import com.example.multiroomlocalization.messages.connection.MessageReferencePointFinish;
 import com.example.multiroomlocalization.messages.connection.MessageRegistrationSuccessful;
 import com.example.multiroomlocalization.messages.connection.MessageRegistrationUnsuccessful;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
@@ -38,10 +41,10 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 11925;//8777;
+    private int port = 18042;
 
     private Socket socket;
-    private DataInputStream dataIn;
+    private static DataInputStream dataIn;
     private static DataOutputStream dataOut;
     private Handler mHandler = new Handler();
 
@@ -60,6 +63,9 @@ public class ClientSocket extends Thread implements Serializable {
     private Callback<String> endMappingPhaseCallback;
     private Callback<String> registrationSuccessfulCallback;
     private Callback<String> registrationUnsuccessfulCallback;
+    private Callback<String> imageCallback;
+    private Callback<String> endReferencePointCallback;
+    private Callback<String> callbackChangeReferencepoint;
 
     public interface Callback<R> {
         void onComplete(R result);
@@ -75,13 +81,14 @@ public class ClientSocket extends Thread implements Serializable {
         public void run() {
             super.run();
 
-            while(isAlive()){
+            while(!isInterrupted()){
                 try {
                     System.out.println("Attivo");
                     String msg = dataIn.readUTF();
 
                     msgHandler(msg);
                 } catch (IOException e) {
+                    interrupt();
                     e.printStackTrace();
                 }
             }
@@ -97,6 +104,7 @@ public class ClientSocket extends Thread implements Serializable {
 
         private void msgHandler(String msg){
 
+            System.out.println("RICEVUTO MESSAGGIO");
             System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
 
@@ -158,6 +166,34 @@ public class ClientSocket extends Thread implements Serializable {
                     }
                 });
             }
+            else if (messageType.equals((MessageImageFinish.type))){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { imageCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageMappingPhaseFinish.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { endMappingPhaseCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageReferencePointFinish.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { endReferencePointCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageChangeReferencePoint.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { callbackChangeReferencepoint.onComplete(msg);
+                    }
+                });
+            }
 
         }
     }
@@ -202,52 +238,69 @@ public class ClientSocket extends Thread implements Serializable {
 
     }
 
+    public void startIncomingMsgHandler(){
+        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
+        incomingMsgHandler.start();
+    }
 
     public void setAddress(String addNgrok,Integer portNgrok){
         ip = addNgrok;
         port = portNgrok;
     }
 
-    public TaskRunner<Void> createByte(byte[] bb,Handler handler){
-        return new TaskRunner<>(new MessageByte(bb),handler);
-    };
 
+  /*  public TaskRunner<Void> createByte(byte[] bb,Handler handler,Callback<String> callback){
+        imageCallback = callback;
+        return new TaskRunner<Void>(new MessageByte(bb),handler);
+    };
+*/
+    public void sendImage(byte[] bb,Callback<String> callback){
+        imageCallback = callback;
+        sendMessage(null,true,bb);
+    }
+
+    public void addCallbackChangeReferencePoint(Callback<String> callback){
+        callbackChangeReferencepoint = callback;
+    }
     public void sendMessageListSpeaker(String message){
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
     public void sendMessageReqPlaylist(Callback<String> callback, String message){
         reqPlaylistCallback = callback;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
     public void sendMessageStartMappingPhase(Callback<String> callback, String message){
         startMappingPhaseCallback = callback;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
     public void sendMessageLogin(Callback<String> callback,Callback<String> callback2, String message){
         loginSuccessfulCallback = callback;
         loginUnsuccessfulCallback = callback2;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
     public void sendMessageEndMappingPhase(Callback<String> callback,String message){
         endMappingPhaseCallback = callback;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
-    public void sendMessageStartScanReferencePoint(String message){sendMessage(message);}
+    public void sendMessageStartScanReferencePoint(String message){sendMessage(message,false,null);}
 
-    public void sendMessageNewReferencePoint(String message){sendMessage(message);}
+    public void sendMessageNewReferencePoint(String message){sendMessage(message,false,null);}
 
-    public void sendMessageEndScanReferencePoint(String message){sendMessage(message);}
+    public void sendMessageEndScanReferencePoint(String message,Callback<String>callback){
+        endReferencePointCallback = callback;
+        sendMessage(message,false,null);
+    }
 
-    public void sendMessageFingerprint(String message){ sendMessage(message);}
+    public void sendMessageFingerprint(String message){ sendMessage(message,false,null);}
 
     public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){
         registrationSuccessfulCallback = callback;
         registrationUnsuccessfulCallback = callback2;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
 /*
@@ -304,19 +357,29 @@ public class ClientSocket extends Thread implements Serializable {
     }
 
 
-    private void sendMessage(String message){
+    private void sendMessage(String message,Boolean image,byte[] bb){
 
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    dataOut.writeUTF(message);
-                    dataOut.flush();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                if (image) {
+                    DataOutputStream bytesOut = new DataOutputStream(new BufferedOutputStream(dataOut));
+                    try {
+                        dataOut.write(bb);
+                        dataOut.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        dataOut.writeUTF(message);
+                        dataOut.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
+                }
             }
         });
     }
@@ -508,7 +571,7 @@ public class ClientSocket extends Thread implements Serializable {
         }
     }
 */
-    public static class MessageByte implements Callable<Void>{
+   /* public static class MessageByte implements Callable<Void>{
         byte[] bb;
 
         public MessageByte(byte[] bb){this.bb = bb;}
@@ -524,7 +587,7 @@ public class ClientSocket extends Thread implements Serializable {
             return null;
         }
     }
-
+*/
 /*
     public class MessageEndMappingPhase implements Callable<String>{
         private String password;
@@ -755,15 +818,15 @@ public class ClientSocket extends Thread implements Serializable {
 
     }
 */
-
+/*
     public static class TaskRunner<R> {
         private final Executor executor = Executors.newSingleThreadExecutor(); // change according to your requirements
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final Callable<R> callable;
 
         public TaskRunner(Callable<R> callable,Handler handler) {
-            //this.handler = handler;
             this.callable = callable;
+            //this.handler = handler;
         }
 
         public interface Callback<R> {
@@ -786,6 +849,6 @@ public class ClientSocket extends Thread implements Serializable {
             });
         }
     }
-
+*/
 
 }
