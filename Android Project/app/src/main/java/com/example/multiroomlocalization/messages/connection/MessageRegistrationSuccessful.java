@@ -4,7 +4,7 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageRegistrationSuccessful extends Message {
 
-    public static String type = "REGISTRATION SUCCESSFUL";
+    public static String type = "REGISTRATION_SUCCESSFUL";
 
     public MessageRegistrationSuccessful() {
         super(type);

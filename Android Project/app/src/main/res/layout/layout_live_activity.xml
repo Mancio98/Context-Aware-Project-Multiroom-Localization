@@ -5,23 +5,23 @@
     android:id="@+id/linearLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ActivityLive">
 
     <ImageView
-        android:id="@+id/map"
-        android:layout_height="wrap_content"
+        android:id="@+id/mapView"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|center_vertical"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/settingsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
-        android:src="@drawable/check_mark" />
+        android:src="@android:drawable/ic_menu_preferences" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

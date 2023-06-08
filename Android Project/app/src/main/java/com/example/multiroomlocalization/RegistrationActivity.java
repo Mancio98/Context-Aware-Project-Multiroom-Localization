@@ -103,9 +103,7 @@ public class RegistrationActivity  extends AppCompatActivity {
                         dialogBuilder = new AlertDialog.Builder(RegistrationActivity.this);
                         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
                         dialogBuilder.setView(popup);
-                        dialog = dialogBuilder.create();
-                        dialog.setCanceledOnTouchOutside(false);
-                        dialog.show();
+
 
                         Button button = (Button) popup.findViewById(R.id.buttonPopup);
                         TextView text = (TextView) popup.findViewById(R.id.textPopup);
@@ -116,9 +114,15 @@ public class RegistrationActivity  extends AppCompatActivity {
                         button.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                dialog.cancel();
                                 finish();
                             }
                         });
+
+                        dialog = dialogBuilder.create();
+                        dialog.setCanceledOnTouchOutside(false);
+                        dialog.setCancelable(false);
+                        dialog.show();
                     }
                 };
                 ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
@@ -126,8 +130,10 @@ public class RegistrationActivity  extends AppCompatActivity {
                     @Override
                     public void onComplete(String result) {
                         Gson gson = new Gson();
-                        String messageDescription = gson.fromJson(result, JsonObject.class).get("description").getAsString();
-                        Toast.makeText(RegistrationActivity.this, messageDescription, Toast.LENGTH_LONG).show();
+                        //String messageDescription = gson.fromJson(result, JsonObject.class).get("description").getAsString();
+                        Toast.makeText(RegistrationActivity.this, "USERNAME GIÁ PRESENTE", Toast.LENGTH_LONG).show();
+                        username.setText("");
+                        password.setText("");
                         registration.setEnabled(true);
                     }
                 };
@@ -135,43 +141,6 @@ public class RegistrationActivity  extends AppCompatActivity {
                 Gson gson = new Gson();
                 String json = gson.toJson(message);
                 client.sendMessageRegistration(callbackSuccessful,callbackUnsuccessful,json);
-                /*
-                client.createMessageRegistration(user).executeAsync((response) -> {
-                    System.out.println("fatto");
-                    System.out.println(response);
-                    Gson gson = new Gson();
-                    String messageType = gson.fromJson(response, JsonObject.class).get("type").getAsString();
-                    if(messageType.equals("REGISTRATION SUCCESSFUL")){
-
-                        dialogBuilder = new AlertDialog.Builder(RegistrationActivity.this);
-                        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
-                        dialogBuilder.setView(popup);
-                        dialog = dialogBuilder.create();
-                        dialog.setCanceledOnTouchOutside(false);
-                        dialog.show();
-
-                        Button button = (Button) popup.findViewById(R.id.buttonPopup);
-                        TextView text = (TextView) popup.findViewById(R.id.textPopup);
-
-                        button.setText("CONFERMA");
-                        text.setText(R.string.registrationDone);
-
-                        button.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                finish();
-                            }
-                        });
-
-                    }
-                    else {
-                        String messageDescription = gson.fromJson(response, JsonObject.class).get("description").getAsString();
-                        Toast.makeText(RegistrationActivity.this, messageDescription, Toast.LENGTH_LONG).show();
-                        registration.setEnabled(true);
-                    }
-
-                } );
-                */
 
             }
         });

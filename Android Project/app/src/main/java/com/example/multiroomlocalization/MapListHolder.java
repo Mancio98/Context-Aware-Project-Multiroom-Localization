@@ -10,12 +10,14 @@ import androidx.recyclerview.widget.RecyclerView;
 public class MapListHolder extends RecyclerView.ViewHolder {
 
     TextView idMap;
+    TextView mapName;
     TextView isReady;
     Button selectMap;
     View view;
 
     public MapListHolder(@NonNull View itemView) {
         super(itemView);
+        mapName = itemView.findViewById(R.id.mapName);
         idMap = itemView.findViewById(R.id.MapId);
         isReady = itemView.findViewById(R.id.isReady);
         selectMap = itemView.findViewById(R.id.buttonSelectMap);

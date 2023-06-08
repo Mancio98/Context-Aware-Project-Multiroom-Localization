@@ -81,8 +81,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.MultiRoomLocalization.NoActionBar">
+            android:screenOrientation="portrait">
 
             <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -98,6 +97,7 @@
 
         <activity android:name=".RegistrationActivity"></activity>
         <activity android:name=".ListMapActivity"></activity>
+        <activity android:name=".ActivityLive"></activity>
 
         <service
             android:name=".ScanService"

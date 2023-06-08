@@ -2,12 +2,14 @@ package com.example.multiroomlocalization;
 
 import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
+import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
 import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
+import com.example.multiroomlocalization.messages.music.MessageSettings;
 import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.localization.ReferencePoint;
@@ -24,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -32,57 +33,40 @@ import android.os.Build;
 import android.os.Bundle;
 
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 
 import android.os.Parcelable;
-import android.os.SystemClock;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 
 import android.util.ArraySet;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -105,23 +89,16 @@ import android.view.MotionEvent;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.multiroomlocalization.databinding.ActivityMainBinding;
-import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.android.exoplayer2.ExoPlayer;
 
-import com.google.android.exoplayer2.ui.PlayerControlView;
-import com.google.android.exoplayer2.ui.StyledPlayerControlView;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
@@ -140,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView playPause;
     private SeekBar audioSeekBar;
-
-    private ActivityMainBinding binding;
     private Handler mHandler = new Handler();
     private ScanService scanService;
     private Canvas canvas;
@@ -155,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
     private int imageViewWidth;
     private boolean first = true;
     private boolean newImage = true;
+    private boolean passwordEmpty = true;
+    private boolean nameEmpty = true;
     private String imageMap;
     private int len;
     private byte[] bb;
@@ -164,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab;
 
     protected ClientSocket clientSocket;
+    private CropView cv;
+
 
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
     private HashMap<String, ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
@@ -182,15 +161,11 @@ public class MainActivity extends AppCompatActivity {
     private ListSongAdapter playlistAdapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.activity_main);
         clientSocket = LoginActivity.client;
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        setContentView(R.layout.activity_main);//_temp_mansio);
-        setSupportActionBar(binding.toolbar);
 
         fab = findViewById(R.id.fab);
         fab.setEnabled(false);
@@ -255,6 +230,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         imageView = (ImageView) findViewById(R.id.map);
+        // TODO DA PROVARE
+        //imageView.getLayoutParams().height = 2000;
+        //imageView.getLayoutParams().width = 1400;
+        //imageView.requestLayout();
 
         if (imageView.getDrawable() == null) {
             dialogBuilder = new AlertDialog.Builder(this);
@@ -264,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
             dialogBuilder.setView(popup);
             dialog = dialogBuilder.create();
             dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
             dialog.show();
 
             upload.setOnClickListener(new View.OnClickListener() {
@@ -338,11 +318,15 @@ public class MainActivity extends AppCompatActivity {
             int y1 = (int) event.getY();
 
             System.out.println("X: " + x1 + " Y: " + y1);
+            System.out.println("imageViewWidth: " + imageViewWidth + " imageViewHeight: " + imageViewHeight);
 
-            int tempx = x1;
-            int tempy = y1;
 
-            createDialog(tempx, tempy);
+            float tempx = ((float) x1/(float) imageViewWidth)*100;
+            float tempy = ((float) y1/(float) imageViewHeight)*100;
+
+            System.out.println("tempX: " + tempx + " tempY: " + tempy);
+
+            createDialog((int) tempx,(int) tempy);
             return false;
         }
     };
@@ -364,9 +348,13 @@ public class MainActivity extends AppCompatActivity {
             if (first || newImage) {
                 first = false;
                 newImage = false;
+                //Bitmap bitmap = Bitmap.createBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 canvas = new Canvas(mutableBitmap);
+                System.out.println("Canvas");
+                System.out.println(canvas.getWidth());
+                System.out.println(canvas.getHeight());
             }
         }
     };
@@ -383,15 +371,7 @@ public class MainActivity extends AppCompatActivity {
         mHandler.removeCallbacks(scanRunnable);
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
+   /* @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -432,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    */
 
     // You can do the assignment inside onAttach or onCreate, i.e, before the activity is displayed
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
@@ -448,35 +429,15 @@ public class MainActivity extends AppCompatActivity {
                         if (null != image) {
 
                             dialog.cancel();
-                            CropView cv = new CropView(MainActivity.this, image);
+                            cv = new CropView(MainActivity.this, image);
                             cv.setCanceledOnTouchOutside(false);
                             cv.show();
                             cv.setTouchButton(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                                    checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
-                                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
-                                    System.out.println("PATH: " + path);
-
-                                    imageView.setImageURI(Uri.parse(path));
-                                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
-                                    imageView.setOnTouchListener(touchListener);
-
-                                    newImage = true;
-
-                                    cv.cancel();
-
-                                    imageView.buildDrawingCache();
-                                    Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-                                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                                    bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
-                                    bb = bos.toByteArray();
-                                    imageMap = Base64.encodeToString(bb,0);
-
-                                    len = bb.length;
-
-                                    startPopup();
+                                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                                        checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
+                                    }
                                     return false;
                                 }
                             });
@@ -505,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
                     next.setText("Start");
                     firstTime[0] = false;
                 } else {
+                    imageView.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
                     dialog.cancel();
                 }
             }
@@ -514,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -555,6 +518,30 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 3:
                     System.out.println("CASO 3");
+                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                    System.out.println("PATH: " + path);
+
+                    imageView.setImageURI(Uri.parse(path));
+                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                    imageView.setOnTouchListener(touchListener);
+
+                    newImage = true;
+
+                    cv.cancel();
+
+                    imageView.buildDrawingCache();
+                    Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                    System.out.println("BMAP SIZE");
+                    System.out.println(bmap.getWidth());
+                    System.out.println(bmap.getHeight());
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                    bb = bos.toByteArray();
+                    imageMap = Base64.encodeToString(bb,0);
+
+                    len = bb.length;
+
+                    startPopup();
                     break;
             }
 
@@ -574,6 +561,7 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
 
         labelRoom.addTextChangedListener(new TextWatcher() {
@@ -608,11 +596,22 @@ public class MainActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                int tempX = (x*imageViewWidth)/100;
+                int tempY = (y*imageViewHeight)/100;
 
                 Paint mPaint = new Paint();
                 mPaint.setColor(Color.RED);
-                canvas.drawCircle(x, y, 20, mPaint);
+                canvas.drawCircle(tempX, tempY, 20, mPaint);
                 imageView.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
+                System.out.println("Canvas");
+                System.out.println(canvas.getWidth());
+                System.out.println(canvas.getHeight());
+                System.out.println("IMAGEVIEW");
+                System.out.println(imageView.getWidth());
+                System.out.println(imageView.getHeight());
+                System.out.println("imageViewHEIGHT&WIDTH");
+                System.out.println(imageViewWidth);
+                System.out.println(imageViewHeight);
                 ReferencePoint ref = new ReferencePoint(x, y, labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
@@ -807,7 +806,34 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            case 3:
+                System.out.println("CASO 3 ALTRO");
+                String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                System.out.println("PATH: " + path);
 
+                imageView.setImageURI(Uri.parse(path));
+                imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                imageView.setOnTouchListener(touchListener);
+
+                newImage = true;
+
+                cv.cancel();
+
+                imageView.buildDrawingCache();
+                Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                System.out.println("BMAP SIZE");
+                System.out.println(bmap.getWidth());
+                System.out.println(bmap.getHeight());
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                bb = bos.toByteArray();
+                imageMap = Base64.encodeToString(bb,0);
+
+                len = bb.length;
+
+
+                startPopup();
+                break;
         }
     }
 
@@ -858,7 +884,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
+    /*@Override
     protected void onDestroy() {
         super.onDestroy();
         server.interrupt();
@@ -880,7 +906,9 @@ public class MainActivity extends AppCompatActivity {
             //service is active
             playerService.stopSelf();
         }*/
+    /*
     }
+    */
 
     public void askBtPermission(View view) {
 
@@ -1226,6 +1254,7 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         Button buttonNext = popup.findViewById(R.id.buttonTraining);
 
         TextView textRoom = (TextView) popup.findViewById(R.id.textRoom);
@@ -1240,6 +1269,7 @@ public class MainActivity extends AppCompatActivity {
         clientSocket.sendMessageNewReferencePoint(json);
         /*clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);*/
 
+        //TODO SISTEMARE TIMER CHE FACCIANO 5 MINUTI ADESSO IMPOSTATO A 10s
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
             public void onTick(long millisUntilFinished) {
@@ -1276,7 +1306,6 @@ public class MainActivity extends AppCompatActivity {
                                     MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
                                     String json = gson.toJson(message);
                                     clientSocket.sendMessageEndScanReferencePoint(json,callback);
-                                    /* clientSocket.createMessageEndScanReferencePoint().executeAsync(null); */
                                 }
                             });
                         } else {
@@ -1290,74 +1319,183 @@ public class MainActivity extends AppCompatActivity {
                                         public void onComplete(String result) {
 
                                             dialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                                            final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
+                                            final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
                                             dialogBuilder.setView(popup);
-                                            dialog = dialogBuilder.create();
-                                            dialog.setCanceledOnTouchOutside(false);
 
-                                            Button button = popup.findViewById(R.id.buttonSendPassword);
-                                            button.setEnabled(false);
-                                            EditText password = popup.findViewById(R.id.passwordInputMap);
+                                            Button next = (Button) popup.findViewById(R.id.buttonPopup);
+                                            TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
-                                            password.addTextChangedListener(new TextWatcher() {
-                                                @Override
-                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                                                }
-
-                                                @Override
-                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                                                    if(charSequence.toString().trim().length()==0){
-                                                        button.setEnabled(false);
-                                                    } else {
-                                                        button.setEnabled(true);
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void afterTextChanged(Editable editable) {
-
-                                                }
-                                            });
-
-                                            button.setOnClickListener(new View.OnClickListener() {
+                                            text.setText(R.string.settings);
+                                            next.setOnClickListener(new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View view) {
-                                                    button.setEnabled(false);
 
-                                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                                    dialog.cancel();
+                                                    dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                                    final View popup = getLayoutInflater().inflate(R.layout.referencepointlist_view, null);
+                                                    dialogBuilder.setView(popup);
+
+                                                    RecyclerView recyclerView = (RecyclerView) popup.findViewById(R.id.recyclerViewReferencePoint);
+
+                                                    //TODO tempSpeaker DEVE ESSERE L'ARRAY DI TUTTI GLI SPEAKER ASSOCIATI AL TELEFONO
+                                                    ArrayList<Speaker> tempSpeaker = new ArrayList<>();
+                                                    tempSpeaker.add(new Speaker("","","Prova1"));
+                                                    tempSpeaker.add(new Speaker("","","Prova2"));
+                                                    ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints,getApplicationContext(),tempSpeaker);
+                                                    recyclerView.setAdapter(adapter);
+                                                    recyclerView.setLayoutManager( new LinearLayoutManager(getApplicationContext()));
+
+                                                    System.out.println(referencePoints.size());
+                                                    Button buttonConferma = (Button) popup.findViewById(R.id.buttonConfermaSettings);
+
+                                                    buttonConferma.setOnClickListener(new View.OnClickListener() {
                                                         @Override
-                                                        public void onComplete(String result) {
-                                                            System.out.println(password.getText().toString());
-                                                            System.out.println(result);
+                                                        public void onClick(View view) {
+                                                            ArrayList<Settings> arrListSettings = new ArrayList<>();
 
-                                                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                                            for (int i = 0; i < referencePoints.size(); i++) {
+                                                                System.out.println("DND");
+                                                                System.out.println(referencePoints.get(i).getDnd());
+                                                                System.out.println("SPEAKER");
+                                                                System.out.println(referencePoints.get(i).getSpeaker().getName());
+                                                                arrListSettings.add(new Settings(referencePoints.get(i).getId(), referencePoints.get(i).getSpeaker(), referencePoints.get(i).getDnd()));
+                                                            }
+
+                                                            dialog.cancel();
+                                                            dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                                            final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
+                                                            dialogBuilder.setView(popup);
+                                                            dialog = dialogBuilder.create();
+                                                            dialog.setCanceledOnTouchOutside(false);
+                                                            dialog.setCancelable(false);
+
+                                                            Button button = popup.findViewById(R.id.buttonSendPassword);
+                                                            button.setEnabled(false);
+                                                            EditText name = popup.findViewById(R.id.editTextInputMapName);
+                                                            EditText password = popup.findViewById(R.id.passwordInputMap);
+
+                                                            password.addTextChangedListener(new TextWatcher() {
                                                                 @Override
-                                                                public void onComplete(String result) {
-                                                                    Toast.makeText(getApplicationContext(), gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint().getId(),Toast.LENGTH_LONG).show();
+                                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
                                                                 }
-                                                            };
-                                                            clientSocket.addCallbackChangeReferencePoint(callback1);
-                                                            //AGGIUNTO PER PROVARE CON MATTI POI SARà DA ELIMINARE
-                                                            mHandler.postDelayed(scanRunnable, 5000);
 
+                                                                @Override
+                                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                                    if (charSequence.toString().trim().length() == 0) {
+                                                                        passwordEmpty = true;
+                                                                        button.setEnabled(false);
+                                                                    } else {
+                                                                        passwordEmpty = false;
+                                                                        if (!nameEmpty) {
+                                                                            button.setEnabled(true);
+                                                                        }
+                                                                    }
+                                                                }
 
+                                                                @Override
+                                                                public void afterTextChanged(Editable editable) {
 
-                                                            // TODO: RICEVERE MESSAGGIO CON ID DELLA MAPPA NEL DATABASE
-                                                            // TODO: FAR INSERIRE ALL'UTENTE PASSWORD DELLA MAPPA
-                                                            // TODO: INVIO MESSAGGIO CON PASSWORD SCELTA
-                                                            // TODO: PASSARE AD ACTIVITY CON LISTA DELLE STANZE
+                                                                }
+                                                            });
+
+                                                            name.addTextChangedListener(new TextWatcher() {
+                                                                @Override
+                                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                                    if (charSequence.toString().trim().length() == 0) {
+                                                                        nameEmpty = true;
+                                                                        button.setEnabled(false);
+                                                                    } else {
+                                                                        nameEmpty = false;
+                                                                        if (!passwordEmpty) {
+                                                                            button.setEnabled(true);
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                @Override
+                                                                public void afterTextChanged(Editable editable) {
+
+                                                                }
+                                                            });
+
+                                                            button.setOnClickListener(new View.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(View view) {
+                                                                    button.setEnabled(false);
+
+                                                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                                                        @Override
+                                                                        public void onComplete(String result) {
+                                                                            System.out.println(password.getText().toString());
+                                                                            System.out.println(result);
+
+                                                                            ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                                                                                @Override
+                                                                                public void onComplete(String result) {
+                                                                                    System.out.println(result);
+                                                                                    Gson gson = new Gson();
+                                                                                    ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
+                                                                                    Intent changeActivity;
+                                                                                    changeActivity = new Intent(MainActivity.this, ListMapActivity.class);
+                                                                                    changeActivity.putExtra("Map",accountMap);
+                                                                                    finish();
+                                                                                    dialog.cancel();
+                                                                                    startActivity(changeActivity);
+                                                                                }
+                                                                            };
+
+                                                                            Gson gson = new Gson();
+                                                                            MessageLogin message = new MessageLogin(LoginActivity.currentUser);
+                                                                            String json = gson.toJson(message);
+                                                                            clientSocket.sendMessageLogin(callbackSuccessful,null,json);
+
+                                                                           /* ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                                                                @Override
+                                                                                public void onComplete(String result) {
+                                                                                    Toast.makeText(getApplicationContext(), gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint().getId(),Toast.LENGTH_LONG).show();
+                                                                                }
+                                                                            };
+                                                                            clientSocket.addCallbackChangeReferencePoint(callback1);
+                                                                            //AGGIUNTO PER PROVARE CON MATTI POI SARà DA ELIMINARE
+                                                                            //mHandler.postDelayed(scanRunnable, 5000);
+
+                                                                            */
+                                                                        }
+                                                                    };
+
+                                                                    Gson gson = new Gson();
+                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(),arrListSettings,name.getText().toString());
+                                                                    String json = gson.toJson(message);
+                                                                    clientSocket.sendMessageEndMappingPhase(callback,json);
+
+                                                                }
+                                                            });
+                                                            dialog.show();
                                                         }
-                                                    };
+                                                    });
 
-                                                    Gson gson = new Gson();
-                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString());
-                                                    String json = gson.toJson(message);
-                                                    clientSocket.sendMessageEndMappingPhase(callback,json);
+                                                    dialog = dialogBuilder.create();
+                                                    dialog.setCanceledOnTouchOutside(false);
+                                                    dialog.setCancelable(false);
+                                                    dialog.show();
 
                                                 }
                                             });
+
+                                            dialog = dialogBuilder.create();
+                                            dialog.setCanceledOnTouchOutside(false);
+                                            dialog.setCancelable(false);
                                             dialog.show();
+
+
+
+
                                         }
                                     };
 
@@ -1367,6 +1505,10 @@ public class MainActivity extends AppCompatActivity {
                                     clientSocket.sendMessageEndScanReferencePoint(json,callback);
                                     dialog.cancel();
                                 }
+
+
+
+
                             });
                         }
                     }
@@ -1429,6 +1571,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -1441,7 +1584,6 @@ public class MainActivity extends AppCompatActivity {
             if (success) {
                 scanSuccess();
             } else {
-                // scan failure handling
                 scanFailure();
             }
         }
@@ -1455,18 +1597,6 @@ public class MainActivity extends AppCompatActivity {
                 listScan.add(scan);
             }
 
-            /*
-            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f5","",-52));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f6","",-54));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("dc:00:b0:86:85:f7","",-47));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:d7:aa:62:0e:91","",-54));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:d7:aa:62:0e:8c","",-68));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("68:3f:7d:0d:7c:d5","",-82));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("7c:c1:77:aa:79:e0","",-89));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:3c:04:8e:6b:84","",-85));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("c0:3c:04:8e:6b:80","",-81));
-            listScan.add(new com.example.multiroomlocalization.ScanResult("8c:97:ea:8f:ef:a4","",-67));
-            */
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
@@ -1478,7 +1608,6 @@ public class MainActivity extends AppCompatActivity {
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for ( ScanResult res : results ) {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-                Toast.makeText(getApplicationContext(),"ERRORE QUI",Toast.LENGTH_LONG).show();
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
                 listScan.add(scan);
             }

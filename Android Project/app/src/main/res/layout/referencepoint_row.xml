@@ -7,39 +7,26 @@
 
 
     <TextView
-        android:id="@+id/mapName"
+        android:id="@+id/roomId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:text="Nome"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="20dp"
+        android:maxLines="1"
+        android:text="ReferencePoint"
         android:textColor="@color/black"
         android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/MapId"
+
+    <Switch
+        android:id="@+id/switchDnd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/mapName"
+        android:layout_below="@id/roomId"
         android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:maxLines="1"
-        android:text="mapID"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/isReady"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/MapId"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="20dp"
-        android:gravity="center"
-        android:text="Ready"
-        android:textSize="16sp" />
-
+        android:layout_marginTop="10dp"
+        android:text="DoNotDisturb" />
 
     <TextView
         android:id="@+id/border2"
@@ -50,14 +37,13 @@
         android:layout_alignParentBottom="true"
         android:background="#808080"/>
 
-    <Button
-        android:id="@+id/buttonSelectMap"
+    <Spinner
+        android:id="@+id/spinnerBluetooth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:layout_marginRight="15dp"
-        android:text="Seleziona" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp" />
 
 
 </RelativeLayout>

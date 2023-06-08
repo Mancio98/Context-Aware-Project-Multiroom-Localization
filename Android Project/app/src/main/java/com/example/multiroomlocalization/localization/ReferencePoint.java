@@ -1,15 +1,20 @@
 package com.example.multiroomlocalization.localization;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import com.example.multiroomlocalization.speaker.Speaker;
 
 import java.util.HashMap;
 import java.util.List;
 
-public class ReferencePoint {
+public class ReferencePoint{
 
     private String id;
     private Speaker speaker;
-
+    private Boolean dnd;
     private int x;
     private int y;
     private String path;
@@ -21,6 +26,7 @@ public class ReferencePoint {
         this.id = label;
         this.speaker = null;
         this.path = null;
+        this.dnd=false;
     }
 
     public String getPath() {
@@ -51,5 +57,8 @@ public class ReferencePoint {
         return this.speaker;
     }
 
+    public Boolean getDnd() { return dnd; }
+
+    public void setDnd(Boolean dnd) { this.dnd = dnd; }
 
 }

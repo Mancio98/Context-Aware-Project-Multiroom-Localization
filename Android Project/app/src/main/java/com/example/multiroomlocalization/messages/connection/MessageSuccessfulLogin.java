@@ -20,4 +20,5 @@ public class MessageSuccessfulLogin extends Message {
     public void setMapList(ArrayList<Map> mapList) {
         this.mapList = mapList;
     }
+
 }
