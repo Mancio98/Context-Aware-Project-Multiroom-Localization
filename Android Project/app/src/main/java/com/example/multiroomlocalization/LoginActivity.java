@@ -127,10 +127,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 User user= new User(email,password);
 
-
-
-                loginSuccessfull(new ArrayList<Map>());
-                /*ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                //loginSuccessfull(new ArrayList<Map>());
+                ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
                     @Override
                     public void onComplete(String result) {
                         currentUser = user;
@@ -151,7 +149,7 @@ public class LoginActivity extends AppCompatActivity {
                 MessageLogin message = new MessageLogin(user);
                 String json = gson.toJson(message);
                 client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
-                */
+
 
 
                 //TODO CODICE PER ATTIVARE DONOTDISTURB
@@ -181,11 +179,11 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void loginSuccessfull(ArrayList<Map> accountMap){
-        //Intent changeActivity;
-        //changeActivity = new Intent(this,ListMapActivity.class);s
-        //changeActivity.putExtra("Map",accountMap);
+        Intent changeActivity;
+        changeActivity = new Intent(this,ListMapActivity.class);
+        changeActivity.putExtra("Map",accountMap);
 
-        Intent changeActivity = new Intent(this,ListMapActivity.class);
+        /*Intent changeActivity = new Intent(this,ListMapActivity.class);
 
         String address = userInput.getText().toString();
         Integer port = Integer.parseInt(passwordInput.getText().toString());
@@ -234,9 +232,9 @@ public class LoginActivity extends AppCompatActivity {
                 .setNegativeButton(android.R.string.no, null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+*/
 
-
-        //startActivity(changeActivity);
+        startActivity(changeActivity);
     }
 
 }

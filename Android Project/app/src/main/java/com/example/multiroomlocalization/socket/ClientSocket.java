@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread implements Serializable {
 
-    private int port = 0;//14195;
+    private int port = 14195;
 
     private Socket socket;
     private static DataInputStream dataIn;
@@ -54,7 +54,7 @@ public class ClientSocket extends Thread implements Serializable {
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="";//""6.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
+    private String ip ="6.tcp.eu.ngrok.io"; //"10.0.2.2";// "192.168.1.51";
     private WifiManager wifiManager;
     private Context context;
     private Gson gson = new Gson();
