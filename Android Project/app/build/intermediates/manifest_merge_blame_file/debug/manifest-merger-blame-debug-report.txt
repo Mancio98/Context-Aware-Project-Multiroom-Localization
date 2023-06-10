@@ -1,0 +1,339 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.multiroomlocalization"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+8-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml
+9        android:targetSdkVersion="33" />
+9-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml
+10
+11    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+11-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:5:5-76
+11-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:5:22-74
+12    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+12-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:7:5-76
+12-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:7:22-73
+13    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Request legacy Bluetooth permissions on older devices. -->
+13-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:8:5-76
+13-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:8:22-73
+14    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+14-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:9:5-85
+14-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:9:22-82
+15    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+15-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:10:5-101
+15-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:10:22-78
+16    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+16-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:11:5-80
+16-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:11:22-77
+17
+18    <!-- Request legacy Bluetooth permissions on older devices. -->
+19    <uses-permission android:name="android.permission.BLUETOOTH" />
+19-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:14:5-15:56
+19-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:15:9-52
+20    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+20-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:16:5-17:61
+20-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:17:9-58
+21    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+21-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:18:5-81
+21-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:18:22-78
+22    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+22-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:19:5-79
+22-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:19:22-76
+23    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Request legacy Bluetooth permissions on newer(31+) devices. -->
+23-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:20:5-21:72
+23-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:21:9-69
+24    <uses-permission
+24-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:22:5-25:31
+25        android:name="android.permission.BLUETOOTH_SCAN"
+25-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:23:9-57
+26        android:usesPermissionFlags="neverForLocation" />
+26-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:24:9-55
+27    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Since Bluetooth is a basic requirement for our app -->
+27-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:26:5-76
+27-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:26:22-73
+28    <uses-feature
+28-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:27:5-29:35
+29        android:name="android.hardware.bluetooth"
+29-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:28:9-50
+30        android:required="true" />
+30-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:29:9-32
+31
+32    <uses-permission android:name="android.permission.INTERNET" />
+32-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:31:5-67
+32-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:31:22-64
+33    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+33-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:5-79
+33-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:22-76
+34
+35    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+35-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:34:5-75
+35-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:34:17-72
+36
+37    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+37-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:36:5-75
+37-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:36:22-72
+38
+39    <queries>
+39-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:9:5-20:15
+40        <intent>
+40-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:10:9-16:18
+41            <action android:name="android.intent.action.GET_CONTENT" />
+41-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:11:13-72
+41-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:11:21-69
+42
+43            <category android:name="android.intent.category.OPENABLE" />
+43-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:13:13-73
+43-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:13:23-70
+44
+45            <data android:mimeType="*/*" />
+45-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:15:13-44
+45-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:15:19-41
+46        </intent>
+47        <intent>
+47-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:17:9-19:18
+48            <action android:name="android.media.action.IMAGE_CAPTURE" />
+48-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:18:13-73
+48-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:18:21-70
+49        </intent>
+50    </queries>
+51
+52    <permission
+52-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+53        android:name="com.example.multiroomlocalization.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+53-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+54        android:protectionLevel="signature" />
+54-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+55
+56    <uses-permission android:name="com.example.multiroomlocalization.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+56-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+56-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+57
+58    <application
+58-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:38:5-105:19
+59        android:allowBackup="true"
+59-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:39:9-35
+60        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+60-->[androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+61        android:dataExtractionRules="@xml/data_extraction_rules"
+61-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:40:9-65
+62        android:debuggable="true"
+63        android:extractNativeLibs="false"
+64        android:fullBackupContent="@xml/backup_rules"
+64-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:41:9-54
+65        android:icon="@mipmap/ic_launcher"
+65-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:42:9-43
+66        android:label="@string/app_name"
+66-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:43:9-41
+67        android:roundIcon="@mipmap/ic_launcher_round"
+67-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:44:9-54
+68        android:supportsRtl="true"
+68-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:45:9-35
+69        android:testOnly="true"
+70        android:theme="@style/Theme.MultiRoomLocalization" >
+70-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:46:9-59
+71        <activity
+71-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:49:9-59:20
+72            android:name="com.example.multiroomlocalization.LoginActivity"
+72-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:50:13-42
+73            android:exported="true" >
+73-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:51:13-36
+74            <intent-filter>
+74-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:53:13-57:29
+75                <action android:name="android.intent.action.MAIN" />
+75-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:54:17-69
+75-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:54:25-66
+76
+77                <category android:name="android.intent.category.LAUNCHER" />
+77-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:56:17-77
+77-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:56:27-74
+78            </intent-filter>
+79        </activity>
+80
+81        <receiver
+81-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:61:9-66:20
+82            android:name="androidx.media.session.MediaButtonReceiver"
+82-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:61:19-76
+83            android:exported="true" >
+83-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:62:13-36
+84            <intent-filter>
+84-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:63:13-65:29
+85                <action android:name="android.intent.action.MEDIA_BUTTON" />
+85-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:17-77
+85-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:25-74
+86            </intent-filter>
+87        </receiver>
+88
+89        <service
+89-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:68:9-77:19
+90            android:name="com.example.multiroomlocalization.Music.AudioPlaybackService"
+90-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:69:13-55
+91            android:enabled="true"
+91-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:70:13-35
+92            android:exported="true" >
+92-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:71:13-36
+93            <intent-filter>
+93-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:72:13-76:29
+94                <action android:name="android.media.browse.MediaBrowserService" />
+94-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:73:17-83
+94-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:73:25-80
+95                <action android:name="android.intent.action.MEDIA_BUTTON" />
+95-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:17-77
+95-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:25-74
+96            </intent-filter>
+97        </service>
+98        <service android:name="com.example.multiroomlocalization.Music.AudioPlayerService" />
+98-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:78:9-61
+98-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:78:18-58
+99
+100        <activity
+100-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:80:9-96:20
+101            android:name="com.example.multiroomlocalization.MainActivity"
+101-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:81:13-41
+102            android:exported="true"
+102-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:82:13-36
+103            android:label="@string/app_name"
+103-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:83:13-45
+104            android:screenOrientation="portrait" >
+104-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:84:13-49
+105
+106            <!--
+107            <intent-filter>
+108                <action android:name="android.intent.action.MAIN" />
+109
+110                <category android:name="android.intent.category.LAUNCHER" />
+111            </intent-filter>
+112            -->
+113
+114            <meta-data
+114-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:93:13-95:36
+115                android:name="android.app.lib_name"
+115-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:94:17-52
+116                android:value="" />
+116-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:95:17-33
+117        </activity>
+118        <activity android:name="com.example.multiroomlocalization.RegistrationActivity" />
+118-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:98:9-58
+118-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:98:19-55
+119        <activity android:name="com.example.multiroomlocalization.ListMapActivity" />
+119-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:99:9-53
+119-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:99:19-50
+120        <activity android:name="com.example.multiroomlocalization.ActivityLive" />
+120-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:100:9-50
+120-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:100:19-47
+121
+122        <service
+122-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:102:9-104:40
+123            android:name="com.example.multiroomlocalization.ScanService"
+123-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:103:13-40
+124            android:exported="false" />
+124-->/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:104:13-37
+125
+126        <provider
+126-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:23:9-31:20
+127            android:name="com.canhub.cropper.CropFileProvider"
+127-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:24:13-63
+128            android:authorities="com.example.multiroomlocalization.cropper.fileprovider"
+128-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:25:13-72
+129            android:exported="false"
+129-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:26:13-37
+130            android:grantUriPermissions="true" >
+130-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:27:13-47
+131            <meta-data
+131-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:28:13-30:62
+132                android:name="android.support.FILE_PROVIDER_PATHS"
+132-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:29:17-67
+133                android:resource="@xml/library_file_paths" />
+133-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:30:17-59
+134        </provider>
+135
+136        <activity
+136-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:33:9-35:39
+137            android:name="com.canhub.cropper.CropImageActivity"
+137-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:34:13-64
+138            android:exported="true" />
+138-->[com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:35:13-36
+139
+140        <provider
+140-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+141            android:name="androidx.startup.InitializationProvider"
+141-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+142            android:authorities="com.example.multiroomlocalization.androidx-startup"
+142-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+143            android:exported="false" >
+143-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+144            <meta-data
+144-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+145                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+145-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+146                android:value="androidx.startup" />
+146-->[androidx.emoji2:emoji2:1.2.0] /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+147            <meta-data
+147-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/andreamancini/.gradle/caches/transforms-3/246eb9d65c08486edf7f82447bc9b7c8/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
+148                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+148-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/andreamancini/.gradle/caches/transforms-3/246eb9d65c08486edf7f82447bc9b7c8/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
+149                android:value="androidx.startup" />
+149-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/andreamancini/.gradle/caches/transforms-3/246eb9d65c08486edf7f82447bc9b7c8/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
+150            <meta-data
+150-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+151                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+151-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+152                android:value="androidx.startup" />
+152-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+153        </provider>
+154
+155        <uses-library
+155-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:25:9-27:40
+156            android:name="androidx.window.extensions"
+156-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:26:13-54
+157            android:required="false" />
+157-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:27:13-37
+158        <uses-library
+158-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:28:9-30:40
+159            android:name="androidx.window.sidecar"
+159-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:29:13-51
+160            android:required="false" />
+160-->[androidx.window:window:1.0.0] /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/AndroidManifest.xml:30:13-37
+161
+162        <receiver
+162-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+163            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+163-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+164            android:directBootAware="false"
+164-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+165            android:enabled="true"
+165-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+166            android:exported="true"
+166-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+167            android:permission="android.permission.DUMP" >
+167-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+168            <intent-filter>
+168-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+169                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+169-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+169-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+170            </intent-filter>
+171            <intent-filter>
+171-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+172                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+172-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+172-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+173            </intent-filter>
+174            <intent-filter>
+174-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+175                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+175-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+175-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+176            </intent-filter>
+177            <intent-filter>
+177-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+178                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+178-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+178-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+179            </intent-filter>
+180        </receiver>
+181    </application>
+182
+183</manifest>

@@ -1,0 +1,52 @@
+com.example.multiroomlocalization.app-jetified-startup-runtime-1.1.1-0 /Users/andreamancini/.gradle/caches/transforms-3/05c97ecaf829830a5b5cf96d87988a94/transformed/jetified-startup-runtime-1.1.1/res
+com.example.multiroomlocalization.app-coordinatorlayout-1.1.0-1 /Users/andreamancini/.gradle/caches/transforms-3/061bf4d603a1a949bd4b183c48b2c9cb/transformed/coordinatorlayout-1.1.0/res
+com.example.multiroomlocalization.app-constraintlayout-2.1.4-2 /Users/andreamancini/.gradle/caches/transforms-3/08bbef4b5df4cb3602bbfdc27fc28cb9/transformed/constraintlayout-2.1.4/res
+com.example.multiroomlocalization.app-jetified-savedstate-ktx-1.2.1-3 /Users/andreamancini/.gradle/caches/transforms-3/0d62901e4e1423491bf67e63233f42da/transformed/jetified-savedstate-ktx-1.2.1/res
+com.example.multiroomlocalization.app-jetified-annotation-experimental-1.3.0-4 /Users/andreamancini/.gradle/caches/transforms-3/1f02eac7ba1ad80e7989444321f28cf3/transformed/jetified-annotation-experimental-1.3.0/res
+com.example.multiroomlocalization.app-jetified-emoji2-1.2.0-5 /Users/andreamancini/.gradle/caches/transforms-3/22e4380039d39524663f2676ef047ef1/transformed/jetified-emoji2-1.2.0/res
+com.example.multiroomlocalization.app-jetified-lifecycle-process-2.6.1-6 /Users/andreamancini/.gradle/caches/transforms-3/246eb9d65c08486edf7f82447bc9b7c8/transformed/jetified-lifecycle-process-2.6.1/res
+com.example.multiroomlocalization.app-media-1.6.0-7 /Users/andreamancini/.gradle/caches/transforms-3/27870707e4977d1eb27795fb01e6e82f/transformed/media-1.6.0/res
+com.example.multiroomlocalization.app-jetified-fragment-ktx-1.6.0-8 /Users/andreamancini/.gradle/caches/transforms-3/28eba2e7d7b890d512f9d95ad1aeac9b/transformed/jetified-fragment-ktx-1.6.0/res
+com.example.multiroomlocalization.app-jetified-profileinstaller-1.3.0-9 /Users/andreamancini/.gradle/caches/transforms-3/293ed554f37c142d230278c2f3d67ff8/transformed/jetified-profileinstaller-1.3.0/res
+com.example.multiroomlocalization.app-lifecycle-livedata-core-2.6.1-10 /Users/andreamancini/.gradle/caches/transforms-3/34c3ff24e1a05de1b3c0ca7a57497e42/transformed/lifecycle-livedata-core-2.6.1/res
+com.example.multiroomlocalization.app-cardview-1.0.0-11 /Users/andreamancini/.gradle/caches/transforms-3/3b80f2524d34547c44a4a0a038576083/transformed/cardview-1.0.0/res
+com.example.multiroomlocalization.app-jetified-lifecycle-runtime-ktx-2.6.1-12 /Users/andreamancini/.gradle/caches/transforms-3/3dfb3680cf3d54fa108215e06c3656c4/transformed/jetified-lifecycle-runtime-ktx-2.6.1/res
+com.example.multiroomlocalization.app-jetified-savedstate-1.2.1-13 /Users/andreamancini/.gradle/caches/transforms-3/40b5253dfd7cabaf8ba46bb51b408957/transformed/jetified-savedstate-1.2.1/res
+com.example.multiroomlocalization.app-appcompat-1.6.1-14 /Users/andreamancini/.gradle/caches/transforms-3/465fdcb592070563b7706a61a9fcb222/transformed/appcompat-1.6.1/res
+com.example.multiroomlocalization.app-navigation-fragment-2.6.0-15 /Users/andreamancini/.gradle/caches/transforms-3/4c0882ecadb284de89b3bf45c2c7f256/transformed/navigation-fragment-2.6.0/res
+com.example.multiroomlocalization.app-drawerlayout-1.1.1-16 /Users/andreamancini/.gradle/caches/transforms-3/58322eb508c6889e404931826577fcd5/transformed/drawerlayout-1.1.1/res
+com.example.multiroomlocalization.app-fragment-1.6.0-17 /Users/andreamancini/.gradle/caches/transforms-3/71330010b71b5673c8b2ca403141850f/transformed/fragment-1.6.0/res
+com.example.multiroomlocalization.app-jetified-core-ktx-1.9.0-18 /Users/andreamancini/.gradle/caches/transforms-3/72072a610b8b71fe1dfaa213ae75c52e/transformed/jetified-core-ktx-1.9.0/res
+com.example.multiroomlocalization.app-jetified-viewpager2-1.0.0-19 /Users/andreamancini/.gradle/caches/transforms-3/778fdbb7ad93816070b538029ce9bc46/transformed/jetified-viewpager2-1.0.0/res
+com.example.multiroomlocalization.app-lifecycle-viewmodel-2.6.1-20 /Users/andreamancini/.gradle/caches/transforms-3/78b56c6583b7103ff858ea5b97c8638d/transformed/lifecycle-viewmodel-2.6.1/res
+com.example.multiroomlocalization.app-jetified-lifecycle-viewmodel-savedstate-2.6.1-21 /Users/andreamancini/.gradle/caches/transforms-3/7d10365f729b900ab50e1fcfc54fc60a/transformed/jetified-lifecycle-viewmodel-savedstate-2.6.1/res
+com.example.multiroomlocalization.app-jetified-emoji2-views-helper-1.2.0-22 /Users/andreamancini/.gradle/caches/transforms-3/82be234d9ea8898fdbf6ba5c7b016a16/transformed/jetified-emoji2-views-helper-1.2.0/res
+com.example.multiroomlocalization.app-jetified-activity-ktx-1.6.1-23 /Users/andreamancini/.gradle/caches/transforms-3/8419105869b8f94211baa2c85af9cf56/transformed/jetified-activity-ktx-1.6.1/res
+com.example.multiroomlocalization.app-jetified-exoplayer-core-2.18.7-24 /Users/andreamancini/.gradle/caches/transforms-3/854d4fe31fa34c4b4ac6eda79fb9c17c/transformed/jetified-exoplayer-core-2.18.7/res
+com.example.multiroomlocalization.app-jetified-android-image-cropper-4.5.0-25 /Users/andreamancini/.gradle/caches/transforms-3/9552ab96bcbeb3be869738bb56562d2c/transformed/jetified-android-image-cropper-4.5.0/res
+com.example.multiroomlocalization.app-lifecycle-livedata-2.6.1-26 /Users/andreamancini/.gradle/caches/transforms-3/973c8ba42d128be53cb450815feaf6c8/transformed/lifecycle-livedata-2.6.1/res
+com.example.multiroomlocalization.app-core-1.9.0-27 /Users/andreamancini/.gradle/caches/transforms-3/a705efa4405f03def0f1df7be6a6d8e6/transformed/core-1.9.0/res
+com.example.multiroomlocalization.app-jetified-activity-1.6.1-28 /Users/andreamancini/.gradle/caches/transforms-3/ab8f5c14df1bcfeec95390b4d84c4942/transformed/jetified-activity-1.6.1/res
+com.example.multiroomlocalization.app-navigation-common-2.6.0-29 /Users/andreamancini/.gradle/caches/transforms-3/abf7d8891ef715d960ae68382c9e05a5/transformed/navigation-common-2.6.0/res
+com.example.multiroomlocalization.app-jetified-lifecycle-livedata-core-ktx-2.6.1-30 /Users/andreamancini/.gradle/caches/transforms-3/ada9a1ae4be589f58391b0d959504e2b/transformed/jetified-lifecycle-livedata-core-ktx-2.6.1/res
+com.example.multiroomlocalization.app-lifecycle-runtime-2.6.1-31 /Users/andreamancini/.gradle/caches/transforms-3/ae5f89a66ac23319a2361a784b04c870/transformed/lifecycle-runtime-2.6.1/res
+com.example.multiroomlocalization.app-navigation-runtime-2.6.0-32 /Users/andreamancini/.gradle/caches/transforms-3/b14963767e0c77a9ab4334054f71f97f/transformed/navigation-runtime-2.6.0/res
+com.example.multiroomlocalization.app-core-runtime-2.2.0-33 /Users/andreamancini/.gradle/caches/transforms-3/b4fac03650b74662e57b11dda93ab2fd/transformed/core-runtime-2.2.0/res
+com.example.multiroomlocalization.app-jetified-window-1.0.0-34 /Users/andreamancini/.gradle/caches/transforms-3/be9bafedbffb29da26f62ee6278db6bf/transformed/jetified-window-1.0.0/res
+com.example.multiroomlocalization.app-slidingpanelayout-1.2.0-35 /Users/andreamancini/.gradle/caches/transforms-3/c25eb97a95d4ecad3bf53148dbf98d3f/transformed/slidingpanelayout-1.2.0/res
+com.example.multiroomlocalization.app-recyclerview-1.2.1-36 /Users/andreamancini/.gradle/caches/transforms-3/c365340f3046ebff87673ba98e650784/transformed/recyclerview-1.2.1/res
+com.example.multiroomlocalization.app-jetified-appcompat-resources-1.6.1-37 /Users/andreamancini/.gradle/caches/transforms-3/c67ca2ed13669771e154f4e71b057041/transformed/jetified-appcompat-resources-1.6.1/res
+com.example.multiroomlocalization.app-jetified-extension-mediasession-2.18.7-38 /Users/andreamancini/.gradle/caches/transforms-3/c6d59d82b99367939290f948ef1c6840/transformed/jetified-extension-mediasession-2.18.7/res
+com.example.multiroomlocalization.app-transition-1.4.1-39 /Users/andreamancini/.gradle/caches/transforms-3/d6e0c183f3c07a5f386530df24964519/transformed/transition-1.4.1/res
+com.example.multiroomlocalization.app-material-1.9.0-40 /Users/andreamancini/.gradle/caches/transforms-3/de20b8b7ce7b305b7971f8f41efb7591/transformed/material-1.9.0/res
+com.example.multiroomlocalization.app-jetified-exoplayer-ui-2.18.7-41 /Users/andreamancini/.gradle/caches/transforms-3/e37f2574ab2c1c4014c63a7fab61941c/transformed/jetified-exoplayer-ui-2.18.7/res
+com.example.multiroomlocalization.app-navigation-ui-2.6.0-42 /Users/andreamancini/.gradle/caches/transforms-3/e411dc4ac374670a718bfa5845d113c2/transformed/navigation-ui-2.6.0/res
+com.example.multiroomlocalization.app-jetified-lifecycle-viewmodel-ktx-2.6.1-43 /Users/andreamancini/.gradle/caches/transforms-3/f970f118b3ae08a1e747fbe43252a8ca/transformed/jetified-lifecycle-viewmodel-ktx-2.6.1/res
+com.example.multiroomlocalization.app-pngs-44 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/generated/res/pngs/debug
+com.example.multiroomlocalization.app-resValues-45 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/generated/res/resValues/debug
+com.example.multiroomlocalization.app-rs-46 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/generated/res/rs/debug
+com.example.multiroomlocalization.app-packageDebugResources-47 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.example.multiroomlocalization.app-packageDebugResources-48 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.example.multiroomlocalization.app-merged_res-49 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/merged_res/debug
+com.example.multiroomlocalization.app-debug-50 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/debug/res
+com.example.multiroomlocalization.app-main-51 /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/res
