@@ -26,6 +26,7 @@ import com.example.multiroomlocalization.BetterActivityResult;
 import com.example.multiroomlocalization.MainActivity;
 import com.example.multiroomlocalization.speaker.Speaker;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -72,6 +73,17 @@ public class BluetoothUtility {
     public static Set<BluetoothDevice> getBondedDevices(BluetoothAdapter bluetoothAdapter, Activity activity){
         checkPermission(activity);
         return bluetoothAdapter.getBondedDevices();
+    }
+
+    public static ArrayList<Speaker> getSpeakerBonded(BluetoothAdapter bluetoothAdapter, Activity activity){
+        Set<BluetoothDevice> listDevices = getBondedDevices(bluetoothAdapter, activity);
+
+
+        ArrayList<Speaker> listSpeaker = new ArrayList<>();
+        listDevices.forEach((device) -> {
+            listSpeaker.add(new Speaker(device));
+        });
+        return listSpeaker;
     }
 
     //method to check if user have permitted bluetooth functionalities

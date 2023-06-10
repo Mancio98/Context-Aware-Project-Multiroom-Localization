@@ -268,7 +268,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         context = getApplicationContext();
 
-        callStateListener();
+        //TODO DA SCOMMENTARE MA RISOLVERE PERCHÈ DA ERRORE APPENA ACCESO IL TELEFONO
+        /*callStateListener();
+
         mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
         // MySessionCallback() has methods that handle callbacks from a media controller
@@ -280,6 +282,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         mediaSession.setActive(true);
 
         updatePlaybackState();
+        */
 
     }
 

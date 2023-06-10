@@ -26,4 +26,11 @@
     <string name="addReferencePointpopupSecond">Quando hai aggiunto tutte le stanze conferma attraverso il bottone in basso a destra</string>
 
     <string name="trainingText"> Ora bisogna misurare le stanze della casa, spostati nella stanza indicata, premi start e cammina all\'interno della stanza fino alla fine del timer. Una volta completato premi sul tasto next per cambiare stanza.  </string>
+    <string name="registrationDone">Registrazione completata \n procedi con il login  </string>
+    <string name="setPasswordMap">Ultimo passaggio \n inserisci un nome ed una password per la mappa appena creata </string>
+    <string name="settings"> Abbiamo quasi finito \n Associa per ogni stanza uno speaker e scegli se attivare la DoNotDisturb mode </string>
+    <string name="noMap"> Nessuna mappa associata a questo account, creane una nuova o registrati ad una già esistente </string>
+    <string name="suggestionSettings"> Per una migliore esperienza dell\'app disabilita l\'impostazione \"Wifi Scan Throttling\" \n <a href="https://dannyda.com/2023/02/10/how-to-remove-android-wifi-scan-throttling/">LINK</a></string>
+
+
 </resources>

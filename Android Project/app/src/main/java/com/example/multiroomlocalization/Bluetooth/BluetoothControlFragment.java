@@ -3,7 +3,6 @@ package com.example.multiroomlocalization.Bluetooth;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.getBondedDevices;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.scan;
-import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;

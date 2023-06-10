@@ -1,51 +1,74 @@
 package com.example.multiroomlocalization.socket;
 
-import android.os.AsyncTask;
+import android.app.Activity;
 
-import com.example.multiroomlocalization.MainActivity;
+
+
+
+import com.example.multiroomlocalization.LoginActivity;
+
 import com.example.multiroomlocalization.ScanService;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.ArraySet;
+import android.telecom.Call;
+import android.widget.Toast;
 
-import com.example.multiroomlocalization.localization.ReferencePoint;
-import com.example.multiroomlocalization.ScanResult;
+import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
+import com.example.multiroomlocalization.messages.connection.MessageConnectionClose;
+import com.example.multiroomlocalization.messages.connection.MessageImageFinish;
+import com.example.multiroomlocalization.messages.connection.MessageMappingPhaseFinish;
+import com.example.multiroomlocalization.messages.connection.MessageReferencePointFinish;
+import com.example.multiroomlocalization.messages.connection.MessageRegistrationSuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageRegistrationUnsuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageSubscriptionSuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageSubscriptionUnsuccessful;
+import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
+import com.example.multiroomlocalization.messages.connection.MessageUnsuccessfulLogin;
+import com.example.multiroomlocalization.messages.connection.MessageUpdateMapList;
+import com.example.multiroomlocalization.messages.localization.MessageImage;
+import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
 import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
-import com.example.multiroomlocalization.User;
-import com.example.multiroomlocalization.messages.Message;
-import com.example.multiroomlocalization.messages.connection.MessageConnectionClose;
-import com.example.multiroomlocalization.messages.localization.MessageReferencePointResult;
+
 import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
-import com.example.multiroomlocalization.messages.speaker.MessageListSpeaker;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 
+
 import java.net.Socket;
-import java.util.List;
-import java.util.concurrent.Callable;
+
+import java.io.OutputStream;
+
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread {
 
-    private final int port = 15124;
+
+
+
     private Socket socket;
-    private DataInputStream dataIn;
-    private DataOutputStream dataOut;
+    private static DataInputStream dataIn;
+    private static DataOutputStream dataOut;
     private Handler mHandler = new Handler();
 
     private ScanService scanService;
     private int intervalScan = 10000;
-    private String ip ="4.tcp.eu.ngrok.io";// "10.0.2.2";
+
+    private int port = 17330;
+    private String ip ="0.tcp.eu.ngrok.io";// "10.0.2.2";
+
+
     private WifiManager wifiManager;
     private Context context;
     private Gson gson = new Gson();
@@ -53,9 +76,32 @@ public class ClientSocket extends Thread {
     private Callback<String> reqPlaylistCallback;
     private Callback<String> fingerPrintCallback;
 
+    private Callback<String> startMappingPhaseCallback;
+    private Callback<String> loginSuccessfulCallback;
+    private Callback<String> loginUnsuccessfulCallback;
+    private Callback<String> endMappingPhaseCallback;
+    private Callback<String> registrationSuccessfulCallback;
+    private Callback<String> registrationUnsuccessfulCallback;
+    private Callback<String> imageCallback;
+    private Callback<String> endReferencePointCallback;
+    private Callback<String> callbackChangeReferencepoint;
+    private Callback<String> mapDetailsCallback;
+    private Callback<String> callbackSettings;
+    private Callback<String> callbackSubscriptionSuccessful;
+    private Callback<String> callbackSubscriptionUnsuccessful;
+
+
+    byte[] bb;
+
+
     public interface Callback<R> {
         void onComplete(R result);
     }
+    // TODO renderlo privato e fare metodo per bloccare readutf
+    public IncomingMsgHandler getIncomingMsgHandler(){
+        return incomingMsgHandler;
+    }
+
     private class IncomingMsgHandler extends Thread {
 
         Handler handler = new Handler(Looper.getMainLooper());
@@ -63,17 +109,49 @@ public class ClientSocket extends Thread {
         public void run() {
             super.run();
 
-            while(isAlive()){
+
+            while(!isInterrupted()){
                 try {
-                    System.out.println("sono attivo diocane");
+                    System.out.println("Attivo");
                     String msg = dataIn.readUTF();
 
+                    String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
+
+                    if (messageType.equals(MessageImage.type)) {
+                        System.out.println("PROVA");
+                        try {
+                            dataOut.writeUTF(gson.toJson(new MessageAcknowledge()));
+                            dataOut.flush();
+                            //byte[] data = null;
+                            setBb(new byte[gson.fromJson(msg,MessageImage.class).getNByte()]);
+                            System.out.println("PROVA2");
+                            if (bb.length > 0) {
+                                //bb = new byte[len];
+                                System.out.println("PROVA3");
+                                dataIn.readFully(bb, 0, bb.length); // read the message
+                                System.out.println("dentro if len");
+                            }
+                            System.out.println("Fuori if len");
+                            System.out.println(bb);
+                            sendMessage(gson.toJson(new MessageImageFinish()), false, null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
                     msgHandler(msg);
                 } catch (IOException e) {
+                    interrupt();
+
                     e.printStackTrace();
                 }
             }
         }
+
+        public IncomingMsgHandler(Handler handler) {
+            //this.handler = handler;
+        }
+
 
         @Override
         public void interrupt() {
@@ -82,22 +160,38 @@ public class ClientSocket extends Thread {
 
         private void msgHandler(String msg){
 
+
             System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
 
-            if(messageType.equals(MessageChangeReferencePoint.type)){
+
+
+
+            /*if(messageType.equals(MessageChangeReferencePoint.type)){
+
                 Speaker speakerToChange = gson.fromJson(msg, MessageChangeReferencePoint.class)
                         .getReferencePoint().getSpeaker();
 
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
+
                         MainActivity.getInstance().connectBluetoothDevice(speakerToChange);
+
                     }
                 });
 
             }
+            else*/
+            if(messageType.equals(MessageChangeReferencePoint.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { callbackChangeReferencepoint.onComplete(msg);
+                    }
+                });
+            }
             else if(messageType.equals(MessageRequestPlaylist.type)){
+
 
                 handler.post(new Runnable() {
                     @Override
@@ -107,9 +201,106 @@ public class ClientSocket extends Thread {
                 });
 
             }
+
+            else if(messageType.equals(MessageAcknowledge.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { startMappingPhaseCallback.onComplete(msg);
+                    }
+                });
+            }
+
+            else if(messageType.equals(MessageSuccessfulLogin.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { loginSuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageUnsuccessfulLogin.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { loginUnsuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageRegistrationSuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { registrationSuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals(MessageRegistrationUnsuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { registrationUnsuccessfulCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if (messageType.equals((MessageImageFinish.type))){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { imageCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageMappingPhaseFinish.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { endMappingPhaseCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageReferencePointFinish.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { endReferencePointCallback.onComplete(msg);
+                    }
+                });
+            }
+
+            else if(messageType.equals(MessageMapDetails.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { mapDetailsCallback.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageUpdateMapList.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { callbackSettings.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageSubscriptionSuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { callbackSubscriptionSuccessful.onComplete(msg);
+                    }
+                });
+            }
+            else if(messageType.equals(MessageSubscriptionUnsuccessful.type)){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() { callbackSubscriptionUnsuccessful.onComplete(msg);
+                    }
+                });
+            }
+
         }
     }
     public ClientSocket(Context context) { this.context = context; }
+
+    public static OutputStream getDataOutputStream() {
+        return dataOut;
+    }
+
+    public void setBb(byte[] bb) { this.bb = bb; }
+
+    public byte[] getBb() { return bb; }
+
 
     @Override
     public void run() {
@@ -119,262 +310,152 @@ public class ClientSocket extends Thread {
             socket = new Socket(ip, port);
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
+            ((Activity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Socket Connesso", Toast.LENGTH_LONG).show();
+                }
+            });
+
         }
-        catch(IOException e) {
+        catch(Exception e){
+            System.out.println("catch");
+            ((Activity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
             e.printStackTrace();
         }
 
         scanService = new ScanService(context);
-        incomingMsgHandler = new IncomingMsgHandler();
+
+        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
         incomingMsgHandler.start();
-       //
-        /*
 
-        scanService.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                boolean success = intent.getBooleanExtra(
-                        WifiManager.EXTRA_RESULTS_UPDATED, false);
-                if (success) {
-                        System.out.println("QUI: " + i);
-                        i++;
-                        //new MessageSender(scanSuccess()).execute();
-                        mHandler.postDelayed(scanRunnable, intervalScan);
-                } else {
-                        // scan failure handling
-                        //scanFailure();
-                        System.out.println("QUA: " + i);
-                        i++;
-                       // new MessageSender(scanFailure()).execute();
-                        mHandler.postDelayed(scanRunnable,0);
-                }
-            }
-        });
+    }
 
-            mHandler.postDelayed(scanRunnable, 0);*/
-        //scanRunnable.run();
+    public void startIncomingMsgHandler(){
+        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
+        incomingMsgHandler.start();
+
+    }
+
+    public void setAddress(String addNgrok,Integer portNgrok){
+        ip = addNgrok;
+        port = portNgrok;
     }
 
 
-
-
-
-    public AsyncTask<Void,Void,Void> createMessageStartMappingPhase(){
-        return new MessageStartMappingPhase();
+  /*  public TaskRunner<Void> createByte(byte[] bb,Handler handler,Callback<String> callback){
+        imageCallback = callback;
+        return new TaskRunner<Void>(new MessageByte(bb),handler);
+    };
+*/
+    public void sendImage(byte[] bb,Callback<String> callback){
+        imageCallback = callback;
+        sendMessage(null,true,bb);
     }
 
-    public AsyncTask<Void,Void,Void> createMessageStartScanReferencePoint(){
-        return new MessageStartScanReferencePoint();
+    public void sendMessageSettings(String message,Callback<String> callback){
+        callbackSettings=callback;
+        sendMessage(message,false,null);
     }
 
-    public AsyncTask<Void,Void,Void> createMessageNewReferencePoint(ReferencePoint ref){
-        return new MessageNewReferencePoint(ref);
+    public void setCallbackChangeReferencePoint(Callback<String> callback){
+        callbackChangeReferencepoint = callback;
     }
 
-    public AsyncTask<Void,Void,Void> createMessageEndMappingPhase(){
-        return new MessageEndMappingPhase();
-    }
-
-    public AsyncTask<Void,Void,Void> createMessageEndScanReferencePoint(){
-        return new MessageEndScanReferencePoint();
-    }
-
-    public AsyncTask<Void,Void,Void> createMessageFingerprint(List<ScanResult> fingerprint){
-        return new MessageFingerprint(fingerprint);
-    }
-
-    public AsyncTask<Void,Void,Void> createMessageRegistration(User user){
-        return new MessageRegistration(user);
-    }
-
-    public AsyncTask<Void,Void,Void> createMessageLogin(User user){
-        return new MessageLogin(user);
-    }
-
-    public TaskRunner<String> createMessageReqPlaylist(Callback<String> callback){
-        reqPlaylistCallback = callback;
-        return new TaskRunner<String>(new RequestPlaylist());
-    }
-
-    public TaskRunner<Void> createMessageSendListSpeaker(ArraySet<Speaker> listSpeaker){
-        return new TaskRunner<Void>(new SendSpeakerList(listSpeaker));
-    }
-
-    public TaskRunner<String> createMessageSendFingerprint(List<ScanResult> list){
-        return new TaskRunner<String>(new SendFingerprint(list));
-    }
-
-    public void sendMessageListSpeaker(String message){
-        sendMessage(message);
-    }
-    public void sendMessageFingerPrint(String message){
-        sendMessage(message);
-
-    }
     public void sendMessageReqPlaylist(Callback<String> callback, String message){
-
         reqPlaylistCallback = callback;
-        sendMessage(message);
+        sendMessage(message,false,null);
     }
 
-    private void sendMessage(String message){
-
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    dataOut.writeUTF(message);
-                    dataOut.flush();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        });
+    public void sendMessageMapSubscription(String message,Callback<String> subscriptionSuccessful,Callback<String> subscriptionUnsuccessful){
+        callbackSubscriptionSuccessful = subscriptionSuccessful;
+        callbackSubscriptionUnsuccessful = subscriptionUnsuccessful;
+        sendMessage(message, false, null);
     }
+
+    public void sendMessageMapRequest(Callback<String> callback, String message){
+        mapDetailsCallback = callback;
+        sendMessage(message,false,null);
+    }
+    public void sendMessageStartMappingPhase(Callback<String> callback, String message){
+        startMappingPhaseCallback = callback;
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageLogin(Callback<String> callback,Callback<String> callback2, String message){
+        loginSuccessfulCallback = callback;
+        loginUnsuccessfulCallback = callback2;
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageEndMappingPhase(Callback<String> callback,String message){
+        endMappingPhaseCallback = callback;
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageStartScanReferencePoint(String message){sendMessage(message,false,null);}
+
+    public void sendMessageNewReferencePoint(String message){sendMessage(message,false,null);}
+
+    public void sendMessageEndScanReferencePoint(String message,Callback<String>callback){
+        endReferencePointCallback = callback;
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageFingerprint(String message){
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){
+        registrationSuccessfulCallback = callback;
+        registrationUnsuccessfulCallback = callback2;
+        sendMessage(message,false,null);
+    }
+
+    public void sendMessageRequestImage(Callback<String> callback){
+        mapDetailsCallback = callback;
+        //sendMessage(null,false,null);
+    };
+
+
 
     public void setContext(Context context){
         this.context = context;
     }
 
-    /*
-    public void startScan(){
-        boolean success = wifiManager.startScan();
-        if (!success) {
-            // scan failure handling
-            scanFailure();
-        }
-    }
 
-    private MessageFingerprint scanSuccess() {
-        List<ScanResult> results = wifiManager.getScanResults();
-        ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
-        if(results.size()<1){
-            return null;
-        }
-        for (ScanResult res : results ) {
-            scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
-            //System.out.println("QUI SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-        }
+    private void sendMessage(String message,Boolean image,byte[] bb){
 
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (image) {
+                    DataOutputStream bytesOut = new DataOutputStream(new BufferedOutputStream(dataOut));
+                    try {
+                        dataOut.write(bb);
+                        dataOut.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        dataOut.writeUTF(message);
+                        dataOut.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-        Fingerprint fingerprint = new Fingerprint(scanResult);
-        // CHIAMARE METODO PER PER LE FINGERPRINT
-
-        MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
-
-        return messageFingerprint;
-    }
-
-
-    private MessageFingerprint scanFailure() {
-        // handle failure: new scan did NOT succeed
-        // consider using old scan results: these are the OLD results!
-        List<ScanResult> results = wifiManager.getScanResults();
-
-        //INVIO MESSAGGIO
-        ArrayList<com.example.multiroomlocalization.ScanResult> scanResult = new ArrayList<>();
-        for ( ScanResult res : results ) {
-            scanResult.add(new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID,res.level));
-            Log.println(Log.VERBOSE, "", "ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-            //System.out.println("ERRORE SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-        }
-
-        Fingerprint fingerprint = new Fingerprint(scanResult);
-        // CHIAMARE METODO PER PER LE FINGERPRINT
-
-        MessageFingerprint messageFingerprint = new MessageFingerprint(fingerprint);
-
-        return messageFingerprint;
-    }*/
-
-
-    //This thread inizialize the socket and requires for a connection to the server
-    public class Connect extends AsyncTask<Void,Void,Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                socket = new Socket(ip, port);
-                dataIn = new DataInputStream(socket.getInputStream());
-                dataOut = new DataOutputStream(socket.getOutputStream());
-
-                // DA INSERIRE IL PRIMO SCAMBIO MESSAGGI
-            }
-            catch(Exception e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-    }
-
-    public class Disconnect extends AsyncTask<Void,Void,Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                dataOut.writeUTF("");
-                dataOut.flush();
-                socket.close();
-            }
-            catch(Exception e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-    }
-
-    //classe per l'invio dei messaggi JSON all'applicativo python
-    public class MessageSender extends AsyncTask<Void,Void,Void> {
-
-
-        private Message message;
-
-        protected MessageSender(Message message){
-            this.message = message;
-
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            if(message!=null) {
-                try {
-                    String json = gson.toJson(message);
-                    System.out.println(json);
-                    dataOut.writeUTF(json);
-                    dataOut.flush();
-
-                    String result = dataIn.readUTF();
-
-                    System.out.println(result);
-
-                    MessageReferencePointResult messageResult = gson.fromJson(result, MessageReferencePointResult.class);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
-            return null;
-        }
-
-        /*
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-        }
-        */
-
-        /*
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-        }
-         */
+        });
     }
+
 
     private Runnable scanRunnable = new Runnable() {
         @Override
@@ -389,306 +470,6 @@ public class ClientSocket extends Thread {
     }
 
 
-    public class MessageStartScanReferencePoint extends AsyncTask<Void,Void,Void> {
-
-        public MessageStartScanReferencePoint(){
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            Gson gson = new Gson();
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint();//referencePoint);
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageStartMappingPhase extends AsyncTask<Void,Void,Void>{
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase();
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageEndMappingPhase extends AsyncTask<Void,Void,Void>{
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase message = new com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase();
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageEndScanReferencePoint extends AsyncTask<Void,Void,Void>{
-
-        public MessageEndScanReferencePoint(){}
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint();
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageNewReferencePoint extends AsyncTask<Void,Void,Void>{
-
-        ReferencePoint referencePoint;
-
-        public MessageNewReferencePoint(ReferencePoint ref){
-            this.referencePoint = ref;
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint message = new com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint(referencePoint);
-                String json = gson.toJson(message);
-                System.out.println(json);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageFingerprint extends AsyncTask<Void,Void,Void>{
-
-        List<ScanResult> fingerprint;
-
-        public MessageFingerprint(List<ScanResult> finger){
-            this.fingerprint = finger;
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerprint);
-                String json = gson.toJson(message);
-
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class SendFingerprint implements Callable<String> {
-
-        List<ScanResult> fingerPrint;
-
-        public SendFingerprint(List<ScanResult> fingerprint) {
-            this.fingerPrint = fingerprint;
-        }
-
-        @Override
-        public String call() {
-
-            try {
-                com.example.multiroomlocalization.messages.localization.MessageFingerprint message = new com.example.multiroomlocalization.messages.localization.MessageFingerprint(fingerPrint);
-                String json = gson.toJson(message);
-                System.out.println(json);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            String jsonResp;
-            try {
-                 jsonResp = dataIn.readUTF();
-
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            return jsonResp;
-        }
-
-
-    }
-
-    public class MessageRegistration extends AsyncTask<Void,Void,Void>{
-
-        User user;
-
-        public MessageRegistration(User user){
-            this.user = user;
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.connection.MessageRegistration message = new com.example.multiroomlocalization.messages.connection.MessageRegistration(user);
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public class MessageLogin extends AsyncTask<Void,Void,Void>{
-
-        User user;
-
-        public MessageLogin(User user){
-            this.user = user;
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                com.example.multiroomlocalization.messages.connection.MessageLogin message = new com.example.multiroomlocalization.messages.connection.MessageLogin(user);
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-
-    public class RequestPlaylist implements Callable<String> {
-
-        private final Handler handler = new Handler(Looper.myLooper());
-        public RequestPlaylist() {
-
-        }
-
-        @Override
-        public String call() {
-            Gson gson = new Gson();
-            try {
-                MessageRequestPlaylist message = new MessageRequestPlaylist();
-                String json = gson.toJson(message);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            String jsonPlaylist;
-
-            try {
-                jsonPlaylist = dataIn.readUTF();
-                System.out.println(jsonPlaylist);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            return jsonPlaylist;
-        }
-
-    }
-
-    public class SendSpeakerList implements Callable<Void> {
-
-        private final ArraySet<Speaker> listSpeaker;
-
-        public SendSpeakerList(ArraySet<Speaker> list) {
-            this.listSpeaker = list;
-        }
-
-        @Override
-        public Void call() {
-
-            try {
-                MessageListSpeaker message = new MessageListSpeaker(this.listSpeaker);
-                String json = gson.toJson(message);
-                System.out.println("json: "+json);
-                dataOut.writeUTF(json);
-                dataOut.flush();
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-
-    }
-
-    public static class TaskRunner<R> {
-        private final Executor executor = Executors.newSingleThreadExecutor(); // change according to your requirements
-        private final Handler handler = new Handler(Looper.getMainLooper());
-        private final Callable<R> callable;
-
-        public TaskRunner(Callable<R> callable) {
-
-            this.callable = callable;
-        }
-
-        public interface Callback<R> {
-            void onComplete(R result);
-        }
-
-        public void executeAsync(Callback<R> callback) {
-            executor.execute(() -> {
-                final R result;
-                try {
-                    result = this.callable.call();
-                    if( callback != null)
-                        handler.post(() -> {
-                            callback.onComplete(result);
-                        });
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
-        }
-    }
 
     public void closeConnection() {
         Executor executor = Executors.newSingleThreadExecutor();

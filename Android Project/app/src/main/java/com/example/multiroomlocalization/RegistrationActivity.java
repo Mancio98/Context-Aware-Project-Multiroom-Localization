@@ -1,5 +1,6 @@
 package com.example.multiroomlocalization;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -7,11 +8,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.multiroomlocalization.messages.connection.MessageLogin;
+import com.example.multiroomlocalization.messages.connection.MessageRegistration;
 import com.example.multiroomlocalization.socket.ClientSocket;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class RegistrationActivity  extends AppCompatActivity {
     Button registration;
@@ -19,7 +26,11 @@ public class RegistrationActivity  extends AppCompatActivity {
     boolean passwordEmpty;
     EditText username;
     EditText password;
-    ClientSocket clientSocket;
+
+    ClientSocket client;
+    private AlertDialog.Builder dialogBuilder;
+    private AlertDialog dialog;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,7 +44,7 @@ public class RegistrationActivity  extends AppCompatActivity {
         password = findViewById(R.id.editPasswordRegistration);
 
 
-        clientSocket = LoginActivity.clientSocket;
+        client = LoginActivity.client;
 
 
         username.addTextChangedListener(new TextWatcher() {
@@ -90,8 +101,52 @@ public class RegistrationActivity  extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 User user = new User(username.getText().toString(),password.getText().toString());
+                registration.setEnabled(false);
+                ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                    @Override
+                    public void onComplete(String result) {
+                        dialogBuilder = new AlertDialog.Builder(RegistrationActivity.this);
+                        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+                        dialogBuilder.setView(popup);
 
-                clientSocket.createMessageRegistration(user).execute();
+
+
+                        Button button = (Button) popup.findViewById(R.id.buttonPopup);
+                        TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+                        button.setText("CONFERMA");
+                        text.setText(R.string.registrationDone);
+
+                        button.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.cancel();
+                                finish();
+                            }
+                        });
+
+                        dialog = dialogBuilder.create();
+                        dialog.setCanceledOnTouchOutside(false);
+                        dialog.setCancelable(false);
+                        dialog.show();
+                    }
+                };
+                ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
+
+                    @Override
+                    public void onComplete(String result) {
+                        Gson gson = new Gson();
+                        //String messageDescription = gson.fromJson(result, JsonObject.class).get("description").getAsString();
+                        Toast.makeText(RegistrationActivity.this, "USERNAME GIÁ PRESENTE", Toast.LENGTH_LONG).show();
+                        username.setText("");
+                        password.setText("");
+                        registration.setEnabled(true);
+                    }
+                };
+                MessageRegistration message = new MessageRegistration(user);
+                Gson gson = new Gson();
+                String json = gson.toJson(message);
+                client.sendMessageRegistration(callbackSuccessful,callbackUnsuccessful,json);
 
             }
         });

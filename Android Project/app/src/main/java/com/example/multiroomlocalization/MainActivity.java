@@ -1,17 +1,34 @@
 package com.example.multiroomlocalization;
 
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
+import com.example.multiroomlocalization.messages.connection.MessageLogin;
+import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
+import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
+import com.example.multiroomlocalization.messages.localization.MessageEndScanReferencePoint;
+import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
+import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
+import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
+import com.example.multiroomlocalization.messages.music.MessageSettings;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
+import com.example.multiroomlocalization.speaker.Speaker;
+import com.example.multiroomlocalization.localization.ReferencePoint;
 
 import android.Manifest;
 import android.app.Activity;
-import android.bluetooth.BluetoothA2dp;
+
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.ContentValues;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
+
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -20,35 +37,42 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
+
+
+
+import android.util.Base64;
+import android.util.Log;
+
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
-import java.lang.ref.WeakReference;
+
+
+import java.io.ByteArrayOutputStream;
+
 import java.util.ArrayList;
+
 import android.util.ArraySet;
+
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import java.util.Set;
+
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -71,39 +95,33 @@ import android.view.MotionEvent;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
-import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothThread;
-import com.example.multiroomlocalization.Music.ListSongAdapter;
-import com.example.multiroomlocalization.databinding.ActivityMainBinding;
-import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
-import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
+
 import com.example.multiroomlocalization.socket.ClientSocket;
-import com.example.multiroomlocalization.speaker.Speaker;
+
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 
 import com.google.gson.Gson;
 
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    public static final String Broadcast_PLAY_NEW_AUDIO = "com.example.multiroomlocalization.PlayNewAudio";
+    protected static final int BT_CONNECT_AND_SCAN = 101;
     public static Activity activity;
-    private ConnectBluetoothThread connectBluetoothThread;
-    public static BluetoothUtility btUtility;
-    public static WeakReference<MainActivity> weakActivity;
-    boolean serviceBound = false;
+
 
 
     private ImageView playPause;
-    private SeekBar audioSeekBar;
 
-    private ActivityMainBinding binding;
     private Handler mHandler = new Handler();
     private ScanService scanService;
     private Canvas canvas;
@@ -117,13 +135,24 @@ public class MainActivity extends AppCompatActivity {
     private int imageViewWidth;
     private boolean first = true;
     private boolean newImage = true;
+    private boolean passwordEmpty = true;
+    private boolean nameEmpty = true;
+    private String imageMap;
+    private int len;
+    private byte[] bb;
+
     private int intervalScan = 30000;
-    private int timerScanTraining = 60000; //* 5 //60000 = 1 min
+    private int timerScanTraining = 10000; //* 5 //60000 = 1 min
+    private FloatingActionButton fab;
 
     protected ClientSocket clientSocket;
+    private CropView cv;
 
-    private ArrayList<com.example.multiroomlocalization.ReferencePoint> referencePoints = new ArrayList<com.example.multiroomlocalization.ReferencePoint>();
-    private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
+
+
+    private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
+    private HashMap<String, ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
+
     private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
     private int seekPosition;
@@ -136,43 +165,89 @@ public class MainActivity extends AppCompatActivity {
     private ArraySet<Speaker> listSpeaker;
     private TextView timeTextView;
     private ListView audioPlaylistView;
-    private ListSongAdapter playlistAdapter;
+
 
 
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
+    private BluetoothUtility btUtility;
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        clientSocket = LoginActivity.clientSocket;
+        activity = this;
+        setContentView(R.layout.activity_main);
+        clientSocket = LoginActivity.client;
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        setContentView(R.layout.activity_main_temp_mansio);
-        setSupportActionBar(binding.toolbar);
 
-        binding.fab.setEnabled(false);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        fab = findViewById(R.id.fab);
+        fab.setEnabled(false);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,1);
-                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, 1);
             }
         });
 
 
         activity = this;
-        weakActivity = new WeakReference<>(MainActivity.this);
 
-        setupMusicPlayer();
 
-        setupAudioService = new ControlAudioService(activity,((View)findViewById(R.id.mainLayout)), playlistAdapter);
 
-        btUtility = new BluetoothUtility(this);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String address = extras.getString("add");
+            Integer port = extras.getInt("port");
+            //The key argument here must match that used in the other activity
+            //clientSocket.setAddress(address, port);
+        }
+
+
+
+
+
+
+        imageView = (ImageView) findViewById(R.id.map);
+        // TODO DA PROVARE
+        //imageView.getLayoutParams().height = 2000;
+        //imageView.getLayoutParams().width = 1400;
+        //imageView.requestLayout();
+
+        if (imageView.getDrawable() == null) {
+            dialogBuilder = new AlertDialog.Builder(this);
+            final View popup = getLayoutInflater().inflate(R.layout.popup_upload_map, null);
+            upload = (Button) popup.findViewById(R.id.upload);
+
+            dialogBuilder.setView(popup);
+            dialog = dialogBuilder.create();
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
+            dialog.show();
+
+            upload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    // create an instance of the
+                    // intent of the type image
+                    Intent i = new Intent();
+                    i.setType("image/*");
+                    i.setAction(Intent.ACTION_GET_CONTENT);
+
+                    someActivityResultLauncher.launch(i);
+                }
+            });
+
+        } else {
+
+            imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+
+            imageView.setOnTouchListener(touchListener);
+
+        }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.setFragmentResultListener("requestDevice", this, (requestKey, result) -> {
@@ -188,27 +263,43 @@ public class MainActivity extends AppCompatActivity {
                 listSpeaker = new ArraySet<>();
                 deviceForRoom.forEach(room -> {
                     BluetoothDevice device = room.getDevice();
-                    listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName(), device.getBluetoothClass().getDeviceClass()));
+                    listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName()));
                 });
 
+                //clientSocket.sendMessageListSpeaker(listSpeaker);
 
-                clientSocket.createMessageSendListSpeaker(listSpeaker).executeAsync(null);
+                /* fare metodo per inizializzre il thread
                 connectBluetoothThread = new ConnectBluetoothThread(activity);
 
                 IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
                 filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_UUID);
-                registerReceiver(btUtility.getConnectA2dpReceiver(), filter);
+                registerReceiver(btUtility.getConnectA2dpReceiver(), filter); */
             }
 
         });
-        //DA RIVEDERE
 
+        btUtility= new BluetoothUtility(this);
+    }
 
+    private void launchAssignRAFragment(){
 
+        FrameLayout frame = findViewById(R.id.RaRooms);
+        frame.bringToFront();
+        frame.setVisibility(View.VISIBLE);
 
-        //imageView = (ImageView) findViewById(R.id.map);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        RoomRAFragment btFragment = new RoomRAFragment();
+
+        fragmentTransaction.replace(R.id.RaRooms, btFragment);
+        fragmentTransaction.addToBackStack("btFragment");
+
+        fragmentTransaction.commit();
+
+    }
+
 /*
         imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -245,8 +336,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        //downloadAudioTracks();
-    }
+
+
 
     View.OnTouchListener touchListener = new View.OnTouchListener() {
         @SuppressLint("ClickableViewAccessibility")
@@ -256,10 +347,16 @@ public class MainActivity extends AppCompatActivity {
             int y1 = (int) event.getY();
 
             System.out.println("X: " + x1 + " Y: " + y1);
-            int tempx = x1;
-            int tempy = y1;
 
-            createDialog(tempx,tempy);
+            System.out.println("imageViewWidth: " + imageViewWidth + " imageViewHeight: " + imageViewHeight);
+
+
+            float tempx = ((float) x1/(float) imageViewWidth)*100;
+            float tempy = ((float) y1/(float) imageViewHeight)*100;
+
+            System.out.println("tempX: " + tempx + " tempY: " + tempy);
+
+            createDialog((int) tempx,(int) tempy);
             return false;
         }
     };
@@ -278,12 +375,16 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
             // don't forget to remove the listener to prevent being called again
             // by future layout events:
-            if(first || newImage) {
-                first=false;
+            if (first || newImage) {
+                first = false;
                 newImage = false;
+                //Bitmap bitmap = Bitmap.createBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 canvas = new Canvas(mutableBitmap);
+                System.out.println("Canvas");
+                System.out.println(canvas.getWidth());
+                System.out.println(canvas.getHeight());
             }
         }
     };
@@ -297,27 +398,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void stopScan(){
+    private void stopScan() {
         mHandler.removeCallbacks(scanRunnable);
     }
 
-    public static MainActivity getInstance(){
-        return weakActivity.get();
-    }
-    public void connectBluetoothDevice(Speaker speaker){
-        if(connectBluetoothThread!= null)
-            connectBluetoothThread.connectDevice(speaker);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+   /* @Override
 
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -352,15 +439,13 @@ public class MainActivity extends AppCompatActivity {
 
             System.out.println("Presss");
             return true;
-        }
-        else if(id==R.id.action_client){
-
-
+        } else if (id == R.id.action_client) {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+    */
 
     // You can do the assignment inside onAttach or onCreate, i.e, before the activity is displayed
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
@@ -377,23 +462,15 @@ public class MainActivity extends AppCompatActivity {
                         if (null != image) {
 
                             dialog.cancel();
-                            CropView cv = new CropView(MainActivity.this, image);
+                            cv = new CropView(MainActivity.this, image);
                             cv.setCanceledOnTouchOutside(false);
                             cv.show();
                             cv.setTouchButton(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "Title", null);
-
-                                    imageView.setImageURI(Uri.parse(path));
-                                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
-                                    imageView.setOnTouchListener(touchListener);
-
-                                    newImage=true;
-
-                                    cv.cancel();
-
-                                    startPopup();
+                                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                                        checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
+                                    }
                                     return false;
                                 }
                             });
@@ -406,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @SuppressLint("ClickableViewAccessibility")
-    private void startPopup(){
+    private void startPopup() {
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
         Button next = (Button) popup.findViewById(R.id.buttonPopup);
@@ -417,12 +494,12 @@ public class MainActivity extends AppCompatActivity {
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(firstTime[0]){
+                if (firstTime[0]) {
                     text.setText(getString(R.string.addReferencePointpopupSecond));
                     next.setText("Start");
                     firstTime[0] = false;
-                }
-                else{
+                } else {
+                    imageView.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
                     dialog.cancel();
                 }
             }
@@ -432,69 +509,81 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
-    public void checkPermission(String permission, int requestCode)
-    {
+    public void checkPermission(String permission, int requestCode) {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
 
             // Requesting the permission
-            ActivityCompat.requestPermissions(MainActivity.this, new String[] { permission }, requestCode);
-        }
-        else {
-            switch (requestCode){
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{permission}, requestCode);
+        } else {
+            switch (requestCode) {
+                case 1:
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                    break;
                 case 2:
-                    /*
-                    clientSocket = new ClientSocket();
-                    clientSocket.setContext(getApplicationContext());
-                    clientSocket.start();*/
+                    System.out.println("CASO 2");
+                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                        @Override
+                        public void onComplete(String result){
+                            System.out.println("response");
+                            System.out.println(result);
 
-                    //new ClientSocket.MessageStartMappingPhase().execute();
-                    clientSocket.createMessageStartMappingPhase().execute();
+                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                @Override
+                                public void onComplete(String result) {
+                                    fab.setEnabled(true);
+                                    createPopupStartTraining();
+                                }
+                            };
 
-                    createPopupStartTraining();
+                            clientSocket.sendImage(bb,callback1);
+                        }
+                    };
+                    Gson gson = new Gson();
+                    MessageStartMappingPhase message = new MessageStartMappingPhase(len);
+                    String json = gson.toJson(message);
+
+                    clientSocket.sendMessageStartMappingPhase(callback, json);
+                    fab.setEnabled(false);
+
+                    break;
+                case 3:
+                    System.out.println("CASO 3");
+                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                    System.out.println("PATH: " + path);
+
+                    imageView.setImageURI(Uri.parse(path));
+                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                    imageView.setOnTouchListener(touchListener);
+
+                    newImage = true;
+
+                    cv.cancel();
+
+                    imageView.buildDrawingCache();
+                    Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                    System.out.println("BMAP SIZE");
+                    System.out.println(bmap.getWidth());
+                    System.out.println(bmap.getHeight());
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                    bb = bos.toByteArray();
+                    imageMap = Base64.encodeToString(bb,0);
+
+                    len = bb.length;
+
+                    startPopup();
+                    break;
             }
-
 
 
         }
     }
 
-    // This function is called when the user accepts or decline the permission.
-    // Request Code is used to check which permission called this function.
-    // This request code is provided when the user is prompt for permission.
- /*   @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
-    {
-        super.onRequestPermissionsResult(requestCode,
-                permissions,
-                grantResults);
-
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-                scanService = new ScanService(getApplicationContext());
-
-                mHandler.postDelayed(scanRunnable, intervalScan);
-            }
-            else {
-                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT) .show();
-            }
-        }
-        else if (requestCode == 0) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-*/
-    private void createDialog(int x,int y){
+    private void createDialog(int x, int y) {
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_room, null);
         labelRoom = (EditText) popup.findViewById(R.id.labelRoom);
@@ -506,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
 
         labelRoom.addTextChangedListener(new TextWatcher() {
@@ -517,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-                if(charSequence.toString().trim().length()==0){
+                if (charSequence.toString().trim().length() == 0) {
                     save.setEnabled(false);
                 } else {
                     save.setEnabled(true);
@@ -530,7 +620,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        cancel.setOnClickListener(new View.OnClickListener(){
+        cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialog.cancel();
@@ -540,56 +630,31 @@ public class MainActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                int tempX = (x*imageViewWidth)/100;
+                int tempY = (y*imageViewHeight)/100;
 
                 Paint mPaint = new Paint();
                 mPaint.setColor(Color.RED);
-                canvas.drawCircle(x, y, 20, mPaint);
+                canvas.drawCircle(tempX, tempY, 20, mPaint);
                 imageView.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
-                ReferencePoint ref = new ReferencePoint(x,y,labelRoom.getText().toString());
+                System.out.println("Canvas");
+                System.out.println(canvas.getWidth());
+                System.out.println(canvas.getHeight());
+                System.out.println("IMAGEVIEW");
+                System.out.println(imageView.getWidth());
+                System.out.println(imageView.getHeight());
+                System.out.println("imageViewHEIGHT&WIDTH");
+                System.out.println(imageViewWidth);
+                System.out.println(imageViewHeight);
+                ReferencePoint ref = new ReferencePoint(x, y, labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
-                binding.fab.setEnabled(true);
+                fab.setEnabled(true);
                 dialog.cancel();
             }
         });
 
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        setupAudioService.connectMediaBrowser();
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        setupAudioService.unregisterCallback();
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putBoolean("ServiceState", serviceBound);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        serviceBound = savedInstanceState.getBoolean("ServiceState");
-    }
-
-
 
 
     //listener to get if user granted permission for bluetooth connect and scan (only for sdk > 30)
@@ -602,267 +667,87 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
-                    launchAssignRAFragment();
+                    //launchAssignRAFragment();
                 } else {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
-            case 1: //DEFINIRE CODICE RICHIESTA
+                break;
+            case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                    System.out.println("CASE1");
+                } else {
+                    Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
                 }
-                else {
-                    Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-                }
+                break;
+            case 2:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("CASE2");
+                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                        @Override
+                        public void onComplete(String result){
+                            System.out.println("response");
+                            System.out.println(result);
 
+                            ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                @Override
+                                public void onComplete(String result) {
+                                    fab.setEnabled(true);
+                                    createPopupStartTraining();
+                                }
+                            };
+
+                            clientSocket.sendImage(bb,callback1);
+                        }
+                    };
+                    Gson gson = new Gson();
+                    MessageStartMappingPhase message = new MessageStartMappingPhase(len);
+                    String json = gson.toJson(message);
+
+                    clientSocket.sendMessageStartMappingPhase(callback, json);
+                    fab.setEnabled(false);
+                } else {
+                    Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 3:
+                System.out.println("CASO 3 ALTRO");
+                String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                System.out.println("PATH: " + path);
+
+                imageView.setImageURI(Uri.parse(path));
+                imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                imageView.setOnTouchListener(touchListener);
+
+                newImage = true;
+
+                cv.cancel();
+
+                imageView.buildDrawingCache();
+                Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                System.out.println("BMAP SIZE");
+                System.out.println(bmap.getWidth());
+                System.out.println(bmap.getHeight());
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                bb = bos.toByteArray();
+                imageMap = Base64.encodeToString(bb,0);
+
+                len = bb.length;
+
+
+                startPopup();
+                break;
         }
     }
+    private void createPopupRoomTraining(ReferencePoint point, int index) {
 
-
-    private void launchAssignRAFragment(){
-
-        FrameLayout frame = findViewById(R.id.RaRooms);
-        frame.bringToFront();
-        frame.setVisibility(View.VISIBLE);
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        RoomRAFragment btFragment = new RoomRAFragment();
-
-        fragmentTransaction.replace(R.id.RaRooms, btFragment);
-        fragmentTransaction.addToBackStack("btFragment");
-
-        fragmentTransaction.commit();
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        try {
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
-
-            activity.unregisterReceiver(btUtility.getConnectA2dpReceiver());
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        if(connectBluetoothThread != null)
-            connectBluetoothThread.disconnect();
-
-        activity = null;
-        weakActivity = null;
-        clientSocket = null;
-        /*
-        if (serviceBound) {
-            unbindService(serviceConnection);
-            mediaController.setMediaPlayer(null);
-            mediaController.hide();
-            //service is active
-            playerService.stopSelf();
-        }*/
-    }
-
-    public void askBtPermission(View view) {
-
-
-        /*if(BluetoothUtility.checkPermission(activity))
-            launchAssignRAFragment();
-        //startBluetoothConnection();
-
-        /*
-        clientSocket.createMessageNewReferencePoint(new com.example.multiroomlocalization.localization.ReferencePoint(
-                "a",
-                new Speaker("F8:FF:C2:54:C1:28","Cucina","MacBook Pro di Mancio",0)
-        )).execute();
-        clientSocket.createMessageNewReferencePoint(new com.example.multiroomlocalization.localization.ReferencePoint(
-                "a",
-                new Speaker("45689","salotto","speaker2",0)
-        )).execute();*/
-
-        List<com.example.multiroomlocalization.ScanResult> list = new ArrayList<>();
-
-
-        if(connectBluetoothThread != null)
-            connectBluetoothThread = new ConnectBluetoothThread(activity);
-
-        /*IntentFilter filter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        filter.addAction(BluetoothDevice.ACTION_UUID);
-        registerReceiver(btUtility.getConnectA2dpReceiver(), filter);*/
-
-
-        String messageFingerPrint = gson.toJson(new MessageFingerprint(list));
-        clientSocket.sendMessageFingerPrint(messageFingerPrint);
-
-    }
-
-    private void setupMusicPlayer() {
-        audioSeekBar = (SeekBar) findViewById(R.id.seekBar);
-        audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int pos, boolean fromUser) {
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                int pbState = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
-
-                    int progress = seekBar.getProgress();
-                    MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().seekTo(progress);
-                }
-            }
-        });
-
-        /* service
-        nextTrack = (ImageButton) findViewById(R.id.nexttrack);
-        nextTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if(myExoPlayer != null) {
-                    int pbState = myExoPlayer.getPlaybackState();
-                    if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED) {
-                        myExoPlayer.seekToNext();
-                    }
-                }
-            }
-        });
-
-        previousTrack = (ImageButton) findViewById(R.id.previoustrack);
-        previousTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if(myExoPlayer != null){
-
-                    int pbState = myExoPlayer.getPlaybackState();
-                    if (pbState == PlaybackStateCompat.STATE_PLAYING || pbState == PlaybackStateCompat.STATE_PAUSED ) {
-                        myExoPlayer.seekToPrevious();
-                    }
-                }
-            }
-        });
-
-        playPause = (ImageButton) findViewById(R.id.playpause);
-        playPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if(myExoPlayer != null){
-
-                    if (myExoPlayer.isPlaying())
-                        myExoPlayer.pause();
-                    else
-                        myExoPlayer.play();
-                }
-            }
-        });*/
-
-
-        RelativeLayout audioControllerView = (RelativeLayout) findViewById(R.id.audiocontroller);
-
-        ViewGroup.LayoutParams backupLayoutParams = audioControllerView.getLayoutParams();
-
-        ListView audioPlaylistView = (ListView) findViewById(R.id.playlist_view);
-        ImageButton closePlaylistView = (ImageButton) findViewById(R.id.closePlaylistButton);
-
-        audioControllerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!onTop) {
-                    Animation slideUp = AnimationUtils.loadAnimation(activity, R.anim.slide_up);
-
-
-                    slideUp.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                            System.out.println(v.getY());
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            audioPlaylistView.setVisibility(View.VISIBLE);
-                            closePlaylistView.setVisibility(View.VISIBLE);
-
-                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
-                                    RelativeLayout.LayoutParams.WRAP_CONTENT);
-
-                            params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-                            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                            v.setLayoutParams(params);
-
-                            //v.setY(0.0f);
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    audioControllerView.startAnimation(slideUp);
-
-
-                    onTop = true;
-                }
-
-            }
-        });
-
-
-        closePlaylistView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (onTop) {
-                    Animation slideDown = AnimationUtils.loadAnimation(activity, R.anim.slide_down);
-
-                    slideDown.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            audioPlaylistView.setVisibility(View.INVISIBLE);
-                            closePlaylistView.setVisibility(View.INVISIBLE);
-                            ((RelativeLayout) v.getParent()).setLayoutParams(backupLayoutParams);
-
-                            /*DisplayMetrics displayMetrics = new DisplayMetrics();
-                            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                            float height = displayMetrics.heightPixels - ((View)v.getParent()).getHeight();
-
-                            System.out.println(height);
-                            ((View)v.getParent()).setY(height);*/
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    audioControllerView.startAnimation(slideDown);
-
-                    onTop = false;
-                }
-            }
-        });
-    }
-
-
-
-
-
-    private void createPopupRoomTraining(com.example.multiroomlocalization.ReferencePoint point,int index){
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         Button buttonNext = popup.findViewById(R.id.buttonTraining);
 
         TextView textRoom = (TextView) popup.findViewById(R.id.textRoom);
@@ -871,12 +756,18 @@ public class MainActivity extends AppCompatActivity {
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
 
-        //clientSocket.createMessageNewReferencePoint(point).execute();
 
+        MessageNewReferencePoint message = new MessageNewReferencePoint(point.getX(),point.getY(),point);
+        Gson gson = new Gson();
+        String json = gson.toJson(message);
+        clientSocket.sendMessageNewReferencePoint(json);
+        /*clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);*/
+
+        //TODO SISTEMARE TIMER CHE FACCIANO 5 MINUTI ADESSO IMPOSTATO A 10s
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
             public void onTick(long millisUntilFinished) {
-                timer.setText("seconds remaining: " +new SimpleDateFormat("mm:ss").format(new Date( millisUntilFinished)));
+                timer.setText("seconds remaining: " + new SimpleDateFormat("mm:ss").format(new Date(millisUntilFinished)));
             }
 
             public void onFinish() {
@@ -890,39 +781,232 @@ public class MainActivity extends AppCompatActivity {
 
                         mHandler.removeCallbacks(scanRunnable);
 
-                        resultScan.put(referencePoints.get(index).getId(),scanResultArrayList);
+                        resultScan.put(referencePoints.get(index).getId(), scanResultArrayList);
                         System.out.println(resultScan);
 
-                        if (index+1<referencePoints.size()){
+                        if (index + 1 < referencePoints.size()) {
                             buttonNext.setText("Next");
                             buttonNext.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
                                     dialog.cancel();
-                                    clientSocket.createMessageEndScanReferencePoint().execute();
-                                    createPopupRoomTraining(referencePoints.get(index+1), index+1);
+                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                        @Override
+                                        public void onComplete(String result) {
+                                            createPopupRoomTraining(referencePoints.get(index + 1), index + 1);
+                                        }
+                                    };
+                                    Gson gson = new Gson();
+                                    MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
+                                    String json = gson.toJson(message);
+                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
                                 }
                             });
-                        }
-                        else {
+                        } else {
                             buttonNext.setText("Finish");
                             buttonNext.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    clientSocket.createMessageEndScanReferencePoint().execute();
-                                    clientSocket.createMessageEndMappingPhase().execute();
-                                    // SALVATAGGIO DATI
+
+                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                        @Override
+                                        public void onComplete(String result) {
+
+                                            dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                            final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+                                            dialogBuilder.setView(popup);
+
+                                            Button next = (Button) popup.findViewById(R.id.buttonPopup);
+                                            TextView text = (TextView) popup.findViewById(R.id.textPopup);
+
+                                            text.setText(R.string.settings);
+                                            next.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+
+                                                    dialog.cancel();
+                                                    dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                                    final View popup = getLayoutInflater().inflate(R.layout.referencepointlist_view, null);
+                                                    dialogBuilder.setView(popup);
+
+                                                    RecyclerView recyclerView = (RecyclerView) popup.findViewById(R.id.recyclerViewReferencePoint);
+
+                                                    //TODO tempSpeaker DEVE ESSERE L'ARRAY DI TUTTI GLI SPEAKER ASSOCIATI AL TELEFONO
+
+                                                    ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints,getApplicationContext(), activity);
+                                                    recyclerView.setAdapter(adapter);
+
+                                                    recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+                                                    System.out.println(referencePoints.size());
+                                                    Button buttonConferma = (Button) popup.findViewById(R.id.buttonConfermaSettings);
+
+                                                    buttonConferma.setOnClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View view) {
+                                                            adapter.interruptScan();
+                                                            ArrayList<Settings> arrListSettings = new ArrayList<>();
+
+                                                            for (int i = 0; i < referencePoints.size(); i++) {
+                                                                System.out.println("DND");
+                                                                System.out.println(referencePoints.get(i).getDnd());
+                                                                System.out.println("SPEAKER");
+                                                                System.out.println(referencePoints.get(i).getSpeaker().getName());
+                                                                arrListSettings.add(new Settings(referencePoints.get(i).getId(), referencePoints.get(i).getSpeaker(), referencePoints.get(i).getDnd()));
+                                                            }
+
+                                                            dialog.cancel();
+                                                            dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                                            final View popup = getLayoutInflater().inflate(R.layout.layout_password_map, null);
+                                                            dialogBuilder.setView(popup);
+                                                            dialog = dialogBuilder.create();
+                                                            dialog.setCanceledOnTouchOutside(false);
+                                                            dialog.setCancelable(false);
+
+                                                            Button button = popup.findViewById(R.id.buttonSendPassword);
+                                                            button.setEnabled(false);
+                                                            EditText name = popup.findViewById(R.id.editTextInputMapName);
+                                                            EditText password = popup.findViewById(R.id.passwordInputMap);
+
+                                                            password.addTextChangedListener(new TextWatcher() {
+                                                                @Override
+                                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                                    if (charSequence.toString().trim().length() == 0) {
+                                                                        passwordEmpty = true;
+                                                                        button.setEnabled(false);
+                                                                    } else {
+                                                                        passwordEmpty = false;
+                                                                        if (!nameEmpty) {
+                                                                            button.setEnabled(true);
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                @Override
+                                                                public void afterTextChanged(Editable editable) {
+
+                                                                }
+                                                            });
+
+                                                            name.addTextChangedListener(new TextWatcher() {
+                                                                @Override
+                                                                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                                    if (charSequence.toString().trim().length() == 0) {
+                                                                        nameEmpty = true;
+                                                                        button.setEnabled(false);
+                                                                    } else {
+                                                                        nameEmpty = false;
+                                                                        if (!passwordEmpty) {
+                                                                            button.setEnabled(true);
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                @Override
+                                                                public void afterTextChanged(Editable editable) {
+
+                                                                }
+                                                            });
+
+                                                            button.setOnClickListener(new View.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(View view) {
+                                                                    button.setEnabled(false);
+
+                                                                    ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
+                                                                        @Override
+                                                                        public void onComplete(String result) {
+                                                                            System.out.println(password.getText().toString());
+                                                                            System.out.println(result);
+
+                                                                            ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
+                                                                                @Override
+                                                                                public void onComplete(String result) {
+                                                                                    System.out.println(result);
+                                                                                    Gson gson = new Gson();
+                                                                                    ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
+                                                                                    Intent changeActivity;
+                                                                                    changeActivity = new Intent(MainActivity.this, ListMapActivity.class);
+                                                                                    changeActivity.putExtra("Map",accountMap);
+                                                                                    finish();
+                                                                                    dialog.cancel();
+                                                                                    startActivity(changeActivity);
+                                                                                }
+                                                                            };
+
+                                                                            Gson gson = new Gson();
+                                                                            MessageLogin message = new MessageLogin(LoginActivity.currentUser);
+                                                                            String json = gson.toJson(message);
+                                                                            clientSocket.sendMessageLogin(callbackSuccessful,null,json);
+
+                                                                           /* ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
+                                                                                @Override
+                                                                                public void onComplete(String result) {
+                                                                                    Toast.makeText(getApplicationContext(), gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint().getId(),Toast.LENGTH_LONG).show();
+                                                                                }
+                                                                            };
+                                                                            clientSocket.addCallbackChangeReferencePoint(callback1);
+                                                                            //AGGIUNTO PER PROVARE CON MATTI POI SARà DA ELIMINARE
+                                                                            //mHandler.postDelayed(scanRunnable, 5000);
+
+                                                                            */
+                                                                        }
+                                                                    };
+
+                                                                    Gson gson = new Gson();
+                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(),arrListSettings,name.getText().toString());
+                                                                    String json = gson.toJson(message);
+                                                                    clientSocket.sendMessageEndMappingPhase(callback,json);
+
+                                                                }
+                                                            });
+                                                            dialog.show();
+                                                        }
+                                                    });
+
+                                                    dialog = dialogBuilder.create();
+                                                    dialog.setCanceledOnTouchOutside(false);
+                                                    dialog.setCancelable(false);
+                                                    dialog.show();
+
+                                                }
+                                            });
+
+                                            dialog = dialogBuilder.create();
+                                            dialog.setCanceledOnTouchOutside(false);
+                                            dialog.setCancelable(false);
+                                            dialog.show();
+
+
+
+
+                                        }
+                                    };
+
+                                    Gson gson = new Gson();
+                                    MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
+                                    String json = gson.toJson(message);
+                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
                                     dialog.cancel();
                                 }
+
+
+
+
                             });
                         }
-
                     }
                 });
-
-
-
-
             }
         };
 
@@ -931,12 +1015,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 scanService = new ScanService(getApplicationContext());
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                    if(!scanService.getWifiManager().isScanThrottleEnabled()){//Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (!scanService.getWifiManager().isScanThrottleEnabled()) {//Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
                         intervalScan = 5000;
                         System.out.println("IntervalScan: " + intervalScan);
-                    }
-                    else {
+                    } else {
                         intervalScan = 30000;
                         System.out.println("IntervalScan: " + intervalScan);
                     }
@@ -946,12 +1029,12 @@ public class MainActivity extends AppCompatActivity {
                 scanService.registerReceiver(broadcastReceiverScan);
 
                 scanResultArrayList.clear();
-
                 countDownTimer.start();
 
-                //new ClientSocket.MessageStartScanReferencePoint().execute();
-                clientSocket.createMessageStartScanReferencePoint().execute();
-
+                Gson gson = new Gson();
+                MessageStartScanReferencePoint message = new MessageStartScanReferencePoint();
+                String json = gson.toJson(message);
+                clientSocket.sendMessageStartScanReferencePoint(json);
                 buttonNext.setEnabled(false);
             }
         });
@@ -959,69 +1042,82 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-   private void createPopupStartTraining(){
-       dialogBuilder = new AlertDialog.Builder(MainActivity.this);
-       final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
-       dialogBuilder.setView(popup);
-       dialog = dialogBuilder.create();
+    private void createPopupStartTraining() {
+        dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+        dialogBuilder.setView(popup);
+        dialog = dialogBuilder.create();
 
 
-       Button next = (Button) popup.findViewById(R.id.buttonPopup);
-       TextView text = (TextView) popup.findViewById(R.id.textPopup);
+        Button next = (Button) popup.findViewById(R.id.buttonPopup);
+        TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
-       text.setText(getString(R.string.trainingText));
-       next.setText("Next");
+        text.setText(getString(R.string.trainingText));
+        next.setText("Next");
 
-       next.setOnClickListener(new View.OnClickListener() {
-           @Override
-           public void onClick(View view) {
-               dialog.cancel();
-               int i=0;
-               createPopupRoomTraining(referencePoints.get(i),i);
-           }
-       });
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+                int i = 0;
+                createPopupRoomTraining(referencePoints.get(i), i);
+            }
+        });
 
-       dialog.setCanceledOnTouchOutside(false);
-       dialog.show();
-   }
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
+        dialog.show();
+    }
 
 
-   private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
-       @Override
-       public void onReceive(Context context, Intent intent) {
-           boolean success = intent.getBooleanExtra(
-                   WifiManager.EXTRA_RESULTS_UPDATED, false);
-           if (success) {
-               scanSuccess();
-           } else {
-               // scan failure handling
-               scanFailure();
-           }
-       }
+    private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
+                scanSuccess();
+            } else {
+                scanFailure();
+            }
+        }
 
-       private void scanSuccess(){
-           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
-           List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-           for ( ScanResult res : results ) {
-               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-               listScan.add(scan);
-               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-           }
-           clientSocket.createMessageFingerprint(listScan).execute();
+        private void scanSuccess() {
+            List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+            List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
+            for (ScanResult res : results) {
+                com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
+                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
+                listScan.add(scan);
+            }
 
-       }
+            Gson gson = new Gson();
+            MessageFingerprint message = new MessageFingerprint(listScan);
+            String json = gson.toJson(message);
+            clientSocket.sendMessageFingerprint(json);
+        }
 
-       private void scanFailure(){
-           List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
-           List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-           for ( ScanResult res : results ) {
-               com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-               listScan.add(scan);
-               System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
-           }
-           clientSocket.createMessageFingerprint(listScan).execute();
+        private void scanFailure() {
+            List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
+            List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
+            for ( ScanResult res : results ) {
+                com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
+                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+                listScan.add(scan);
+            }
+
+            Gson gson = new Gson();
+            MessageFingerprint message = new MessageFingerprint(listScan);
+            String json = gson.toJson(message);
+            clientSocket.sendMessageFingerprint(json);
        }
 
 
    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activity = null;
+    }
 }

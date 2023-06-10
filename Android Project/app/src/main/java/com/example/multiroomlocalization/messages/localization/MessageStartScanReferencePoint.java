@@ -1,6 +1,5 @@
 package com.example.multiroomlocalization.messages.localization;
 
-import com.example.multiroomlocalization.ReferencePoint;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageStartScanReferencePoint  extends Message {

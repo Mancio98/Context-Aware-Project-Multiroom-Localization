@@ -1,6 +1,6 @@
 package com.example.multiroomlocalization;
 
-import static com.example.multiroomlocalization.LoginActivity.clientSocket;
+import static com.example.multiroomlocalization.LoginActivity.client;
 import static com.example.multiroomlocalization.MainActivity.activity;
 
 import android.content.ComponentName;
@@ -24,6 +24,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.example.multiroomlocalization.Music.AudioPlaybackService;
 import com.example.multiroomlocalization.Music.ListSongAdapter;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
@@ -42,7 +44,8 @@ public class ControlAudioService {
     private ImageButton playPause;
     private Gson gson = new Gson();
     private AtomicReference<String> myPlaylist = new AtomicReference<>();
-    ControlAudioService(Context context, View view, ListSongAdapter playlistAdapter){
+
+    ControlAudioService(Context context, @NonNull View view, ListSongAdapter playlistAdapter){
         this.context = context;
         this.view = view;
         mediaBrowser = new MediaBrowserCompat(context,
@@ -160,7 +163,7 @@ public class ControlAudioService {
 
 
         String messageReqPlaylist = gson.toJson(new MessageRequestPlaylist());
-        clientSocket.sendMessageReqPlaylist((playlist) -> {
+        client.sendMessageReqPlaylist((playlist) -> {
 
             System.out.println(playlist);
             myPlaylist.set(playlist);

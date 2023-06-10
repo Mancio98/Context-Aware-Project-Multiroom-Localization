@@ -1,9 +1,10 @@
 package com.example.multiroomlocalization.Bluetooth;
 
+import static com.example.multiroomlocalization.ActivityLive.btUtility;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.getBondedDevices;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.scan;
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -77,13 +78,13 @@ public class ScanBluetooth {
 
     }
 
-    protected void interruptScan(){
+    public void interruptScan(){
         checkPermission(myActivity);
         if(bluetoothAdapter.isDiscovering())
             bluetoothAdapter.cancelDiscovery();
     }
 
-    protected void unregisterReceiver(){
+    public void unregisterReceiver(){
 
         try{
             //LocalBroadcastManager.getInstance(myActivity).unregisterReceiver(receiver);
