@@ -161,9 +161,9 @@ public class ControlAudioService {
 
     private void downloadAudioTracks() {
 
-
         String messageReqPlaylist = gson.toJson(new MessageRequestPlaylist());
         client.sendMessageReqPlaylist((playlist) -> {
+
 
             System.out.println(playlist);
             myPlaylist.set(playlist);
@@ -174,9 +174,7 @@ public class ControlAudioService {
             ListView audioPlaylistView = (ListView) view.findViewById(R.id.playlist_view);
             if(audioPlaylistView != null)
                 audioPlaylistView.setAdapter(playlistAdapter);
-        },
-            messageReqPlaylist
-                );
+        }, null);
 
     }
     private void buildTransportControls() {

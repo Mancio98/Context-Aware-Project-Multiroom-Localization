@@ -367,9 +367,11 @@ public class ClientSocket extends Thread {
         callbackChangeReferencepoint = callback;
     }
 
+
     public void sendMessageReqPlaylist(Callback<String> callback, String message){
         reqPlaylistCallback = callback;
         sendMessage(message,false,null);
+
     }
 
     public void sendMessageMapSubscription(String message,Callback<String> subscriptionSuccessful,Callback<String> subscriptionUnsuccessful){

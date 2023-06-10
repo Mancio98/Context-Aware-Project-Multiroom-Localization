@@ -266,7 +266,9 @@ public class MainActivity extends AppCompatActivity {
                     listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName()));
                 });
 
+
                 //clientSocket.sendMessageListSpeaker(listSpeaker);
+
 
                 /* fare metodo per inizializzre il thread
                 connectBluetoothThread = new ConnectBluetoothThread(activity);
@@ -741,6 +743,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void createPopupRoomTraining(ReferencePoint point, int index) {
+
 
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
