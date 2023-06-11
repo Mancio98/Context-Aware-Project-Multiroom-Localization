@@ -1,9 +1,9 @@
 package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.getBondedDevices;
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.scan;
 
+import static com.example.multiroomlocalization.MainActivity.btUtility;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.multiroomlocalization.ListRoomsElement;
+import com.example.multiroomlocalization.MainActivity;
 import com.example.multiroomlocalization.R;
 
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class BluetoothControlFragment {
 
         roomsArray = myActivity.getResources().getStringArray(R.array.rooms_array);
 
-        scanBluetoothManager = new ScanBluetooth(fragment.getContext(), myActivity, receiver);
+        scanBluetoothManager = new ScanBluetooth(fragment.getContext(), myActivity);
     }
 
     //return rooms choices both for discovered and paired devices (to finish)
@@ -87,41 +88,72 @@ public class BluetoothControlFragment {
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                checkPermission(myActivity);
-                //check if is not already paired, so is not already on bonded list
-                if (device != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
+                if(btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onGranted() {
+                        //check if is not already paired, so is not already on bonded list
+                        if (device != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
 
-                    String deviceName = device.getName();
-                    String deviceHardwareAddress = device.getAddress(); // MAC address
+                            String deviceName = device.getName();
+                            String deviceHardwareAddress = device.getAddress(); // MAC address
 
-                    if (deviceName != null) {
-                        Log.i("devices_scan", deviceName);
-                        Log.i("devices_scan", deviceHardwareAddress);
+                            if (deviceName != null) {
+                                Log.i("devices_scan", deviceName);
+                                Log.i("devices_scan", deviceHardwareAddress);
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
 
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
+                                    System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
+                                    System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
+                                } else {
+                                    System.out.println("device type: " + device.getBluetoothClass().getDeviceClass());
+                                    System.out.println("device uuid: " + Arrays.toString(device.getUuids()));
+
+
+                                }
+
+
+                                if (!discoveredDevices.contains(device)) {
+                                    discoveredDevices.add(device);
+                                    roomsAdapter.addBluetoothDevice(device);
+                                }
+                                //add device on the list that user is looking
+                            }
                         }
-                        else{
-                            System.out.println("device type: "+device.getBluetoothClass().getDeviceClass());
-                            System.out.println("device uuid: "+ Arrays.toString(device.getUuids()));
-
-
-                        }
-
-
-                        if(!discoveredDevices.contains(device)) {
-                            discoveredDevices.add(device);
-                            roomsAdapter.addBluetoothDevice(device);
-                        }
-                         //add device on the list that user is looking
                     }
+                })) {
+                    //check if is not already paired, so is not already on bonded list
+                    if (device != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
+
+                        String deviceName = device.getName();
+                        String deviceHardwareAddress = device.getAddress(); // MAC address
+
+                        if (deviceName != null) {
+                            Log.i("devices_scan", deviceName);
+                            Log.i("devices_scan", deviceHardwareAddress);
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
+
+                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
+                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
+                            } else {
+                                System.out.println("device type: " + device.getBluetoothClass().getDeviceClass());
+                                System.out.println("device uuid: " + Arrays.toString(device.getUuids()));
 
 
+                            }
+
+                            if (!discoveredDevices.contains(device)) {
+                                discoveredDevices.add(device);
+                                roomsAdapter.addBluetoothDevice(device);
+                            }
+                            //add device on the list that user is looking
+                        }
+                    }
                 }
-
             //when scanning is finished
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 

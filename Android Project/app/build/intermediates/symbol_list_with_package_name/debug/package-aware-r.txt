@@ -3744,6 +3744,7 @@ id rectangleVerticalOnly
 id rectangles
 id recyclerViewMap
 id recyclerViewReferencePoint
+id report_drawn
 id reverseSawtooth
 id right
 id rightToLeft

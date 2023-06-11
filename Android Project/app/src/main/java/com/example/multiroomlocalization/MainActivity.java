@@ -1,7 +1,8 @@
 package com.example.multiroomlocalization;
 
+import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
+
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
-import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
@@ -10,8 +11,6 @@ import com.example.multiroomlocalization.messages.localization.MessageFingerprin
 import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
-import com.example.multiroomlocalization.messages.music.MessageSettings;
-import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 
@@ -20,13 +19,11 @@ import android.app.Activity;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentValues;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 
 import android.net.wifi.ScanResult;
@@ -38,10 +35,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 
 
-
-
 import android.util.Base64;
-import android.util.Log;
 
 import android.view.View;
 import android.widget.Button;
@@ -57,8 +51,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-
-
 import java.io.ByteArrayOutputStream;
 
 import java.util.ArrayList;
@@ -72,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 
 import android.annotation.SuppressLint;
@@ -115,9 +108,11 @@ import android.widget.EditText;
 public class MainActivity extends AppCompatActivity {
 
 
-    protected static final int BT_CONNECT_AND_SCAN = 101;
+    public static final int BT_INTERRUPT_DISCOVERY = 101;
+    public static final int BT_SCAN = 102;
+    public static final int BT_LIST_BOND = 103;
+    public static final int BT_PAIR_DEVICE = 104;
     public static Activity activity;
-
 
 
     private ImageView playPause;
@@ -149,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
     private CropView cv;
 
 
-
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
     private HashMap<String, ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
 
@@ -165,12 +159,18 @@ public class MainActivity extends AppCompatActivity {
     private ArraySet<Speaker> listSpeaker;
     private TextView timeTextView;
     private ListView audioPlaylistView;
-
-
+    public static Set<BluetoothDevice> listBondedDevices;
 
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
-    private BluetoothUtility btUtility;
+    public static BluetoothUtility btUtility;
+
+    public interface BluetoothPermCallback {
+        void onGranted();
+
+    }
+
+    public static BluetoothPermCallback btPermissionCallback;
 
 
     @Override
@@ -195,8 +195,6 @@ public class MainActivity extends AppCompatActivity {
         activity = this;
 
 
-
-
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String address = extras.getString("add");
@@ -204,10 +202,6 @@ public class MainActivity extends AppCompatActivity {
             //The key argument here must match that used in the other activity
             //clientSocket.setAddress(address, port);
         }
-
-
-
-
 
 
         imageView = (ImageView) findViewById(R.id.map);
@@ -255,11 +249,10 @@ public class MainActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 deviceForRoom = result.getSerializable("deviceForRoom", ArrayList.class);
 
-            }
-            else
+            } else
                 deviceForRoom = (ArrayList<ListRoomsElement>) result.getSerializable("deviceForRoom");
 
-            if(deviceForRoom != null) {
+            if (deviceForRoom != null) {
                 listSpeaker = new ArraySet<>();
                 deviceForRoom.forEach(room -> {
                     BluetoothDevice device = room.getDevice();
@@ -282,10 +275,16 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        btUtility= new BluetoothUtility(this);
+        btUtility = new BluetoothUtility(this);
+        /*BluetoothUtility.checkPermission(this, new BluetoothPermCallback() {
+            @Override
+            public void onGranted() {
+                System.out.println("VAFFANCULO");
+            }
+        });*/
     }
 
-    private void launchAssignRAFragment(){
+    private void launchAssignRAFragment() {
 
         FrameLayout frame = findViewById(R.id.RaRooms);
         frame.bringToFront();
@@ -339,8 +338,6 @@ public class MainActivity extends AppCompatActivity {
         });*/
 
 
-
-
     View.OnTouchListener touchListener = new View.OnTouchListener() {
         @SuppressLint("ClickableViewAccessibility")
         @Override
@@ -353,12 +350,12 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("imageViewWidth: " + imageViewWidth + " imageViewHeight: " + imageViewHeight);
 
 
-            float tempx = ((float) x1/(float) imageViewWidth)*100;
-            float tempy = ((float) y1/(float) imageViewHeight)*100;
+            float tempx = ((float) x1 / (float) imageViewWidth) * 100;
+            float tempy = ((float) y1 / (float) imageViewHeight) * 100;
 
             System.out.println("tempX: " + tempx + " tempY: " + tempy);
 
-            createDialog((int) tempx,(int) tempy);
+            createDialog((int) tempx, (int) tempy);
             return false;
         }
     };
@@ -470,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
                             cv.setTouchButton(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                                         checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
                                     }
                                     return false;
@@ -529,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("CASO 2");
                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                         @Override
-                        public void onComplete(String result){
+                        public void onComplete(String result) {
                             System.out.println("response");
                             System.out.println(result);
 
@@ -541,7 +538,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             };
 
-                            clientSocket.sendImage(bb,callback1);
+                            clientSocket.sendImage(bb, callback1);
                         }
                     };
                     Gson gson = new Gson();
@@ -566,14 +563,14 @@ public class MainActivity extends AppCompatActivity {
                     cv.cancel();
 
                     imageView.buildDrawingCache();
-                    Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                    Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
                     System.out.println("BMAP SIZE");
                     System.out.println(bmap.getWidth());
                     System.out.println(bmap.getHeight());
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                    bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
                     bb = bos.toByteArray();
-                    imageMap = Base64.encodeToString(bb,0);
+                    imageMap = Base64.encodeToString(bb, 0);
 
                     len = bb.length;
 
@@ -632,8 +629,8 @@ public class MainActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int tempX = (x*imageViewWidth)/100;
-                int tempY = (y*imageViewHeight)/100;
+                int tempX = (x * imageViewWidth) / 100;
+                int tempY = (y * imageViewHeight) / 100;
 
                 Paint mPaint = new Paint();
                 mPaint.setColor(Color.RED);
@@ -666,14 +663,27 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode) {
             case BT_CONNECT_AND_SCAN:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
+
+                    btPermissionCallback.onGranted();
                     Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
-                    //launchAssignRAFragment();
+
                 } else {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            case BT_LIST_BOND:
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                    BluetoothAdapter bluetoothAdapter = getSystemService(BluetoothManager.class).getAdapter();
+                    listBondedDevices = bluetoothAdapter.getBondedDevices();
+
+                } else
+                    Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
+
+                break;
+
+
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
@@ -687,7 +697,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("CASE2");
                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                         @Override
-                        public void onComplete(String result){
+                        public void onComplete(String result) {
                             System.out.println("response");
                             System.out.println(result);
 
@@ -699,7 +709,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             };
 
-                            clientSocket.sendImage(bb,callback1);
+                            clientSocket.sendImage(bb, callback1);
                         }
                     };
                     Gson gson = new Gson();
@@ -726,14 +736,14 @@ public class MainActivity extends AppCompatActivity {
                 cv.cancel();
 
                 imageView.buildDrawingCache();
-                Bitmap bmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
                 System.out.println("BMAP SIZE");
                 System.out.println(bmap.getWidth());
                 System.out.println(bmap.getHeight());
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                bmap.compress(Bitmap.CompressFormat.PNG,100,bos);
+                bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
                 bb = bos.toByteArray();
-                imageMap = Base64.encodeToString(bb,0);
+                imageMap = Base64.encodeToString(bb, 0);
 
                 len = bb.length;
 
@@ -742,6 +752,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
+
     private void createPopupRoomTraining(ReferencePoint point, int index) {
 
 
@@ -760,7 +771,7 @@ public class MainActivity extends AppCompatActivity {
         timer.setText("seconds remaining: 05:00");
 
 
-        MessageNewReferencePoint message = new MessageNewReferencePoint(point.getX(),point.getY(),point);
+        MessageNewReferencePoint message = new MessageNewReferencePoint(point.getX(), point.getY(), point);
         Gson gson = new Gson();
         String json = gson.toJson(message);
         clientSocket.sendMessageNewReferencePoint(json);
@@ -802,7 +813,7 @@ public class MainActivity extends AppCompatActivity {
                                     Gson gson = new Gson();
                                     MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
                                     String json = gson.toJson(message);
-                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
+                                    clientSocket.sendMessageEndScanReferencePoint(json, callback);
                                 }
                             });
                         } else {
@@ -836,7 +847,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                     //TODO tempSpeaker DEVE ESSERE L'ARRAY DI TUTTI GLI SPEAKER ASSOCIATI AL TELEFONO
 
-                                                    ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints,getApplicationContext(), activity);
+                                                    ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints, getApplicationContext(), activity);
                                                     recyclerView.setAdapter(adapter);
 
                                                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
@@ -937,10 +948,10 @@ public class MainActivity extends AppCompatActivity {
                                                                                 public void onComplete(String result) {
                                                                                     System.out.println(result);
                                                                                     Gson gson = new Gson();
-                                                                                    ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
+                                                                                    ArrayList<Map> accountMap = gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
                                                                                     Intent changeActivity;
                                                                                     changeActivity = new Intent(MainActivity.this, ListMapActivity.class);
-                                                                                    changeActivity.putExtra("Map",accountMap);
+                                                                                    changeActivity.putExtra("Map", accountMap);
                                                                                     finish();
                                                                                     dialog.cancel();
                                                                                     startActivity(changeActivity);
@@ -950,7 +961,7 @@ public class MainActivity extends AppCompatActivity {
                                                                             Gson gson = new Gson();
                                                                             MessageLogin message = new MessageLogin(LoginActivity.currentUser);
                                                                             String json = gson.toJson(message);
-                                                                            clientSocket.sendMessageLogin(callbackSuccessful,null,json);
+                                                                            clientSocket.sendMessageLogin(callbackSuccessful, null, json);
 
                                                                            /* ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
                                                                                 @Override
@@ -967,9 +978,9 @@ public class MainActivity extends AppCompatActivity {
                                                                     };
 
                                                                     Gson gson = new Gson();
-                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(),arrListSettings,name.getText().toString());
+                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(), arrListSettings, name.getText().toString());
                                                                     String json = gson.toJson(message);
-                                                                    clientSocket.sendMessageEndMappingPhase(callback,json);
+                                                                    clientSocket.sendMessageEndMappingPhase(callback, json);
 
                                                                 }
                                                             });
@@ -991,19 +1002,15 @@ public class MainActivity extends AppCompatActivity {
                                             dialog.show();
 
 
-
-
                                         }
                                     };
 
                                     Gson gson = new Gson();
                                     MessageEndScanReferencePoint message = new MessageEndScanReferencePoint();
                                     String json = gson.toJson(message);
-                                    clientSocket.sendMessageEndScanReferencePoint(json,callback);
+                                    clientSocket.sendMessageEndScanReferencePoint(json, callback);
                                     dialog.cancel();
                                 }
-
-
 
 
                             });
@@ -1101,6 +1108,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void scanFailure() {
+
             List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for ( ScanResult res : results ) {

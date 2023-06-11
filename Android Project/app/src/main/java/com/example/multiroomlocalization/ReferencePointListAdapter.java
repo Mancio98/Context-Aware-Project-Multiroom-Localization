@@ -1,7 +1,9 @@
 package com.example.multiroomlocalization;
 
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
+import static com.example.multiroomlocalization.MainActivity.BT_SCAN;
+import static com.example.multiroomlocalization.MainActivity.btUtility;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
@@ -36,13 +38,36 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
 
     private Context context;
     private ScanBluetooth scanBluetoothManager;
+    private ArrayAdapter<String> myAdapter;
+
+
     public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, Activity activity){
         this.list = arrList;
         this.context = context;
         this.activity = activity;
-        this.scanBluetoothManager = new ScanBluetooth(context, activity, receiver);
+        this.scanBluetoothManager = new ScanBluetooth(context, activity);
+        scanBluetoothManager.setFoundCallback(new ScanBluetooth.OnDeviceFoundCallback() {
+            @Override
+            public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
 
-        this.itemsBluetooth = Speaker.getListSpeakerFromDevice(scanBluetoothManager.getPairedDevices());
+                if(deviceName == null)
+                    return;
+
+                boolean found = false;
+                int i = 0;
+                while (!found && i < itemsBluetooth.size()) {
+                    if (itemsBluetooth.get(i).getMac().equals(deviceHardwareAddress))
+                        found = true;
+                }
+                if (!found) {
+                    itemsBluetooth.add(new Speaker(deviceName,deviceHardwareAddress));
+                    myAdapter.add(deviceName);
+                    myAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+
+        this.itemsBluetooth = new ArrayList<>();
     }
 
 
@@ -71,7 +96,7 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
             }
         });
 
-        scanBluetoothManager.setupBluetoothAndScan();
+
         return viewHolder;
     }
 
@@ -83,13 +108,16 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
 
         ArrayList<String> speakerName = new ArrayList<>();
         speakerName.add("No Music");
-        for (int i=0; i< itemsBluetooth.size();i++){
-            speakerName.add(itemsBluetooth.get(i).getName());
-        }
+        itemsBluetooth = Speaker.getListSpeakerFromDevice(scanBluetoothManager.getPairedDevices());
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, speakerName);
+        itemsBluetooth.forEach((speaker) -> {
+            speakerName.add(speaker.getName());
+            System.out.println(speaker.getName());
+        });
 
-        holder.spinnerBluetooth.setAdapter(adapter);
+        myAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, speakerName);
+
+        holder.spinnerBluetooth.setAdapter(myAdapter);
         System.out.println(currentData.getSpeaker());
 
         if (currentData.getSpeaker() != null){
@@ -125,78 +153,17 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
             }
         });
 
+        scanBluetoothManager.setupBluetoothAndScan();
 
     }
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
 
-            //when i found a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Discovery has found a device. Get the BluetoothDevice
-                // object and its info from the Intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                checkPermission(activity);
-                //check if is not already paired, so is not already on bonded list
-                if (device != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
-
-                    String deviceName = device.getName();
-                    String deviceHardwareAddress = device.getAddress(); // MAC address
-
-                    if (deviceName != null) {
-                        Log.i("devices_scan", deviceName);
-                        Log.i("devices_scan", deviceHardwareAddress);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
-
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
-                            System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
-                        } else {
-                            System.out.println("device type: " + device.getBluetoothClass().getDeviceClass());
-                            System.out.println("device uuid: " + Arrays.toString(device.getUuids()));
-
-                        }
-
-
-                        boolean found = false;
-                        int i = 0;
-                        while (!found && i < itemsBluetooth.size()) {
-                            if (itemsBluetooth.get(i).getMac().equals(deviceHardwareAddress))
-                                found = true;
-                        }
-                        if (!found) {
-                            itemsBluetooth.add(new Speaker(deviceName, deviceHardwareAddress));
-                            notifyDataSetChanged();
-                        }
-
-                    }
-                    //add device on the list that user is looking
-                }
-
-                //when scanning is finished
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-
-
-                Log.i("devices_scan", "finished");
-
-                //when scanning is started
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-
-                Log.i("devices_scan", "started");
-
-
-                //use it when i call fetchforuuid method to get fresh uuid (probably i will delete it)
-            }
-
-        }
-    };
 
     public void interruptScan(){
         scanBluetoothManager.interruptScan();
         scanBluetoothManager.unregisterReceiver();
     }
+
 
     @Override
     public int getItemCount() {

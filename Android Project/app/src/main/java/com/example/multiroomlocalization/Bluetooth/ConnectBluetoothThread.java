@@ -1,8 +1,13 @@
 package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.checkPermission;
+
+import static com.example.multiroomlocalization.MainActivity.BT_INTERRUPT_DISCOVERY;
+import static com.example.multiroomlocalization.MainActivity.BT_PAIR_DEVICE;
+import static com.example.multiroomlocalization.MainActivity.BT_SCAN;
+import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
@@ -19,6 +24,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 
+import com.example.multiroomlocalization.MainActivity;
 import com.example.multiroomlocalization.speaker.Speaker;
 
 import java.io.IOException;
@@ -26,7 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-public class ConnectBluetoothThread extends Thread {
+public class ConnectBluetoothThread {
 
     private BluetoothSocket mySocket;
     private BluetoothDevice myDevice;
@@ -35,14 +41,24 @@ public class ConnectBluetoothThread extends Thread {
     private BluetoothA2dp bluetoothA2DP;
     private Method disconnectA2dp;
 
-    private ScanBluetooth scanBluetoothManager;
+    private final ScanBluetooth scanBluetoothManager;
     private String macDeviceToConnect;
 
     public ConnectBluetoothThread(Activity activity) {
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         myActivity = activity;
-        this.scanBluetoothManager = new ScanBluetooth(activity.getApplicationContext(),myActivity,receiver);
+        scanBluetoothManager = new ScanBluetooth(activity.getApplicationContext(),myActivity);
+        scanBluetoothManager.setFoundCallback(new ScanBluetooth.OnDeviceFoundCallback() {
+            @Override
+            public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
+                if (macDeviceToConnect.equals(deviceHardwareAddress)) {
+                    myDevice = device;
+                    scanBluetoothManager.interruptScan();
+                    startConnection();
+                }
+            }
+        });
     }
 
     private void startBluetoothConnection(Speaker macDevice) {
@@ -60,19 +76,37 @@ public class ConnectBluetoothThread extends Thread {
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                checkPermission(myActivity);
-                //check if is not already paired, so is not already on bonded list
-                if (device != null) {
-                    String deviceHardwareAddress = device.getAddress(); // MAC address
-                    System.out.println("name: "+device.getName()+ " mac: "+ deviceHardwareAddress);
+                if(btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onGranted() {
+                        if (device != null) {
+                            String deviceHardwareAddress = device.getAddress(); // MAC address
+                            System.out.println("name: " + device.getName() + " mac: " + deviceHardwareAddress);
 
 
-                    if(macDeviceToConnect.equals(deviceHardwareAddress)){
-                        myDevice = device;
-                        scanBluetoothManager.interruptScan();
-                        start();
+                            if (macDeviceToConnect.equals(deviceHardwareAddress)) {
+                                myDevice = device;
+                                scanBluetoothManager.interruptScan();
+                                startConnection();
+                            }
+
+                        }
                     }
+                })) {
+                    //check if is not already paired, so is not already on bonded list
+                    if (device != null) {
+                        String deviceHardwareAddress = device.getAddress(); // MAC address
+                        System.out.println("name: " + device.getName() + " mac: " + deviceHardwareAddress);
 
+
+                        if (macDeviceToConnect.equals(deviceHardwareAddress)) {
+                            myDevice = device;
+                            scanBluetoothManager.interruptScan();
+                            startConnection();
+                        }
+
+                    }
                 }
 
                 //when scanning is finished
@@ -103,72 +137,26 @@ public class ConnectBluetoothThread extends Thread {
             }
         }
     };
-    private UUID getUuid() {
-
-        checkPermission(myActivity);
-        ParcelUuid[] uuids = myDevice.getUuids();
-
-        if( uuids != null) {
-            for(ParcelUuid uuid : uuids)
-                Log.i("uuid1",uuid.getUuid().toString());
-            return myDevice.getUuids()[0].getUuid();
-        }
-        else
-            return null;
-    }
-
-    private void createSocket(){
 
 
-        checkPermission(myActivity);
-        try {
-            UUID uuid = getUuid();
-            if(uuid != null) {
-                Log.i("uuid", String.valueOf(uuid));
-                mySocket = myDevice.createRfcommSocketToServiceRecord(UUID.fromString("0000111e-0000-1000-8000-00805f9b34fb"));
-            }
-            else
-                Log.i("uuid","not found");
-        } catch (IOException e) {
-            Log.e("conn", "Socket's create() method failed", e);
-            e.printStackTrace();
-        }
-
-    }
-    private void establishConnection() {
-
-        checkPermission(myActivity);
-
-        if (bluetoothAdapter.isDiscovering())
-            bluetoothAdapter.cancelDiscovery();
-        try {
-            // Connect to the remote device through the socket. This call blocks
-            // until it succeeds or throws an exception.
-
-            mySocket.connect();
-        } catch (IOException connectException) {
-            // Unable to connect; close the socket and return.
-            Log.e("connect", "Could not connect", connectException);
-            try {
-                mySocket.close();
-            } catch (IOException closeException) {
-                Log.e("connect", "Could not close the client socket", closeException);
-            }
-        }
-    }
 
 
     //if device is not paired, i pair it
-    private boolean ifNotBondedPair() {
+    private void ifNotBondedPair() {
 
-        checkPermission(myActivity);
+        if (btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onGranted() {
+                if (BluetoothDevice.BOND_NONE == myDevice.getBondState())
+                    myDevice.createBond();
 
-        if(BluetoothDevice.BOND_NONE == myDevice.getBondState()) {
-            myDevice.createBond();
-            return true;
+            }
+        })) {
+            if (BluetoothDevice.BOND_NONE == myDevice.getBondState())
+                myDevice.createBond();
+
         }
-        else
-            return false;
     }
 
     boolean mIsA2dpReady = false;
@@ -179,9 +167,7 @@ public class ConnectBluetoothThread extends Thread {
     }
 
 
-    @Override
-    public void run() {
-        super.run();
+    public void startConnection(){
 
         ifNotBondedPair();
         connectProxyA2DP();
@@ -212,8 +198,7 @@ public class ConnectBluetoothThread extends Thread {
                     disconnectA2dp.invoke(bluetoothAdapter,myDevice);
                     bluetoothA2DP = null;
                     myDevice = null;
-                    if(isAlive())
-                        interrupt();
+
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
@@ -237,10 +222,20 @@ public class ConnectBluetoothThread extends Thread {
     // Disconnect to service and device.
     public void disconnect() {
 
-        checkPermission(myActivity);
-        if(bluetoothA2DP != null) {
-            if (bluetoothA2DP.getConnectedDevices().size() > 0)
-                bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2DP);
+        if(btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onGranted() {
+                if (bluetoothA2DP != null) {
+                    if (bluetoothA2DP.getConnectedDevices().size() > 0)
+                        bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2DP);
+                }
+            }
+        })){
+            if(bluetoothA2DP != null) {
+                if (bluetoothA2DP.getConnectedDevices().size() > 0)
+                    bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2DP);
+            }
 
         }
 

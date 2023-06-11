@@ -1,8 +1,13 @@
 package com.example.multiroomlocalization.Bluetooth;
 
+import static com.example.multiroomlocalization.MainActivity.BT_LIST_BOND;
+import static com.example.multiroomlocalization.MainActivity.BT_SCAN;
 import static com.example.multiroomlocalization.MainActivity.activity;
+import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
+import static com.example.multiroomlocalization.MainActivity.listBondedDevices;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
@@ -14,6 +19,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Parcelable;
+import android.util.ArraySet;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -28,29 +34,48 @@ import com.example.multiroomlocalization.speaker.Speaker;
 
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BluetoothUtility {
-    BetterActivityResult<Intent, ActivityResult> activityLauncher;
+
+    private static BetterActivityResult<Intent, ActivityResult> activityLauncher;
     public static final int BT_CONNECT_AND_SCAN = 101;
+
     public BluetoothUtility(ActivityResultCaller caller) {
 
         activityLauncher = BetterActivityResult.registerActivityForResult(caller);
     }
 
     //method for scan bluetooth devices around me
-    public static void scan(Activity activity, BluetoothAdapter bluetoothAdapter){
-        checkPermission(activity);
-        if (bluetoothAdapter.isDiscovering()) {
-            bluetoothAdapter.cancelDiscovery();
-        }
+    public void scan(Activity activity, BluetoothAdapter bluetoothAdapter) {
 
-        //if false error
-        Log.i("BT", String.valueOf(bluetoothAdapter.startDiscovery()));
+        if (checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onGranted() {
+
+                if (bluetoothAdapter.isDiscovering()) {
+                    bluetoothAdapter.cancelDiscovery();
+                }
+
+                bluetoothAdapter.startDiscovery();
+            }
+        })) {
+
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+
+            //if false error
+            bluetoothAdapter.startDiscovery();
+        }
     }
 
     //method to query user to enable bluetooth
-    public boolean enableBluetooth(BluetoothAdapter bluetoothAdapter){
+    public boolean enableBluetooth(BluetoothAdapter bluetoothAdapter) {
 
 
         if (!bluetoothAdapter.isEnabled()) {
@@ -70,15 +95,24 @@ public class BluetoothUtility {
     }
 
     //method to get list of already paired devices
-    public static Set<BluetoothDevice> getBondedDevices(BluetoothAdapter bluetoothAdapter, Activity activity){
-        checkPermission(activity);
-        return bluetoothAdapter.getBondedDevices();
+    public Set<BluetoothDevice> getBondedDevices(BluetoothAdapter bluetoothAdapter, Activity activity) {
+
+        System.out.println("cazzoooasjfdksafkasfka");
+        if(checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onGranted() {
+                listBondedDevices = bluetoothAdapter.getBondedDevices();
+            }
+        }))
+            return bluetoothAdapter.getBondedDevices();
+        else
+            return new ArraySet<BluetoothDevice>();
     }
 
-    public static ArrayList<Speaker> getSpeakerBonded(BluetoothAdapter bluetoothAdapter, Activity activity){
+    public ArrayList<Speaker> getSpeakerBonded(BluetoothAdapter bluetoothAdapter, Activity activity){
+
         Set<BluetoothDevice> listDevices = getBondedDevices(bluetoothAdapter, activity);
-
-
         ArrayList<Speaker> listSpeaker = new ArrayList<>();
         listDevices.forEach((device) -> {
             listSpeaker.add(new Speaker(device));
@@ -87,41 +121,46 @@ public class BluetoothUtility {
     }
 
     //method to check if user have permitted bluetooth functionalities
-    public static boolean checkPermission(Activity activity) {
+    public boolean checkPermission(Activity activity, MainActivity.BluetoothPermCallback callback) {
 
-
-
+        int requestCode = BT_CONNECT_AND_SCAN;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
 
-
+                btPermissionCallback = callback;
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN},
-                        BT_CONNECT_AND_SCAN);
+                        requestCode);
+
+
                 return false;
+
             }
         }
         else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                btPermissionCallback = callback;
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                        BT_CONNECT_AND_SCAN);
+                        requestCode);
                 return false;
             }
         }
         else
             if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                btPermissionCallback = callback;
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        BT_CONNECT_AND_SCAN);
+                        requestCode);
                 return false;
             }
+
 
         return true;
     }
 
-    private BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context ctx, Intent intent) {

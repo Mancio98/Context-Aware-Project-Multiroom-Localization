@@ -54,9 +54,6 @@ import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread {
 
-
-
-
     private Socket socket;
     private static DataInputStream dataIn;
     private static DataOutputStream dataOut;
@@ -65,9 +62,8 @@ public class ClientSocket extends Thread {
     private ScanService scanService;
     private int intervalScan = 10000;
 
-    private int port = 17330;
+    private int port = 10120;
     private String ip ="0.tcp.eu.ngrok.io";// "10.0.2.2";
-
 
     private WifiManager wifiManager;
     private Context context;
@@ -90,9 +86,7 @@ public class ClientSocket extends Thread {
     private Callback<String> callbackSubscriptionSuccessful;
     private Callback<String> callbackSubscriptionUnsuccessful;
 
-
     byte[] bb;
-
 
     public interface Callback<R> {
         void onComplete(R result);
@@ -186,7 +180,9 @@ public class ClientSocket extends Thread {
             if(messageType.equals(MessageChangeReferencePoint.type)){
                 handler.post(new Runnable() {
                     @Override
-                    public void run() { callbackChangeReferencepoint.onComplete(msg);
+                    public void run() {
+                        callbackChangeReferencepoint.onComplete(msg);
+
                     }
                 });
             }

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.multiroomlocalization.app-mergeDebugResources-47:/values-v24/values-v24.xml",
+            "outputFile": "com.example.multiroomlocalization.app-mergeDebugResources-46:/values-v24/values-v24.xml",
             "map": [
                 {
-                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/de20b8b7ce7b305b7971f8f41efb7591/transformed/material-1.9.0/res/values-v24/values-v24.xml",
+                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/090f337ed676e5ed26d304bf1a78644b/transformed/material-1.9.0/res/values-v24/values-v24.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,9,12,15",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/465fdcb592070563b7706a61a9fcb222/transformed/appcompat-1.6.1/res/values-v24/values-v24.xml",
+                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/f519227ce83c25a4daf72bc8b7b65062/transformed/appcompat-1.6.1/res/values-v24/values-v24.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
@@ -33,7 +33,7 @@
                     }
                 },
                 {
-                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/27870707e4977d1eb27795fb01e6e82f/transformed/media-1.6.0/res/values-v24/values-v24.xml",
+                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/b748ab6322c407c98ee89cea5118900a/transformed/media-1.6.0/res/values-v24/values-v24.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",

@@ -1,6 +1,7 @@
 package com.example.multiroomlocalization;
 
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
+import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
@@ -86,7 +87,6 @@ public class ActivityLive extends AppCompatActivity {
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.example.multiroomlocalization.PlayNewAudio";
     public static Activity activity;
     private ConnectBluetoothThread connectBluetoothThread;
-    public static BluetoothUtility btUtility;
     public static WeakReference<ActivityLive> weakActivity;
     boolean serviceBound = false;
 
@@ -247,6 +247,8 @@ public class ActivityLive extends AppCompatActivity {
                     imageview.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
                     drawIconRoom(referencePoints.get(i),x,y,referencePoints.get(i).getId().equals(currentRef.getId()));
                 }
+
+                connectBluetoothDevice(currentRef.getSpeaker());
             }
         };
 
@@ -258,8 +260,6 @@ public class ActivityLive extends AppCompatActivity {
 
         setupAudioService = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout), playlistAdapter);
         setupMusicPlayer();
-
-        btUtility = new BluetoothUtility(this);
 
 
     }
@@ -557,7 +557,8 @@ public class ActivityLive extends AppCompatActivity {
     public static ActivityLive getInstance(){
         return weakActivity.get();
     }
-    public void connectBluetoothDevice(Speaker speaker){
+
+    private void connectBluetoothDevice(Speaker speaker){
         if(connectBluetoothThread!= null)
             connectBluetoothThread.connectDevice(speaker);
     }

@@ -1,5 +1,6 @@
 package com.example.multiroomlocalization.Bluetooth;
 
+
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -48,7 +49,7 @@ public class ListBluetoothAdapter extends ArrayAdapter<ListRoomsElement> {
 
         arrayDevices.add(device);
 
-        BluetoothUtility.checkPermission(myActivity);
+        //checkPermission(myActivity, BT);
         spinnerAdapters.forEach(arrayAdapter ->{
             arrayAdapter.add(device.getName());
             arrayAdapter.notifyDataSetChanged();
@@ -74,7 +75,7 @@ public class ListBluetoothAdapter extends ArrayAdapter<ListRoomsElement> {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(myContext, android.R.layout.simple_spinner_item);
         adapter.add("NONE");
 
-        BluetoothUtility.checkPermission(myActivity);
+        //checkPermission(myActivity);
         for(BluetoothDevice device : pairedDevices) {
             adapter.add(device.getName());
         }
