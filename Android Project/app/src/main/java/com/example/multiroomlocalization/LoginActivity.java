@@ -71,10 +71,8 @@ public class LoginActivity extends AppCompatActivity {
 
         handler = new Handler(Looper.getMainLooper());
 
-        //TODO DA SCOMMENTARE
         client = new ClientSocket(LoginActivity.this);
         client.setContext(LoginActivity.this);
-        client.start();
 
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +186,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        //clientSocket.start();
+        client.start();
     }
 
 
@@ -256,7 +254,8 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
 
-        client.closeConnection();
+        if(client != null)
+            client.closeConnection();
 
         super.onDestroy();
 

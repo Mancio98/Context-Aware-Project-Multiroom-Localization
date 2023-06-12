@@ -7,17 +7,13 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Parcelable;
 import android.util.Log;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -88,7 +84,7 @@ public class BluetoothControlFragment {
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if(btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+                btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onGranted() {
@@ -123,37 +119,8 @@ public class BluetoothControlFragment {
                             }
                         }
                     }
-                })) {
-                    //check if is not already paired, so is not already on bonded list
-                    if (device != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
+                });
 
-                        String deviceName = device.getName();
-                        String deviceHardwareAddress = device.getAddress(); // MAC address
-
-                        if (deviceName != null) {
-                            Log.i("devices_scan", deviceName);
-                            Log.i("devices_scan", deviceHardwareAddress);
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
-
-                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
-                                System.out.println(device.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
-                            } else {
-                                System.out.println("device type: " + device.getBluetoothClass().getDeviceClass());
-                                System.out.println("device uuid: " + Arrays.toString(device.getUuids()));
-
-
-                            }
-
-                            if (!discoveredDevices.contains(device)) {
-                                discoveredDevices.add(device);
-                                roomsAdapter.addBluetoothDevice(device);
-                            }
-                            //add device on the list that user is looking
-                        }
-                    }
-                }
             //when scanning is finished
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 
@@ -168,8 +135,13 @@ public class BluetoothControlFragment {
                 List<ListRoomsElement> arrayRoomsElem = new ArrayList<>();
                 for(String room : roomsArray)
                     arrayRoomsElem.add(new ListRoomsElement(room));
-                roomsAdapter = new ListBluetoothAdapter(context, R.id.rooms_list, arrayRoomsElem,
-                        myActivity, scanBluetoothManager.getPairedDevices());
+                /*roomsAdapter = new ListBluetoothAdapter(context, R.id.rooms_list, arrayRoomsElem,
+                        myActivity, scanBluetoothManager.getPairedDevices(new ScanBluetooth.getPairedCallback() {
+                    @Override
+                    public void onResult(Set<BluetoothDevice> list) {
+                        return list;
+                    }
+                }));*/
 
                 listRooms.setAdapter(roomsAdapter);
                 discoveredDevices = new ArrayList<>();

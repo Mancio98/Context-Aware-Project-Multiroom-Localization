@@ -37,6 +37,7 @@ import com.example.multiroomlocalization.R;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
@@ -268,8 +269,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         context = getApplicationContext();
 
-        //TODO DA SCOMMENTARE MA RISOLVERE PERCHÈ DA ERRORE APPENA ACCESO IL TELEFONO
-        /*callStateListener();
+        //callStateListener();
 
         mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
@@ -282,7 +282,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         mediaSession.setActive(true);
 
         updatePlaybackState();
-        */
+
 
     }
 
@@ -379,6 +379,15 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         // Build the media items.
         exoPlayer = new ExoPlayer.Builder(context).build();
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onPlayerError(PlaybackException error) {
+                //Player.Listener.super.onPlayerError(error);
+                error.printStackTrace();
+                /*exoPlayer = null;
+                initExoPlayer();*/
+            }
+        });
         for (MyAudioTrack track : trackList) {
 
             MediaItem firstItem = MediaItem.fromUri(track.getPath());

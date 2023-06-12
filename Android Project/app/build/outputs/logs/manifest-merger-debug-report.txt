@@ -152,33 +152,33 @@ ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Mult
 	android:name
 		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:26:22-73
 uses-feature#android.hardware.bluetooth
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:27:5-29:35
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:28:5-30:35
 	android:required
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:29:9-32
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:30:9-32
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:28:9-50
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:29:9-50
 uses-permission#android.permission.INTERNET
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:31:5-67
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:5-67
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:31:22-64
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:22-64
 uses-permission#android.permission.ACCESS_NETWORK_STATE
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:5-79
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:33:5-79
 MERGED from [com.google.android.exoplayer:exoplayer-core:2.18.7] /Users/andreamancini/.gradle/caches/transforms-3/46fc7e55ccfe70dc55416fe056e0863c/transformed/jetified-exoplayer-core-2.18.7/AndroidManifest.xml:24:5-79
 MERGED from [com.google.android.exoplayer:exoplayer-core:2.18.7] /Users/andreamancini/.gradle/caches/transforms-3/46fc7e55ccfe70dc55416fe056e0863c/transformed/jetified-exoplayer-core-2.18.7/AndroidManifest.xml:24:5-79
 MERGED from [com.google.android.exoplayer:exoplayer-common:2.18.7] /Users/andreamancini/.gradle/caches/transforms-3/cf7a1b34e07cea6e937515d3563a53c5/transformed/jetified-exoplayer-common-2.18.7/AndroidManifest.xml:24:5-79
 MERGED from [com.google.android.exoplayer:exoplayer-common:2.18.7] /Users/andreamancini/.gradle/caches/transforms-3/cf7a1b34e07cea6e937515d3563a53c5/transformed/jetified-exoplayer-common-2.18.7/AndroidManifest.xml:24:5-79
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:32:22-76
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:33:22-76
 permission#android.permission.MEDIA_CONTENT_CONTROL
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:34:5-75
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:35:5-75
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:34:17-72
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:35:17-72
 uses-permission#android.permission.READ_PHONE_STATE
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:36:5-75
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:37:5-75
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:36:22-72
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:37:22-72
 application
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:38:5-105:19
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:39:5-105:19
 MERGED from [com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:22:5-36:19
 MERGED from [com.vanniktech:android-image-cropper:4.5.0] /Users/andreamancini/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/AndroidManifest.xml:22:5-36:19
 MERGED from [com.google.android.material:material:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/090f337ed676e5ed26d304bf1a78644b/transformed/material-1.9.0/AndroidManifest.xml:24:5-20
@@ -202,69 +202,65 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/andr
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.9.0] /Users/andreamancini/.gradle/caches/transforms-3/55dedc70b95a473650eda30d4efd0f99/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:45:9-35
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:46:9-35
 	android:label
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:43:9-41
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:44:9-41
 	android:fullBackupContent
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:41:9-54
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:42:9-54
 	android:roundIcon
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:44:9-54
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:45:9-54
 	tools:targetApi
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:47:9-29
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:48:9-29
 	android:icon
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:42:9-43
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:43:9-43
 	android:allowBackup
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:39:9-35
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:40:9-35
 	android:theme
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:46:9-59
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:47:9-59
 	android:dataExtractionRules
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:40:9-65
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:41:9-65
 activity#com.example.multiroomlocalization.LoginActivity
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:49:9-59:20
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:50:9-60:20
 	android:exported
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:51:13-36
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:52:13-36
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:50:13-42
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:51:13-42
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:53:13-57:29
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:54:13-58:29
 action#android.intent.action.MAIN
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:54:17-69
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:55:17-69
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:54:25-66
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:55:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:56:17-77
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:57:17-77
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:56:27-74
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:57:27-74
 receiver#androidx.media.session.MediaButtonReceiver
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:61:9-66:20
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:62:9-67:20
 	android:exported
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:62:13-36
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:63:13-36
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:61:19-76
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:62:19-76
 intent-filter#action:name:android.intent.action.MEDIA_BUTTON
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:63:13-65:29
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:13-66:29
 action#android.intent.action.MEDIA_BUTTON
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:17-77
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:65:17-77
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:64:25-74
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:65:25-74
 service#com.example.multiroomlocalization.Music.AudioPlaybackService
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:68:9-77:19
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:69:9-78:19
 	android:enabled
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:70:13-35
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:71:13-35
 	android:exported
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:71:13-36
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:72:13-36
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:69:13-55
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:70:13-55
 intent-filter#action:name:android.intent.action.MEDIA_BUTTON+action:name:android.media.browse.MediaBrowserService
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:72:13-76:29
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:73:13-77:29
 action#android.media.browse.MediaBrowserService
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:73:17-83
+ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:74:17-83
 	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:73:25-80
-service#com.example.multiroomlocalization.Music.AudioPlayerService
-ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:78:9-61
-	android:name
-		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:78:18-58
+		ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:74:25-80
 activity#com.example.multiroomlocalization.MainActivity
 ADDED from /Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/src/main/AndroidManifest.xml:80:9-96:20
 	android:screenOrientation

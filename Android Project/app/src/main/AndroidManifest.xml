@@ -23,7 +23,8 @@
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Since Bluetooth is a basic requirement for our app -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Since Bluetooth is a basic requirement for our app -->
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />
@@ -75,7 +76,6 @@
 
             </intent-filter>
         </service>
-        <service android:name=".Music.AudioPlayerService" />
 
         <activity
             android:name=".MainActivity"

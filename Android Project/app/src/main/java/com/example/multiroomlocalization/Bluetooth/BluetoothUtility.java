@@ -1,10 +1,6 @@
 package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.MainActivity.BT_LIST_BOND;
-import static com.example.multiroomlocalization.MainActivity.BT_SCAN;
-import static com.example.multiroomlocalization.MainActivity.activity;
 import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
-import static com.example.multiroomlocalization.MainActivity.listBondedDevices;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -12,7 +8,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,7 +16,6 @@ import android.os.Build;
 import android.os.Parcelable;
 import android.util.ArraySet;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -30,98 +24,87 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.multiroomlocalization.BetterActivityResult;
 import com.example.multiroomlocalization.MainActivity;
-import com.example.multiroomlocalization.speaker.Speaker;
-
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BluetoothUtility {
 
     private static BetterActivityResult<Intent, ActivityResult> activityLauncher;
     public static final int BT_CONNECT_AND_SCAN = 101;
 
-    public BluetoothUtility(ActivityResultCaller caller) {
+    public interface OnEnableBluetooth {
 
+        void onEnabled();
+
+        default void onDisabled(Activity activity) {
+            Toast.makeText(activity, "Enabled bluetooth is mandatory", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public BluetoothUtility (ActivityResultCaller caller){
+        activityLauncher = BetterActivityResult.registerActivityForResult(caller);
+    }
+    private void setActivityLauncher(ActivityResultCaller caller) {
         activityLauncher = BetterActivityResult.registerActivityForResult(caller);
     }
 
-    //method for scan bluetooth devices around me
-    public void scan(Activity activity, BluetoothAdapter bluetoothAdapter) {
 
-        if (checkPermission(activity, new MainActivity.BluetoothPermCallback() {
-            @SuppressLint("MissingPermission")
+    //method to query user to enable bluetooth
+    public void enableBluetooth(BluetoothAdapter bluetoothAdapter, Activity activity, OnEnableBluetooth callback) {
+
+
+        //setActivityLauncher(activity.);
+
+        checkPermission(activity, new MainActivity.BluetoothPermCallback() {
             @Override
             public void onGranted() {
 
-                if (bluetoothAdapter.isDiscovering()) {
-                    bluetoothAdapter.cancelDiscovery();
+                if (!bluetoothAdapter.isEnabled()) {
+
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
+                    activityLauncher.launch(enableBtIntent, result -> {
+
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            callback.onEnabled();
+
+                        } else {
+
+                            callback.onDisabled(activity);
+
+                        }
+                    });
+
                 }
+                else {
 
-                bluetoothAdapter.startDiscovery();
+                    callback.onEnabled();
+                }
             }
-        })) {
-
-            if (bluetoothAdapter.isDiscovering()) {
-                bluetoothAdapter.cancelDiscovery();
-            }
-
-            //if false error
-            bluetoothAdapter.startDiscovery();
-        }
-    }
-
-    //method to query user to enable bluetooth
-    public boolean enableBluetooth(BluetoothAdapter bluetoothAdapter) {
+        });
 
 
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            AtomicBoolean enabled = new AtomicBoolean(false);
-            activityLauncher.launch(enableBtIntent, result -> {
-                if (result.getResultCode() == Activity.RESULT_OK)
-                    enabled.set(true);
-                else
-                    enabled.set(false); // if false cannot use my application
-            });
-
-            return enabled.get();
-        }
-
-        return true;
     }
 
     //method to get list of already paired devices
-    public Set<BluetoothDevice> getBondedDevices(BluetoothAdapter bluetoothAdapter, Activity activity) {
+    public void getBondedDevices(BluetoothAdapter bluetoothAdapter, Activity activity, ScanBluetooth.getPairedCallback callback) {
 
-        System.out.println("cazzoooasjfdksafkasfka");
-        if(checkPermission(activity, new MainActivity.BluetoothPermCallback() {
-            @SuppressLint("MissingPermission")
-            @Override
-            public void onGranted() {
-                listBondedDevices = bluetoothAdapter.getBondedDevices();
-            }
-        }))
-            return bluetoothAdapter.getBondedDevices();
-        else
-            return new ArraySet<BluetoothDevice>();
+
+        enableBluetooth(bluetoothAdapter, activity, new OnEnableBluetooth() {
+                @SuppressLint("MissingPermission")
+                @Override
+                public void onEnabled() {
+                    System.out.println("onEnabled");
+                    callback.onResult(bluetoothAdapter.getBondedDevices());
+                }
+
+
+            });
+
     }
 
-    public ArrayList<Speaker> getSpeakerBonded(BluetoothAdapter bluetoothAdapter, Activity activity){
-
-        Set<BluetoothDevice> listDevices = getBondedDevices(bluetoothAdapter, activity);
-        ArrayList<Speaker> listSpeaker = new ArrayList<>();
-        listDevices.forEach((device) -> {
-            listSpeaker.add(new Speaker(device));
-        });
-        return listSpeaker;
-    }
 
     //method to check if user have permitted bluetooth functionalities
-    public boolean checkPermission(Activity activity, MainActivity.BluetoothPermCallback callback) {
+    public void checkPermission(Activity activity, MainActivity.BluetoothPermCallback callback) {
+
 
         int requestCode = BT_CONNECT_AND_SCAN;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -134,9 +117,8 @@ public class BluetoothUtility {
                         requestCode);
 
 
-                return false;
-
-            }
+            }else
+                callback.onGranted();
         }
         else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -144,20 +126,20 @@ public class BluetoothUtility {
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         requestCode);
-                return false;
-            }
+
+            }else
+                callback.onGranted();
         }
-        else
-            if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        else if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 btPermissionCallback = callback;
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         requestCode);
-                return false;
-            }
+
+        } else
+            callback.onGranted();
 
 
-        return true;
     }
 
     private final BroadcastReceiver connectA2dpReceiver = new BroadcastReceiver() {
@@ -179,10 +161,10 @@ public class BluetoothUtility {
                 int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_NOT_PLAYING);
                 if (state == BluetoothA2dp.STATE_PLAYING) {
                     Log.d("a2dp", "A2DP start playing");
-                    Toast.makeText(activity, "A2dp is playing", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, "A2dp is playing", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d("a2dp", "A2DP not playing");
-                    Toast.makeText(activity, "A2dp not playing", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, "A2dp not playing", Toast.LENGTH_SHORT).show();
                 }
             } else if(action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
 
