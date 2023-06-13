@@ -163,7 +163,6 @@ public class ClientSocket extends Thread {
 
             System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
-
             /*if(messageType.equals(MessageChangeReferencePoint.type)){
 
                 Speaker speakerToChange = gson.fromJson(msg, MessageChangeReferencePoint.class)
@@ -333,12 +332,11 @@ public class ClientSocket extends Thread {
 
         scanService = new ScanService(context);
 
-        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
-        incomingMsgHandler.start();
+        startIncomingMsgHandler();
 
     }
 
-    public void startIncomingMsgHandler(){
+    private void startIncomingMsgHandler(){
         incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
         incomingMsgHandler.start();
     }
@@ -370,8 +368,9 @@ public class ClientSocket extends Thread {
     }
 
 
-    public void sendMessageReqPlaylist(Callback<String> callback, String message){
+    public void sendMessageReqPlaylist(Callback<String> callback){
         reqPlaylistCallback = callback;
+        String message = gson.toJson(new MessageRequestPlaylist());
         sendMessage(message,false,null);
 
     }
@@ -412,7 +411,7 @@ public class ClientSocket extends Thread {
     }
 
     public void sendMessageFingerprint(String message){
-        sendMessage(message,false,null);
+        //sendMessage(message,false,null);
     }
 
     public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){
@@ -426,12 +425,9 @@ public class ClientSocket extends Thread {
         //sendMessage(null,false,null);
     };
 
-
-
     public void setContext(Context context){
         this.context = context;
     }
-
 
     private void sendMessage(String message,Boolean image,byte[] bb){
 
@@ -484,18 +480,23 @@ public class ClientSocket extends Thread {
             public void run() {
                 try {
                     String json = gson.toJson(msg);
-                    dataOut.writeUTF(json);
-                    dataOut.flush();
-                    socket.close();
-                    dataIn.close();
-                    dataOut.close();
+                    if(dataOut != null && socket != null) {
+                        dataOut.writeUTF(json);
+                        dataOut.flush();
+                        socket.close();
+                        dataIn.close();
+                        dataOut.close();
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
             }
         });
-        incomingMsgHandler.interrupt();
+        if(incomingMsgHandler != null) {
+            if(incomingMsgHandler.isAlive())
+                incomingMsgHandler.interrupt();
+        }
 
     }
 }

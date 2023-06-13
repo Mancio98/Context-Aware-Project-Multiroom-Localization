@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.ArraySet;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.multiroomlocalization.MainActivity;
 
@@ -22,9 +21,9 @@ import java.util.Set;
 
 public class ScanBluetooth {
 
-    private Context context;
-    private Activity activity;
-    private BluetoothAdapter bluetoothAdapter;
+    private final Context context;
+    private final Activity activity;
+    private final BluetoothAdapter bluetoothAdapter;
     protected Set<BluetoothDevice> pairedDevices;
 
     private OnDeviceFoundCallback foundCallback;
@@ -36,6 +35,11 @@ public class ScanBluetooth {
         this.foundCallback = foundCallback;
     }
 
+    public interface getPairedCallback {
+
+        void onResult(Set<BluetoothDevice> list);
+    }
+
     public ScanBluetooth(Context context, Activity myActivity) {
         this.context = context;
         this.activity = myActivity;
@@ -45,9 +49,9 @@ public class ScanBluetooth {
         this.pairedDevices = new ArraySet<>();
     }
 
-    public Set<BluetoothDevice> getPairedDevices() {
-        pairedDevices = btUtility.getBondedDevices(bluetoothAdapter, activity);
-        return pairedDevices;
+    public void getPairedDevices(getPairedCallback callback) {
+
+        btUtility.getBondedDevices(bluetoothAdapter, activity, callback);
     }
 
 
@@ -56,33 +60,30 @@ public class ScanBluetooth {
 
         setupReceiver();
 
-        if(btUtility.enableBluetooth(bluetoothAdapter))
-            startScan();
-        else
-            Toast.makeText(activity,"Enable Bluetooth to continue!",Toast.LENGTH_LONG).show();
-    }
+        btUtility.enableBluetooth(bluetoothAdapter, activity, new BluetoothUtility.OnEnableBluetooth() {
+            @Override
+            public void onEnabled() {
+                System.out.println("startscan!!!!");
+                startScan();
+            }
+
+        });
+}
 
     private void startScan(){
-        if (btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+        btUtility.enableBluetooth(bluetoothAdapter, activity, new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
-            public void onGranted() {
-
+            public void onEnabled() {
                 if (bluetoothAdapter.isDiscovering()) {
                     bluetoothAdapter.cancelDiscovery();
                 }
 
                 bluetoothAdapter.startDiscovery();
             }
-        })) {
 
-            if (bluetoothAdapter.isDiscovering()) {
-                bluetoothAdapter.cancelDiscovery();
-            }
+        });
 
-            //if false error
-            bluetoothAdapter.startDiscovery();
-        }
     }
     private void setupReceiver(){
 
@@ -107,7 +108,7 @@ public class ScanBluetooth {
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                if(btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+                btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onGranted() {
@@ -116,6 +117,7 @@ public class ScanBluetooth {
                             String deviceName = device.getName();
                             String deviceHardwareAddress = device.getAddress(); // MAC address
 
+                            System.out.println(deviceName);
 
                             foundCallback.onFound(deviceName, deviceHardwareAddress, device);
 
@@ -123,20 +125,7 @@ public class ScanBluetooth {
                             //add device on the list that user is looking
                         }
                     }
-                })) {
-                    //check if is not already paired, so is not already on bonded list
-                    if (device != null) {
-
-                        String deviceName = device.getName();
-                        String deviceHardwareAddress = device.getAddress(); // MAC address
-
-
-                        foundCallback.onFound(deviceName, deviceHardwareAddress, device);
-
-
-                        //add device on the list that user is looking
-                    }
-                }
+                });
 
                 //when scanning is finished
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
@@ -157,17 +146,14 @@ public class ScanBluetooth {
     };
 
     public void interruptScan(){
-        if(btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+        btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
             @SuppressLint("MissingPermission")
             @Override
             public void onGranted() {
                 if (bluetoothAdapter.isDiscovering())
                     bluetoothAdapter.cancelDiscovery();
             }
-        })) {
-            if (bluetoothAdapter.isDiscovering())
-                bluetoothAdapter.cancelDiscovery();
-        }
+        });
     }
 
     public void unregisterReceiver(){

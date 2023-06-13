@@ -112,8 +112,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int BT_SCAN = 102;
     public static final int BT_LIST_BOND = 103;
     public static final int BT_PAIR_DEVICE = 104;
-    public static Activity activity;
-
+    private Activity activity;
 
     private ImageView playPause;
 
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
     private ArraySet<Speaker> listSpeaker;
     private TextView timeTextView;
     private ListView audioPlaylistView;
-    public static Set<BluetoothDevice> listBondedDevices;
+
 
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
@@ -165,7 +164,9 @@ public class MainActivity extends AppCompatActivity {
 
     public interface BluetoothPermCallback {
         void onGranted();
+        default void notGranted(){
 
+        };
     }
 
     public static BluetoothPermCallback btPermissionCallback;
@@ -179,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         clientSocket = LoginActivity.client;
 
-
         fab = findViewById(R.id.fab);
         fab.setEnabled(false);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -189,9 +189,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         activity = this;
-
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -200,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
             //The key argument here must match that used in the other activity
             //clientSocket.setAddress(address, port);
         }
-
 
         imageView = (ImageView) findViewById(R.id.map);
         // TODO DA PROVARE
@@ -274,12 +271,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btUtility = new BluetoothUtility(this);
-        /*BluetoothUtility.checkPermission(this, new BluetoothPermCallback() {
-            @Override
-            public void onGranted() {
-                System.out.println("VAFFANCULO");
-            }
-        });*/
+
     }
 
     private void launchAssignRAFragment() {
@@ -575,7 +567,6 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
 
-
         }
     }
 
@@ -670,16 +661,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case BT_LIST_BOND:
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                    BluetoothAdapter bluetoothAdapter = getSystemService(BluetoothManager.class).getAdapter();
-                    listBondedDevices = bluetoothAdapter.getBondedDevices();
-
-                } else
-                    Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
-
-                break;
-
 
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -752,7 +733,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void createPopupRoomTraining(ReferencePoint point, int index) {
 
-
+        System.out.println("scan: "+point.getId());
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
         dialogBuilder.setView(popup);
@@ -766,7 +747,6 @@ public class MainActivity extends AppCompatActivity {
 
         TextView timer = (TextView) popup.findViewById(R.id.timer);
         timer.setText("seconds remaining: 05:00");
-
 
         MessageNewReferencePoint message = new MessageNewReferencePoint(point.getX(), point.getY(), point);
         Gson gson = new Gson();
@@ -842,7 +822,6 @@ public class MainActivity extends AppCompatActivity {
 
                                                     RecyclerView recyclerView = (RecyclerView) popup.findViewById(R.id.recyclerViewReferencePoint);
 
-                                                    //TODO tempSpeaker DEVE ESSERE L'ARRAY DI TUTTI GLI SPEAKER ASSOCIATI AL TELEFONO
 
                                                     ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints, getApplicationContext(), activity);
                                                     recyclerView.setAdapter(adapter);

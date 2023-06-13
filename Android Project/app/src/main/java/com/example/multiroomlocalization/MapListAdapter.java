@@ -53,6 +53,8 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull MapListHolder holder,int position) {
+        //TODO far vedere a luca
+        //position = holder.getBindingAdapterPosition();
         Map currentData = list.get(position);
         holder.idMap.setText("ID: " + currentData.id);
         holder.mapName.setText(currentData.name);
