@@ -1,82 +1,86 @@
 [
     {
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_scan_training.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/layout_scan_training.xml"
+    },
+    {
         "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_room.xml",
         "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_room.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_upload_map.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_upload_map.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/fragment_assignra.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/fragment_assignra.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_scan_training.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/layout_scan_training.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_room.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_room.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/content_main.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/content_main.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_main.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/activity_main.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_live_activity.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/layout_live_activity.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_rooms_bt_layout.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/list_rooms_bt_layout.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/referencepoint_row.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/referencepoint_row.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/registration_layout.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/registration_layout.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_tracks_layout.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/list_tracks_layout.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_upload_map.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_upload_map.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_text.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_text.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/map_row.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/map_row.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_main.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/activity_main.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/content_main.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/content_main.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_input_name_map.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_input_name_map.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_login.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/activity_login.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_password_map.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/layout_password_map.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/referencepoint_row.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/referencepoint_row.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/referencepointlist_view.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/referencepointlist_view.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_input_name_map.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_input_name_map.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_add_map.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_add_map.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_live_activity.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/layout_live_activity.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_rooms_bt_layout.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/list_rooms_bt_layout.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_tracks_layout.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/list_tracks_layout.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_login.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/activity_login.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_add_map.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_add_map.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/fragment_assignra.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/fragment_assignra.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_list_map_available.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/activity_list_map_available.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_list_map_available.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/activity_list_map_available.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_text.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_text.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/registration_layout.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/registration_layout.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/referencepointlist_view.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/referencepointlist_view.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/crop_view.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/crop_view.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/crop_view.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/crop_view.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/map_row.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/map_row.xml"
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_password_map.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/layout_password_map.xml"
     }
 ]

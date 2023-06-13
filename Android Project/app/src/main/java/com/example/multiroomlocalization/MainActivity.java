@@ -143,9 +143,7 @@ public class MainActivity extends AppCompatActivity {
     protected ClientSocket clientSocket;
     private CropView cv;
 
-
     private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
-    private HashMap<String, ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
 
     private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
@@ -514,7 +512,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void checkPermission(String permission, int requestCode) {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
-
             // Requesting the permission
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{permission}, requestCode);
         } else {
@@ -792,11 +789,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         timer.setText("Stanza completata");
+                        System.out.println("REFERENCE");
+                        System.out.println(referencePoints.size());
+                        System.out.println(index);
 
                         mHandler.removeCallbacks(scanRunnable);
-
-                        resultScan.put(referencePoints.get(index).getId(), scanResultArrayList);
-                        System.out.println(resultScan);
 
                         if (index + 1 < referencePoints.size()) {
                             buttonNext.setText("Next");
@@ -1011,7 +1008,6 @@ public class MainActivity extends AppCompatActivity {
                                     clientSocket.sendMessageEndScanReferencePoint(json, callback);
                                     dialog.cancel();
                                 }
-
 
                             });
                         }

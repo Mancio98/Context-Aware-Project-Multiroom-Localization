@@ -261,7 +261,7 @@ public class ActivityLive extends AppCompatActivity {
         setupAudioService = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout), playlistAdapter);
         setupMusicPlayer();
 
-
+        btUtility = new BluetoothUtility(this);
     }
 
     @Override
@@ -311,7 +311,6 @@ public class ActivityLive extends AppCompatActivity {
             case 1: //DEFINIRE CODICE RICHIESTA
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(ActivityLive.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-
                 }
                 else {
                     Toast.makeText(ActivityLive.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
@@ -493,13 +492,11 @@ public class ActivityLive extends AppCompatActivity {
         canvas.drawRoundRect(background,100,100,bkgPaint);
 
         canvas.drawText(referencePoint.getId(), x - halfTextLength, y, paint);
-
     }
 
     private Runnable scanRunnable = new Runnable() {
         @Override
         public void run() {
-
             scanService.startScan();
             mHandler.postDelayed(scanRunnable, intervalScan);
         }
@@ -529,7 +526,6 @@ public class ActivityLive extends AppCompatActivity {
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
                 listScan.add(scan);
             }
-
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
@@ -539,12 +535,11 @@ public class ActivityLive extends AppCompatActivity {
         private void scanFailure() {
             List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-            for ( android.net.wifi.ScanResult res : results ) {
+            for ( android.net.wifi.ScanResult res : results ){
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
                 System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
                 listScan.add(scan);
             }
-
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);

@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization.socket;
 
+import static java.net.StandardSocketOptions.SO_KEEPALIVE;
+
 import android.app.Activity;
 
 
@@ -11,14 +13,18 @@ import com.example.multiroomlocalization.ScanService;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.telecom.Call;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+
 import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
 import com.example.multiroomlocalization.messages.connection.MessageConnectionClose;
 import com.example.multiroomlocalization.messages.connection.MessageImageFinish;
+import com.example.multiroomlocalization.messages.connection.MessageKeepAlive;
 import com.example.multiroomlocalization.messages.connection.MessageMappingPhaseFinish;
 import com.example.multiroomlocalization.messages.connection.MessageReferencePointFinish;
 import com.example.multiroomlocalization.messages.connection.MessageRegistrationSuccessful;
@@ -30,6 +36,7 @@ import com.example.multiroomlocalization.messages.connection.MessageUnsuccessful
 import com.example.multiroomlocalization.messages.connection.MessageUpdateMapList;
 import com.example.multiroomlocalization.messages.localization.MessageImage;
 import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
+import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 
@@ -49,22 +56,19 @@ import java.net.Socket;
 import java.io.OutputStream;
 
 
+import java.net.SocketTimeoutException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ClientSocket extends Thread {
-
     private Socket socket;
     private static DataInputStream dataIn;
     private static DataOutputStream dataOut;
     private Handler mHandler = new Handler();
-
     private ScanService scanService;
     private int intervalScan = 10000;
-
-    private int port = 10120;
-    private String ip ="0.tcp.eu.ngrok.io";// "10.0.2.2";
-
+    private int port = 10110;
+    private String ip ="5.tcp.eu.ngrok.io";// "10.0.2.2";
     private WifiManager wifiManager;
     private Context context;
     private Gson gson = new Gson();
@@ -112,31 +116,34 @@ public class ClientSocket extends Thread {
                     String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
 
                     if (messageType.equals(MessageImage.type)) {
-                        System.out.println("PROVA");
                         try {
                             dataOut.writeUTF(gson.toJson(new MessageAcknowledge()));
                             dataOut.flush();
                             //byte[] data = null;
                             setBb(new byte[gson.fromJson(msg,MessageImage.class).getNByte()]);
-                            System.out.println("PROVA2");
                             if (bb.length > 0) {
                                 //bb = new byte[len];
-                                System.out.println("PROVA3");
                                 dataIn.readFully(bb, 0, bb.length); // read the message
-                                System.out.println("dentro if len");
                             }
-                            System.out.println("Fuori if len");
-                            System.out.println(bb);
                             sendMessage(gson.toJson(new MessageImageFinish()), false, null);
-                        } catch (IOException e) {
+                        }
+                        catch (IOException e) {
                             throw new RuntimeException(e);
                         }
 
                     }
                     msgHandler(msg);
-                } catch (IOException e) {
+                }
+                catch(SocketTimeoutException ste){
+                    System.out.println("30 second");
+                    Gson gson = new Gson();
+                    MessageKeepAlive message = new MessageKeepAlive();
+                    String json = gson.toJson(message);
+                    sendMessage(json,false,null);
+                    ste.printStackTrace();
+                }
+                catch (IOException e) {
                     interrupt();
-
                     e.printStackTrace();
                 }
             }
@@ -154,12 +161,8 @@ public class ClientSocket extends Thread {
 
         private void msgHandler(String msg){
 
-
             System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
-
-
-
 
             /*if(messageType.equals(MessageChangeReferencePoint.type)){
 
@@ -187,7 +190,6 @@ public class ClientSocket extends Thread {
                 });
             }
             else if(messageType.equals(MessageRequestPlaylist.type)){
-
 
                 handler.post(new Runnable() {
                     @Override
@@ -243,6 +245,7 @@ public class ClientSocket extends Thread {
             }
             else if(messageType.equals(MessageMappingPhaseFinish.type)){
                 handler.post(new Runnable() {
+
                     @Override
                     public void run() { endMappingPhaseCallback.onComplete(msg);
                     }
@@ -304,8 +307,10 @@ public class ClientSocket extends Thread {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         try {
             socket = new Socket(ip, port);
+            socket.setSoTimeout(60000);
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
+            System.out.println("AVVIATO");
             ((Activity) context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -325,6 +330,7 @@ public class ClientSocket extends Thread {
             e.printStackTrace();
         }
 
+
         scanService = new ScanService(context);
 
         incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
@@ -335,7 +341,6 @@ public class ClientSocket extends Thread {
     public void startIncomingMsgHandler(){
         incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
         incomingMsgHandler.start();
-
     }
 
     public void setAddress(String addNgrok,Integer portNgrok){
@@ -349,6 +354,7 @@ public class ClientSocket extends Thread {
         return new TaskRunner<Void>(new MessageByte(bb),handler);
     };
 */
+
     public void sendImage(byte[] bb,Callback<String> callback){
         imageCallback = callback;
         sendMessage(null,true,bb);

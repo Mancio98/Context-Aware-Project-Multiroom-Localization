@@ -120,11 +120,13 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
         holder.spinnerBluetooth.setAdapter(myAdapter);
         System.out.println(currentData.getSpeaker());
 
+        holder.spinnerBluetooth.setSelection(0);
         if (currentData.getSpeaker() != null){
             if(currentData.getSpeaker().getName() != null){
-                holder.spinnerBluetooth.setSelection(speakerName.indexOf(currentData.getSpeaker().getName()));
+                int index = itemsBluetooth.indexOf(currentData.getSpeaker());
+                if(index > -1) holder.spinnerBluetooth.setSelection(index + 1);
             }
-            else holder.spinnerBluetooth.setSelection(0);
+
 
         }
 

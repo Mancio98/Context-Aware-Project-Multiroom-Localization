@@ -1,7 +1,5 @@
 package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.ActivityLive.activity;
-
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 
@@ -19,14 +17,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.multiroomlocalization.MainActivity;
-import com.example.multiroomlocalization.speaker.Speaker;
 
 import java.util.Set;
 
 public class ScanBluetooth {
 
     private Context context;
-    private Activity myActivity;
+    private Activity activity;
     private BluetoothAdapter bluetoothAdapter;
     protected Set<BluetoothDevice> pairedDevices;
 
@@ -41,7 +38,7 @@ public class ScanBluetooth {
 
     public ScanBluetooth(Context context, Activity myActivity) {
         this.context = context;
-        this.myActivity = myActivity;
+        this.activity = myActivity;
         BluetoothManager bluetoothManager = myActivity.getSystemService(BluetoothManager.class);
         bluetoothAdapter = bluetoothManager.getAdapter();
 
@@ -49,7 +46,7 @@ public class ScanBluetooth {
     }
 
     public Set<BluetoothDevice> getPairedDevices() {
-        pairedDevices = btUtility.getBondedDevices(bluetoothAdapter,myActivity);
+        pairedDevices = btUtility.getBondedDevices(bluetoothAdapter, activity);
         return pairedDevices;
     }
 
@@ -62,7 +59,7 @@ public class ScanBluetooth {
         if(btUtility.enableBluetooth(bluetoothAdapter))
             startScan();
         else
-            Toast.makeText(myActivity,"Enable Bluetooth to continue!",Toast.LENGTH_LONG).show();
+            Toast.makeText(activity,"Enable Bluetooth to continue!",Toast.LENGTH_LONG).show();
     }
 
     private void startScan(){
@@ -160,7 +157,7 @@ public class ScanBluetooth {
     };
 
     public void interruptScan(){
-        if(btUtility.checkPermission(myActivity, new MainActivity.BluetoothPermCallback() {
+        if(btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
             @SuppressLint("MissingPermission")
             @Override
             public void onGranted() {

@@ -23,7 +23,6 @@
         android:ems="10"
         android:hint="Nome stanza"
         android:inputType="textPersonName"
-        android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         android:textAlignment="center" />
 
     <LinearLayout
