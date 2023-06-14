@@ -1,6 +1,5 @@
 package com.example.multiroomlocalization;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -13,7 +12,8 @@ import android.widget.CompoundButton;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
 
@@ -22,25 +22,61 @@ import java.util.Set;
 
 public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePointHolder> {
 
-    private final Activity activity;
-    private ArrayList<ReferencePoint> list;
+    private ArrayList<ReferencePoint> listReferencePoint;
     private ArrayList<Speaker> itemsBluetooth;
 
     private Context context;
-    private ScanBluetooth scanBluetoothManager;
+    private ScanBluetoothService serviceBluetooth;
     private ArrayList<ArrayAdapter<String>> myAdapter;
     private int num = 0;
 
-    public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, Activity activity){
-        this.list = arrList;
-        this.context = context;
-        this.activity = activity;
-        this.scanBluetoothManager = new ScanBluetooth(context, activity);
-        this.myAdapter = new ArrayList<>();
-        this.itemsBluetooth = new ArrayList<>();
+    public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, ScanBluetoothService serviceBluetooth){
 
+        listReferencePoint = arrList;
+        this.context = context;
+        this.serviceBluetooth = serviceBluetooth;
+        myAdapter = new ArrayList<>();
+        this.itemsBluetooth = new ArrayList<>();
+        populateItemsBluetooth();
     }
 
+
+    private void populateItemsBluetooth(){
+        serviceBluetooth.getPairedDevices(new ScanBluetoothService.getPairedCallback() {
+            @Override
+            public void onResult(Set<BluetoothDevice> list) {
+
+                itemsBluetooth.clear();
+                itemsBluetooth.addAll(Speaker.getListSpeakerFromDevice(list));
+                notifyDataSetChanged();
+                serviceBluetooth.addDeviceFoundCallbackAndScan(new ScanBluetoothService.OnDeviceFoundCallback() {
+                    @Override
+                    public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
+
+                        if(deviceName == null)
+                            return;
+
+                        boolean found = false;
+                        int i = 0;
+                        while (!found && i < itemsBluetooth.size()) {
+                            if (itemsBluetooth.get(i).getMac().equals(deviceHardwareAddress))
+                                found = true;
+                            i++;
+                        }
+                        if (!found) {
+                            itemsBluetooth.add(new Speaker(deviceName,deviceHardwareAddress));
+                            notifyDataSetChanged();
+
+                        }
+                    }
+                });
+
+            }
+        });
+
+
+
+    }
 
     @NonNull
     @Override
@@ -73,28 +109,37 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
 
     @Override
     public void onBindViewHolder(@NonNull ReferencePointHolder holder, int position) {
-        ReferencePoint currentData = list.get(position);
+
+        ReferencePoint currentData = listReferencePoint.get(position);
 
         holder.referencePointName.setText(currentData.getId());
 
         ArrayList<String> speakerName = new ArrayList<>();
         speakerName.add("No Music");
+        ArrayList<String> speakerMac = new ArrayList<>();
+        speakerMac.add("");
 
         itemsBluetooth.forEach((speaker) -> {
             speakerName.add(speaker.getName());
-            System.out.println(speaker.getName());
+            speakerMac.add(speaker.getMac());
+
         });
+
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, speakerName);
         holder.spinnerBluetooth.setAdapter(adapter);
 
-        myAdapter.add(adapter);
-        System.out.println(currentData.getSpeaker());
+        //myAdapter.add(adapter);
 
         holder.spinnerBluetooth.setSelection(0);
+
+
         if (currentData.getSpeaker() != null){
-            int index = itemsBluetooth.indexOf(currentData.getSpeaker());
-            holder.spinnerBluetooth.setSelection(index+1);
+            System.out.println(currentData.getId());
+            System.out.println(currentData.getSpeaker().getName());
+            int index = speakerMac.indexOf(currentData.getSpeaker().getMac());
+            System.out.println(index);
+            holder.spinnerBluetooth.setSelection(index);
 
         }
 
@@ -123,75 +168,27 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
             }
         });
 
-        num++;
-        System.out.println(num);
-        if(num == list.size()){
-            scanBluetoothManager.setFoundCallback(new ScanBluetooth.OnDeviceFoundCallback() {
-                @Override
-                public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
-
-                    if(deviceName == null)
-                        return;
-
-                    boolean found = false;
-                    int i = 0;
-                    while (!found && i < itemsBluetooth.size()) {
-                        if (itemsBluetooth.get(i).getMac().equals(deviceHardwareAddress))
-                            found = true;
-                        i++;
-                    }
-                    if (!found) {
-                        itemsBluetooth.add(new Speaker(deviceName,deviceHardwareAddress));
-                        myAdapter.forEach((stringArrayAdapter -> {
-                            stringArrayAdapter.add(deviceName);
-                            stringArrayAdapter.notifyDataSetChanged();
-                        }));
-
-                    }
-                }
-            });
-            scanBluetoothManager.getPairedDevices(new ScanBluetooth.getPairedCallback() {
-                @Override
-                public void onResult(Set<BluetoothDevice> list) {
-
-                    ArrayList<Speaker> tmp_list = Speaker.getListSpeakerFromDevice(list);
-                    tmp_list.forEach(speaker -> {
-                        itemsBluetooth.add(speaker);
-                        myAdapter.forEach(stringArrayAdapter -> {
-                            stringArrayAdapter.add(speaker.getName());
-                            stringArrayAdapter.notifyDataSetChanged();
-                        });
-                    });
-                    System.out.println("dovrebbe fare scan ora dioboia!-");
-                    scanBluetoothManager.setupBluetoothAndScan();
-                }
-            });
-
-            num = 0;
-        }
-
     }
 
-
-
-    public void interruptScan(){
-        scanBluetoothManager.interruptScan();
-        scanBluetoothManager.unregisterReceiver();
+    public void closeBluetoothScan(){
+        serviceBluetooth.interruptScan();
     }
-
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return listReferencePoint.size();
+    }
+
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull ReferencePointHolder holder) {
+        super.onViewDetachedFromWindow(holder);
     }
 
     @Override
-    public void onAttachedToRecyclerView(
-            RecyclerView recyclerView)
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
 
-    {
-
-        super.onAttachedToRecyclerView(recyclerView);
     }
 
 }

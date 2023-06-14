@@ -21,7 +21,9 @@
     <string name="playmusic">play</string>
     <string name="assignspeaker_room">Assign only 1 speaker for each room</string>
     <string name="choose_device">choose device</string>
-
+    <string name="dialog_request_connection_bt"> Dispositivo Bluetooth non trovato intorno a te (alcuni dispositivi possono non essere discoverable), vuoi provare a connettere ugualmente?</string>
+    <string name="dialog_conferma">Conferma</string>
+    <string name="dialog_cancel">Cancel</string>
     <string name="addReferencePointpopup">Adesso che hai caricato la tua mappa seleziona tutte le stanze della casa e aggiungi il nome con cui indicarla</string>
     <string name="addReferencePointpopupSecond">Quando hai aggiunto tutte le stanze conferma attraverso il bottone in basso a destra</string>
 

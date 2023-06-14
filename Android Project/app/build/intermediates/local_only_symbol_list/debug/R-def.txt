@@ -133,6 +133,9 @@ string assignspeaker_room
 string choose_device
 string choose_room
 string default_device_name
+string dialog_cancel
+string dialog_conferma
+string dialog_request_connection_bt
 string discovered_devices
 string done
 string first_fragment_label

@@ -21,6 +21,9 @@
     <string name="choose_device">choose device</string>
     <string name="choose_room">choose room</string>
     <string name="default_device_name">UNKNOWN</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_conferma">Conferma</string>
+    <string name="dialog_request_connection_bt"> Dispositivo Bluetooth non trovato intorno a te (alcuni dispositivi possono non essere discoverable), vuoi provare a connettere ugualmente?</string>
     <string name="discovered_devices">Discovered Devices</string>
     <string name="done">Done</string>
     <string name="first_fragment_label">First Fragment</string>

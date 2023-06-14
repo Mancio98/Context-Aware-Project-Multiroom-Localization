@@ -4227,6 +4227,9 @@ string clear_text_end_icon_content_description
 string crop_image_menu_crop
 string default_device_name
 string dest_title
+string dialog_cancel
+string dialog_conferma
+string dialog_request_connection_bt
 string discovered_devices
 string done
 string error_a11y_label
