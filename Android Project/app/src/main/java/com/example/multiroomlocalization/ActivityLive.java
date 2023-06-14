@@ -247,11 +247,14 @@ public class ActivityLive extends AppCompatActivity {
                 }
                 else {
                     currentRef = gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint();
+                    System.out.println("NEW REFERENCE POINT");
                     NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                     if (mNotificationManager.isNotificationPolicyAccessGranted()) {
                         if (currentRef.getDnd()) {
+                            System.out.println("DND TRUE");
                             mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
                         } else {
+                            System.out.println("DND FALSE");
                             mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
                         }
                     }
@@ -340,14 +343,6 @@ public class ActivityLive extends AppCompatActivity {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case 1: //DEFINIRE CODICE RICHIESTA
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(ActivityLive.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-                }
-                else {
-                    Toast.makeText(ActivityLive.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-                }
-
         }
     }
 
@@ -464,6 +459,11 @@ public class ActivityLive extends AppCompatActivity {
         connectBluetoothThread = null;
         activity = null;
         clientSocket = null;
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (mNotificationManager.isNotificationPolicyAccessGranted()) {
+                mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+
+        }
     }
 
 }

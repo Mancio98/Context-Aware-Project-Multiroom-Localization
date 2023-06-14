@@ -479,7 +479,6 @@ public class MainActivity extends AppCompatActivity {
                     startPopup();
                     break;
             }
-
         }
     }
 
