@@ -37,6 +37,9 @@ public final class ActivityLoginBinding implements ViewBinding {
   public final TextView passwordText;
 
   @NonNull
+  public final TextView textDnd;
+
+  @NonNull
   public final TextView textRegistration;
 
   @NonNull
@@ -48,7 +51,7 @@ public final class ActivityLoginBinding implements ViewBinding {
   private ActivityLoginBinding(@NonNull LinearLayout rootView, @NonNull TextView RegistrationText,
       @NonNull Button buttonRegistration, @NonNull EditText editMailRegistration,
       @NonNull EditText editPasswordRegistration, @NonNull TextView passwordText,
-      @NonNull TextView textRegistration, @NonNull TextView textViewLink,
+      @NonNull TextView textDnd, @NonNull TextView textRegistration, @NonNull TextView textViewLink,
       @NonNull TextView usernameText) {
     this.rootView = rootView;
     this.RegistrationText = RegistrationText;
@@ -56,6 +59,7 @@ public final class ActivityLoginBinding implements ViewBinding {
     this.editMailRegistration = editMailRegistration;
     this.editPasswordRegistration = editPasswordRegistration;
     this.passwordText = passwordText;
+    this.textDnd = textDnd;
     this.textRegistration = textRegistration;
     this.textViewLink = textViewLink;
     this.usernameText = usernameText;
@@ -118,6 +122,12 @@ public final class ActivityLoginBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.textDnd;
+      TextView textDnd = ViewBindings.findChildViewById(rootView, id);
+      if (textDnd == null) {
+        break missingId;
+      }
+
       id = R.id.textRegistration;
       TextView textRegistration = ViewBindings.findChildViewById(rootView, id);
       if (textRegistration == null) {
@@ -137,7 +147,7 @@ public final class ActivityLoginBinding implements ViewBinding {
       }
 
       return new ActivityLoginBinding((LinearLayout) rootView, RegistrationText, buttonRegistration,
-          editMailRegistration, editPasswordRegistration, passwordText, textRegistration,
+          editMailRegistration, editPasswordRegistration, passwordText, textDnd, textRegistration,
           textViewLink, usernameText);
     }
     String missingId = rootView.getResources().getResourceName(id);

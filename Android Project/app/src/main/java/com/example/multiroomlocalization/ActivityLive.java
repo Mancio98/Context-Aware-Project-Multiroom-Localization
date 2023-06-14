@@ -5,6 +5,8 @@ import static com.example.multiroomlocalization.MainActivity.btPermissionCallbac
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 
@@ -34,6 +36,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -78,6 +81,7 @@ public class ActivityLive extends AppCompatActivity {
 
     private final Gson gson = new Gson();
     private ControlAudioService audioServiceManager;
+    private boolean first = true;
 
 
     @Override
@@ -96,6 +100,16 @@ public class ActivityLive extends AppCompatActivity {
             Gson gson = new Gson();
             referencePoints = gson.fromJson((String) extras.get("ReferencePoint"),MessageMapDetails.class).getReferencePointArrayList();
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ActivityLive.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
         Bitmap bitmap = BitmapFactory.decodeByteArray(clientSocket.getBb(), 0, clientSocket.getBb().length);
         System.out.println("BITMAP SIZE");
@@ -210,31 +224,61 @@ public class ActivityLive extends AppCompatActivity {
             @Override
             public void onComplete(String result) {
                 Gson gson = new Gson();
-                currentRef =  gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint();
+                if(gson.fromJson(result,MessageChangeReferencePoint.class).getReferencePoint() == null){
+                    stopScan();
+                    dialogBuilder = new AlertDialog.Builder(ActivityLive.this);
+                    final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
+                    dialogBuilder.setView(popup);
+                    TextView text = popup.findViewById(R.id.textPopup);
+                    text.setText("Errore : Misurazioni non corrette");
 
-                for (int i=0;i<referencePoints.size();i++){
-                    int x = (referencePoints.get(i).getX()*imageViewWidth)/100;
-                    int y = (referencePoints.get(i).getY()*imageViewHeight)/100;
-
-                    imageview.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
-                    drawIconRoom(referencePoints.get(i),x,y,referencePoints.get(i).getId().equals(currentRef.getId()));
+                    Button button = popup.findViewById(R.id.buttonPopup);
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.dismiss();
+                            finish();
+                        }
+                    });
+                    dialog = dialogBuilder.create();
+                    dialog.setCanceledOnTouchOutside(false);
+                    dialog.setCancelable(false);
+                    dialog.show();
                 }
-
-
-                btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
-                    @Override
-                    public void onGranted() {
-                        audioServiceManager.initBluetoothManagerIfNot();
-                        audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
+                else {
+                    currentRef = gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint();
+                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (mNotificationManager.isNotificationPolicyAccessGranted()) {
+                        if (currentRef.getDnd()) {
+                            mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
+                        } else {
+                            mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+                        }
                     }
-                });
 
+                    for (int i = 0; i < referencePoints.size(); i++) {
+                        int x = (referencePoints.get(i).getX() * imageViewWidth) / 100;
+                        int y = (referencePoints.get(i).getY() * imageViewHeight) / 100;
+
+                        imageview.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
+                        drawIconRoom(referencePoints.get(i), x, y, referencePoints.get(i).getId().equals(currentRef.getId()));
+
+                    }
+
+                    btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+                        @Override
+                        public void onGranted() {
+                            audioServiceManager.initBluetoothManagerIfNot();
+                            audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
+                        }
+                    });
+
+                }
             }
         };
 
         clientSocket.setCallbackChangeReferencePoint(callback);
-        scanService.registerReceiver(broadcastReceiverScan);
-        mHandler.postDelayed(scanRunnable, 3000);
+
 
         audioServiceManager = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout));
 
@@ -242,7 +286,7 @@ public class ActivityLive extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
+    protected void onStart(){
         super.onStart();
         audioServiceManager.connectMediaBrowser();
     }
@@ -251,12 +295,15 @@ public class ActivityLive extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        scanService.registerReceiver(broadcastReceiverScan);
+        mHandler.postDelayed(scanRunnable, 3000);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         audioServiceManager.disconnectMediaBrowser();
+        stopScan();
     }
 
     @Override
@@ -337,11 +384,21 @@ public class ActivityLive extends AppCompatActivity {
         @Override
         public void run() {
             scanService.startScan();
-            mHandler.postDelayed(scanRunnable, intervalScan);
+            System.out.println("first");
+            System.out.println(first);
+            if(first){
+                mHandler.postDelayed(scanRunnable, intervalScan+5000);
+                first = false;
+            }
+            else {
+                mHandler.postDelayed(scanRunnable, intervalScan);
+            }
+
         }
     };
 
     private void stopScan() {
+        scanService.registerReceiver(null);
         mHandler.removeCallbacks(scanRunnable);
     }
     private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
@@ -368,7 +425,7 @@ public class ActivityLive extends AppCompatActivity {
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if (clientSocket!=null) clientSocket.sendMessageFingerprint(json);
         }
 
         private void scanFailure() {
@@ -382,7 +439,7 @@ public class ActivityLive extends AppCompatActivity {
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if(clientSocket!=null) clientSocket.sendMessageFingerprint(json);
         }
 
 
@@ -407,6 +464,6 @@ public class ActivityLive extends AppCompatActivity {
         connectBluetoothThread = null;
         activity = null;
         clientSocket = null;
-
     }
+
 }

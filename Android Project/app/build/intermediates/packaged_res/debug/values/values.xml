@@ -22,6 +22,7 @@
     <string name="choose_room">choose room</string>
     <string name="default_device_name">UNKNOWN</string>
     <string name="discovered_devices">Discovered Devices</string>
+    <string name="dnd"> Per poter utilizzare la DnD attiva l\'impostazione cliccando qui </string>
     <string name="done">Done</string>
     <string name="first_fragment_label">First Fragment</string>
     <string name="hello_first_fragment">Hello first fragment</string>

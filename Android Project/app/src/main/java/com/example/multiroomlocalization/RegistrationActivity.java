@@ -1,6 +1,10 @@
 package com.example.multiroomlocalization;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -45,6 +49,16 @@ public class RegistrationActivity  extends AppCompatActivity {
 
 
         client = LoginActivity.client;
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                RegistrationActivity.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
 
         username.addTextChangedListener(new TextWatcher() {

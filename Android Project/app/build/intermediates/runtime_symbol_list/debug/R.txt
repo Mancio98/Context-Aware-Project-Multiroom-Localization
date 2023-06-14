@@ -3858,6 +3858,7 @@ int id tag_unhandled_key_listeners 0x7f0a024a
 int id tag_window_insets_animation_callback 0x7f0a024b
 int id text 0x7f0a024c
 int id text2 0x7f0a024d
+int id textDnd 0x7f0a029a
 int id textEnd 0x7f0a024e
 int id textPopup 0x7f0a024f
 int id textRegistration 0x7f0a0250
@@ -4227,6 +4228,7 @@ int string crop_image_menu_crop 0x7f13002e
 int string default_device_name 0x7f13002f
 int string dest_title 0x7f130030
 int string discovered_devices 0x7f130031
+int string dnd 0x7f1300fe
 int string done 0x7f130032
 int string error_a11y_label 0x7f130033
 int string error_icon_content_description 0x7f130034

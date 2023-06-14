@@ -2,7 +2,10 @@ package com.example.multiroomlocalization;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -66,6 +69,16 @@ public class ListMapActivity extends AppCompatActivity {
                 text.setVisibility(View.INVISIBLE);
             }
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ListMapActivity.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
         adapter = new MapListAdapter(mapList,ListMapActivity.this,clientSocket);
         recyclerView.setAdapter(adapter);
@@ -255,9 +268,6 @@ public class ListMapActivity extends AppCompatActivity {
                     }
                 });
 
-
-
-
                 Button buttonCreateMap = (Button) popup.findViewById(R.id.buttonCreateMap);
                 buttonCreateMap.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -265,6 +275,7 @@ public class ListMapActivity extends AppCompatActivity {
                         dialog.cancel();
                         Intent changeActivity;
                         changeActivity = new Intent(ListMapActivity.this,MainActivity.class);
+                        changeActivity.putExtra("listMap",mapList);
                         finish();
                         startActivity(changeActivity);
                     }
@@ -273,9 +284,6 @@ public class ListMapActivity extends AppCompatActivity {
                 dialog = dialogBuilder.create();
                 dialog.setCanceledOnTouchOutside(true);
                 dialog.show();
-
-
-
 
             }
         });

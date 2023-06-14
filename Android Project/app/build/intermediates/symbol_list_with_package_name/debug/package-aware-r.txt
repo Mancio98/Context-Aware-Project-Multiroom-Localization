@@ -3859,6 +3859,7 @@ id tag_unhandled_key_listeners
 id tag_window_insets_animation_callback
 id text
 id text2
+id textDnd
 id textEnd
 id textPopup
 id textRegistration
@@ -4228,6 +4229,7 @@ string crop_image_menu_crop
 string default_device_name
 string dest_title
 string discovered_devices
+string dnd
 string done
 string error_a11y_label
 string error_icon_content_description

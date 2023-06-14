@@ -4,10 +4,6 @@
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/layout_scan_training.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_room.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_room.xml"
-    },
-    {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/fragment_assignra.xml",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/fragment_assignra.xml"
     },
@@ -38,6 +34,10 @@
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/content_main.xml",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/content_main.xml"
+    },
+    {
+        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_login.xml",
+        "source": "com.example.multiroomlocalization.app-main-50:/layout/activity_login.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_login.xml",

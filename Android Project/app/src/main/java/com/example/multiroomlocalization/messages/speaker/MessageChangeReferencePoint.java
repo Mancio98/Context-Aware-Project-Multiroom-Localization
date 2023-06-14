@@ -8,7 +8,6 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageChangeReferencePoint extends Message {
 
-
 	public ReferencePoint referencePoint;
 	public static String type = "CHANGE_REFERENCE_POINT";
 
