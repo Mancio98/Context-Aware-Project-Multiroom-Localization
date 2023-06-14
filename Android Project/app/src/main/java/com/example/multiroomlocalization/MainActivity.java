@@ -3,6 +3,8 @@ package com.example.multiroomlocalization;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
 
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
@@ -17,13 +19,13 @@ import com.example.multiroomlocalization.localization.ReferencePoint;
 import android.Manifest;
 import android.app.Activity;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 
 import android.net.wifi.ScanResult;
@@ -35,11 +37,11 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 
 
+import android.os.IBinder;
 import android.util.Base64;
 
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -53,9 +55,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.ByteArrayOutputStream;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-
-import android.util.ArraySet;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -65,6 +66,7 @@ import java.util.List;
 
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 
 
 import android.annotation.SuppressLint;
@@ -88,8 +90,6 @@ import android.view.MotionEvent;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -105,7 +105,7 @@ import com.google.gson.Gson;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ServiceConnection {
 
 
     public static final int BT_INTERRUPT_DISCOVERY = 101;
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean onTop = false;
     private float startPlaylistX;
     private float startPlaylistY;
-    private ArraySet<Speaker> listSpeaker;
+    private ArrayList<Speaker> listSpeaker;
     private TextView timeTextView;
     private ListView audioPlaylistView;
 
@@ -163,6 +163,11 @@ public class MainActivity extends AppCompatActivity {
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
     public static BluetoothUtility btUtility;
+    private ReferencePointListAdapter adapterReferencePointList;
+    //private ScanBluetooth scanBluetoothManager;
+    private ScanBluetoothService scanBluetoothService;
+    private boolean isBound=false;
+
 
     public interface BluetoothPermCallback {
         void onGranted();
@@ -229,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
                     i.setAction(Intent.ACTION_GET_CONTENT);
 
                     someActivityResultLauncher.launch(i);
+
                 }
             });
 
@@ -240,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        /*
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.setFragmentResultListener("requestDevice", this, (requestKey, result) -> {
 
@@ -267,31 +274,17 @@ public class MainActivity extends AppCompatActivity {
                 filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 filter.addAction(BluetoothDevice.ACTION_UUID);
-                registerReceiver(btUtility.getConnectA2dpReceiver(), filter); */
+                registerReceiver(btUtility.getConnectA2dpReceiver(), filter);
+
+
             }
 
-        });
+        });*/
 
-        btUtility = new BluetoothUtility(this);
 
+        //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
     }
 
-    private void launchAssignRAFragment() {
-
-        FrameLayout frame = findViewById(R.id.RaRooms);
-        frame.bringToFront();
-        frame.setVisibility(View.VISIBLE);
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        RoomRAFragment btFragment = new RoomRAFragment();
-
-        fragmentTransaction.replace(R.id.RaRooms, btFragment);
-        fragmentTransaction.addToBackStack("btFragment");
-
-        fragmentTransaction.commit();
-
-    }
 
 /*
         imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -330,6 +323,17 @@ public class MainActivity extends AppCompatActivity {
         });*/
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        btUtility = new BluetoothUtility(this,activity);
+
+        Intent intent = new Intent(this, ScanBluetoothService.class);
+
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+
+    }
+
     View.OnTouchListener touchListener = new View.OnTouchListener() {
         @SuppressLint("ClickableViewAccessibility")
         @Override
@@ -367,15 +371,17 @@ public class MainActivity extends AppCompatActivity {
             // don't forget to remove the listener to prevent being called again
             // by future layout events:
             if (first || newImage) {
+
                 first = false;
                 newImage = false;
-                //Bitmap bitmap = Bitmap.createBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
+                //Bitmap bitmap = Bitmap.createBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap());
                 Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 canvas = new Canvas(mutableBitmap);
                 System.out.println("Canvas");
                 System.out.println(canvas.getWidth());
                 System.out.println(canvas.getHeight());
+
             }
         }
     };
@@ -460,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
                                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                                        //t.run();
                                         checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
                                     }
                                     return false;
@@ -468,12 +475,14 @@ public class MainActivity extends AppCompatActivity {
                         }
 
 
+
                     }
                 }
             });
 
 
-    @SuppressLint("ClickableViewAccessibility")
+
+
     private void startPopup() {
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
@@ -502,6 +511,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
         dialog.show();
+        System.out.println("show start popup!");
     }
 
     public void checkPermission(String permission, int requestCode) {
@@ -542,9 +552,12 @@ public class MainActivity extends AppCompatActivity {
 
                     break;
                 case 3:
+
                     System.out.println("CASO 3");
                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
                     System.out.println("PATH: " + path);
+                    final Bitmap[] bmap = new Bitmap[1];
+                    CountDownLatch latch = new CountDownLatch(1);
 
                     imageView.setImageURI(Uri.parse(path));
                     imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
@@ -553,18 +566,22 @@ public class MainActivity extends AppCompatActivity {
                     newImage = true;
 
                     cv.cancel();
-
+                    t.start();
+                    /*
                     imageView.buildDrawingCache();
-                    Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    bmap[0] = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    latch.countDown();
+
+
                     System.out.println("BMAP SIZE");
-                    System.out.println(bmap.getWidth());
-                    System.out.println(bmap.getHeight());
+                    System.out.println(bmap[0].getWidth());
+                    System.out.println(bmap[0].getHeight());
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
+                    bmap[0].compress(Bitmap.CompressFormat.PNG, 100, bos);
                     bb = bos.toByteArray();
                     imageMap = Base64.encodeToString(bb, 0);
 
-                    len = bb.length;
+                    len = bb.length;*/
 
                     startPopup();
                     break;
@@ -572,6 +589,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
 
     private void createDialog(int x, int y) {
         dialogBuilder = new AlertDialog.Builder(this);
@@ -655,11 +673,21 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case BT_CONNECT_AND_SCAN:
 
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
 
-                    btPermissionCallback.onGranted();
-                    Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                    if(grantResults.length > 1){
+                        if(grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                            btPermissionCallback.onGranted();
 
+
+                            Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        btPermissionCallback.onGranted();
+
+
+                        Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
@@ -704,36 +732,47 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case 3:
-                System.out.println("CASO 3 ALTRO");
-                String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
-                System.out.println("PATH: " + path);
 
-                imageView.setImageURI(Uri.parse(path));
-                imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
-                imageView.setOnTouchListener(touchListener);
+                    System.out.println("CASO 3 ALTRO");
+                    String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
+                    System.out.println("PATH: " + path);
 
-                newImage = true;
+                    imageView.setImageURI(Uri.parse(path));
+                    imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                    imageView.setOnTouchListener(touchListener);
 
-                cv.cancel();
+                    newImage = true;
 
-                imageView.buildDrawingCache();
-                Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-                System.out.println("BMAP SIZE");
-                System.out.println(bmap.getWidth());
-                System.out.println(bmap.getHeight());
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
-                bb = bos.toByteArray();
-                imageMap = Base64.encodeToString(bb, 0);
+                    cv.cancel();
 
-                len = bb.length;
+                    t.start();
 
 
-                startPopup();
+                    startPopup();
+
+
+
                 break;
         }
     }
 
+    Thread t = new Thread(){
+        public void run(){
+            super.run();
+            imageView.buildDrawingCache();
+
+            Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+            System.out.println("BMAP SIZE");
+            System.out.println(bmap.getWidth());
+            System.out.println(bmap.getHeight());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
+            bb = bos.toByteArray();
+            imageMap = Base64.encodeToString(bb, 0);
+
+            len = bb.length;
+        }
+    };
     private void createPopupRoomTraining(ReferencePoint point, int index) {
 
         System.out.println("scan: "+point.getId());
@@ -755,7 +794,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new Gson();
         String json = gson.toJson(message);
         clientSocket.sendMessageNewReferencePoint(json);
-        /*clientSocket.createMessageNewReferencePoint(point.getX(),point.getY(),point).executeAsync(null);*/
+
 
         //TODO SISTEMARE TIMER CHE FACCIANO 5 MINUTI ADESSO IMPOSTATO A 10s
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
@@ -771,6 +810,7 @@ public class MainActivity extends AppCompatActivity {
                 buttonNext.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+
                         timer.setText("Stanza completata");
 
                         mHandler.removeCallbacks(scanRunnable);
@@ -825,10 +865,9 @@ public class MainActivity extends AppCompatActivity {
 
                                                     RecyclerView recyclerView = (RecyclerView) popup.findViewById(R.id.recyclerViewReferencePoint);
 
+                                                    adapterReferencePointList = new ReferencePointListAdapter(referencePoints, getApplicationContext(), scanBluetoothService);
 
-                                                    ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints, getApplicationContext(), activity);
-                                                    recyclerView.setAdapter(adapter);
-
+                                                    recyclerView.setAdapter(adapterReferencePointList);
                                                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
                                                     System.out.println(referencePoints.size());
@@ -837,7 +876,7 @@ public class MainActivity extends AppCompatActivity {
                                                     buttonConferma.setOnClickListener(new View.OnClickListener() {
                                                         @Override
                                                         public void onClick(View view) {
-                                                            adapter.interruptScan();
+                                                            adapterReferencePointList.closeBluetoothScan();
                                                             ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                                             for (int i = 0; i < referencePoints.size(); i++) {
@@ -1104,6 +1143,33 @@ public class MainActivity extends AppCompatActivity {
 
 
    };
+
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isBound) {
+            unbindService(this);
+            isBound = false;
+        }
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+
+
+        ScanBluetoothService.LocalBinder binder = (ScanBluetoothService.LocalBinder) service;
+        scanBluetoothService = binder.getService();
+        scanBluetoothService.setContext(getApplicationContext());
+
+        isBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        isBound = false;
+    }
 
     @Override
     protected void onDestroy() {

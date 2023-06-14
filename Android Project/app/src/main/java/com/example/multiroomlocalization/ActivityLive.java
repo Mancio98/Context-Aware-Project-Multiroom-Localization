@@ -5,11 +5,16 @@ import static com.example.multiroomlocalization.MainActivity.btPermissionCallbac
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothManager;
+//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
 import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.socket.ClientSocket;
@@ -29,6 +34,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.text.TextPaint;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -39,21 +45,23 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
 import com.example.multiroomlocalization.messages.music.MessageSettings;
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
-public class ActivityLive extends AppCompatActivity {
+public class ActivityLive extends AppCompatActivity implements ServiceConnection {
     private ArrayList<ReferencePoint> referencePoints;
     private int imageViewHeight;
     private int imageViewWidth;
@@ -78,6 +86,11 @@ public class ActivityLive extends AppCompatActivity {
 
     private final Gson gson = new Gson();
     private ControlAudioService audioServiceManager;
+    //private ScanBluetooth scanBluetoothManager;
+    private ArrayList<Speaker> listSpeaker;
+    private ReferencePointListAdapter adapterReferencePointList;
+    private ScanBluetoothService scanBluetoothService;
+    private boolean isBound = false;
 
 
     @Override
@@ -146,7 +159,7 @@ public class ActivityLive extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
+                btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
                     @Override
                     public void onGranted() {
                         dialogBuilder = new AlertDialog.Builder(ActivityLive.this);
@@ -155,11 +168,9 @@ public class ActivityLive extends AppCompatActivity {
 
                         RecyclerView recyclerView = (RecyclerView) popup.findViewById(R.id.recyclerViewReferencePoint);
 
-                        //TODO TEMPSPEAKER DOVREBBERO ESSERE GLI SPEAKER ASSOCIATI AL TELEFONO
-                        //DENTRO L'ADAPTER NE AGGIUNGO SEMPRE UNO IN TESTA CIOÉ " NO MUSIC" EQUIVALENTE AD UNO SPEAKER CON TUTTO NULL PER INDICARE CHE NON VOGLIAMO LA MUSICA
+                        adapterReferencePointList = new ReferencePointListAdapter(referencePoints, getApplicationContext(), scanBluetoothService);
 
-                        ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePoints, getApplicationContext(), activity);
-                        recyclerView.setAdapter(adapter);
+                        recyclerView.setAdapter(adapterReferencePointList);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
                         System.out.println(referencePoints.size());
@@ -168,6 +179,7 @@ public class ActivityLive extends AppCompatActivity {
                         buttonConferma.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                adapterReferencePointList.closeBluetoothScan();
                                 ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                 for (int i = 0; i < referencePoints.size(); i++) {
@@ -188,7 +200,7 @@ public class ActivityLive extends AppCompatActivity {
                         dialog.setCancelable(false);
                         dialog.show();
 
-                        audioServiceManager.initBluetoothManagerIfNot();
+                        audioServiceManager.initBluetoothManagerIfNot(scanBluetoothService);
                     }
                 });
             }
@@ -212,22 +224,26 @@ public class ActivityLive extends AppCompatActivity {
                 Gson gson = new Gson();
                 currentRef =  gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint();
 
-                for (int i=0;i<referencePoints.size();i++){
-                    int x = (referencePoints.get(i).getX()*imageViewWidth)/100;
-                    int y = (referencePoints.get(i).getY()*imageViewHeight)/100;
+                if(currentRef != null) {
+                    for (int i = 0; i < referencePoints.size(); i++) {
+                        int x = (referencePoints.get(i).getX() * imageViewWidth) / 100;
+                        int y = (referencePoints.get(i).getY() * imageViewHeight) / 100;
 
-                    imageview.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
-                    drawIconRoom(referencePoints.get(i),x,y,referencePoints.get(i).getId().equals(currentRef.getId()));
-                }
-
-
-                btUtility.checkPermission(activity, new MainActivity.BluetoothPermCallback() {
-                    @Override
-                    public void onGranted() {
-                        audioServiceManager.initBluetoothManagerIfNot();
-                        audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
+                        imageview.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
+                        drawIconRoom(referencePoints.get(i), x, y, referencePoints.get(i).getId().equals(currentRef.getId()));
                     }
-                });
+
+
+                    btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
+                        @Override
+                        public void onGranted() {
+                            audioServiceManager.initBluetoothManagerIfNot(scanBluetoothService);
+                            audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
+                        }
+                    });
+                } else
+
+                    Toast.makeText(activity, "Impossible to predict", Toast.LENGTH_LONG).show();
 
             }
         };
@@ -236,27 +252,41 @@ public class ActivityLive extends AppCompatActivity {
         scanService.registerReceiver(broadcastReceiverScan);
         mHandler.postDelayed(scanRunnable, 3000);
 
-
         audioServiceManager = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout));
-        btUtility = new BluetoothUtility(this);
+        //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         audioServiceManager.connectMediaBrowser();
+        btUtility = new BluetoothUtility(this, activity);
+
+        Intent intent = new Intent(this, ScanBluetoothService.class);
+
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        scanService.registerReceiver(broadcastReceiverScan);
+        mHandler.postDelayed(scanRunnable,3000);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         audioServiceManager.disconnectMediaBrowser();
+        if (isBound) {
+            unbindService(this);
+            isBound = false;
+        }
+        stopScan();
     }
 
     @Override
@@ -279,15 +309,21 @@ public class ActivityLive extends AppCompatActivity {
         switch (requestCode) {
             case BT_CONNECT_AND_SCAN:
 
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
 
-                    btPermissionCallback.onGranted();
+                    if(grantResults.length > 1){
+                        if(grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                            btPermissionCallback.onGranted();
 
-                    // TODO caso permessi univoci qui:
 
-                    Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        btPermissionCallback.onGranted();
 
+
+                        Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
 
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
@@ -345,6 +381,7 @@ public class ActivityLive extends AppCompatActivity {
     };
 
     private void stopScan() {
+        scanService.registerReceiver(null);
         mHandler.removeCallbacks(scanRunnable);
     }
     private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
@@ -372,7 +409,8 @@ public class ActivityLive extends AppCompatActivity {
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if(clientSocket!=null)
+                clientSocket.sendMessageFingerprint(json);
         }
 
         private void scanFailure() {
@@ -387,7 +425,8 @@ public class ActivityLive extends AppCompatActivity {
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if(clientSocket!=null)
+                clientSocket.sendMessageFingerprint(json);
         }
 
 
@@ -399,19 +438,37 @@ public class ActivityLive extends AppCompatActivity {
         super.onDestroy();
         stopScan();
 
+        /*
         try {
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
 
+            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
             activity.unregisterReceiver(btUtility.getConnectA2dpReceiver());
-        }catch (Exception e){
+
+        } catch (Exception e){
             e.printStackTrace();
-        }
+        }*/
 
         if(connectBluetoothThread != null)
-            connectBluetoothThread.disconnect();
+            connectBluetoothThread.disconnectEverything();
         connectBluetoothThread = null;
         activity = null;
         clientSocket = null;
 
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+
+
+        ScanBluetoothService.LocalBinder binder = (ScanBluetoothService.LocalBinder) service;
+        scanBluetoothService = binder.getService();
+        scanBluetoothService.setContext(getApplicationContext());
+
+        isBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        isBound = false;
     }
 }

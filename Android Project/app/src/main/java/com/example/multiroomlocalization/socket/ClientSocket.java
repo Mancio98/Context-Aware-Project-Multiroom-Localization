@@ -62,8 +62,8 @@ public class ClientSocket extends Thread {
     private ScanService scanService;
     private int intervalScan = 10000;
 
-    private int port = 10110;
-    private String ip ="5.tcp.eu.ngrok.io";// "10.0.2.2";
+    private int port = 10682;
+    private String ip = "2.tcp.eu.ngrok.io";// "10.0.2.2";
 
     private WifiManager wifiManager;
     private Context context;
@@ -404,7 +404,7 @@ public class ClientSocket extends Thread {
     }
 
     public void sendMessageFingerprint(String message){
-        //sendMessage(message,false,null);
+        sendMessage(message,false,null);
     }
 
     public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){

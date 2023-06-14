@@ -1,9 +1,16 @@
 package com.example.multiroomlocalization;
 
+import static com.example.multiroomlocalization.MainActivity.btUtility;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -16,20 +23,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.messages.connection.MessageMapSubscription;
 import com.example.multiroomlocalization.messages.connection.MessageSubscriptionSuccessful;
 import com.example.multiroomlocalization.messages.connection.MessageUpdateMapList;
 import com.example.multiroomlocalization.messages.music.MessageSettings;
-import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Set;
 
-public class ListMapActivity extends AppCompatActivity {
+public class ListMapActivity extends AppCompatActivity implements ServiceConnection {
 
     MapListAdapter adapter;
     ArrayList<Map> mapList;
@@ -43,6 +54,12 @@ public class ListMapActivity extends AppCompatActivity {
     ArrayList<String> listIdArray = new ArrayList<>();
 
     private Activity activity;
+    private ArrayList<Speaker> listSpeaker;
+    private ReferencePointListAdapter adapterReferencePointList;
+    //private ScanBluetooth scanBluetoothManager;
+    private ScanBluetoothService scanBluetoothService;
+    private boolean isBound = false;
+
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_map_available);
@@ -76,7 +93,6 @@ public class ListMapActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-
                 dialogBuilder = new AlertDialog.Builder(ListMapActivity.this);
                 final View popup = getLayoutInflater().inflate(R.layout.popup_add_map, null);
                 dialogBuilder.setView(popup);
@@ -86,6 +102,7 @@ public class ListMapActivity extends AppCompatActivity {
 
                 buttonConferma.setEnabled(false);
 
+                //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
                 inputIdMap.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -146,17 +163,19 @@ public class ListMapActivity extends AppCompatActivity {
                                 Gson gson = new Gson();
                                 ArrayList<ReferencePoint> referencePointArrayList = gson.fromJson(result, MessageSubscriptionSuccessful.class).getReferencePointArrayList();
 
-                                //TODO tempSpeaker DEVE ESSERE L'ARRAY DI SPEAKER BLUETOOTH ASSOCIATI AL TELEFONO
 
-                                ReferencePointListAdapter adapter = new ReferencePointListAdapter(referencePointArrayList,getApplicationContext(),activity);
-                                recyclerView.setAdapter(adapter);
-                                recyclerView.setLayoutManager( new LinearLayoutManager(getApplicationContext()));
+
+                                adapterReferencePointList = new ReferencePointListAdapter(referencePointArrayList, getApplicationContext(),scanBluetoothService);
+
+                                recyclerView.setAdapter(adapterReferencePointList);
+                                recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
                                 Button buttonConferma = (Button) popup.findViewById(R.id.buttonConfermaSettings);
 
                                 buttonConferma.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View view) {
+                                        adapterReferencePointList.closeBluetoothScan();
                                         ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                         for(int i=0;i<referencePointArrayList.size();i++) {
@@ -283,7 +302,38 @@ public class ListMapActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        btUtility = new BluetoothUtility(this, activity);
+        Intent intent = new Intent(this, ScanBluetoothService.class);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isBound) {
+            unbindService(this);
+            isBound = false;
+        }
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+
+
+        ScanBluetoothService.LocalBinder binder = (ScanBluetoothService.LocalBinder) service;
+        scanBluetoothService = binder.getService();
+        scanBluetoothService.setContext(getApplicationContext());
+
+        isBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        isBound = false;
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

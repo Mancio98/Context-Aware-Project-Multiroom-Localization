@@ -13,9 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Request legacy Bluetooth permissions on older devices. -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <!-- Request legacy Bluetooth permissions on older devices. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Request legacy Bluetooth permissions on older devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -24,17 +22,13 @@
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Since Bluetooth is a basic requirement for our app -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Since Bluetooth is a basic requirement for our app -->
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
-
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <queries>
@@ -95,6 +89,11 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
+        </service>
+        <service
+            android:name="com.example.multiroomlocalization.Bluetooth.ScanBluetoothService"
+            android:enabled="true"
+            android:exported="false" >
         </service>
 
         <activity

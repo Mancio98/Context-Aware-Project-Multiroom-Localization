@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization.speaker;
 
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 
 import java.util.ArrayList;
@@ -12,11 +14,6 @@ public class Speaker {
     private String room;
 
 
-    public Speaker(BluetoothDevice device){
-        this.name = device.getName();
-        this.mac = device.getAddress();
-
-    }
     public Speaker(String name, String mac) {
         this.name = name;
         this.mac = mac;
@@ -29,10 +26,15 @@ public class Speaker {
 
     }
 
+    @SuppressLint("MissingPermission")
     public static ArrayList<Speaker> getListSpeakerFromDevice(Set<BluetoothDevice> list){
         ArrayList<Speaker> listSpeaker = new ArrayList<>();
+
         list.forEach((device) -> {
-            listSpeaker.add(new Speaker(device));
+            System.out.println(device.getBluetoothClass().getDeviceClass());
+            if(device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES ||
+                    device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER)
+                listSpeaker.add(new Speaker(device.getName(),device.getAddress()));
         });
         return listSpeaker;
     }
@@ -45,7 +47,9 @@ public class Speaker {
 
     }
 
-
+    public void printSpeaker(){
+        System.out.println("Speaker: "+name+" "+mac);
+    }
     public String getRoom() {
         return room;
     }
