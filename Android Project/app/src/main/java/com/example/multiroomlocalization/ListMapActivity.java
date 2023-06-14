@@ -31,6 +31,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Base64;
 
 public class ListMapActivity extends AppCompatActivity {
 
@@ -255,8 +256,12 @@ public class ListMapActivity extends AppCompatActivity {
                         };
 
                         if(!listIdArray.contains(inputIdMap.getText().toString())){
+
+                            String encoded = Base64.getEncoder().encodeToString(inputPasswordMap.getText().toString().getBytes());
+                            System.out.println(encoded);
+
                             Gson gson = new Gson();
-                            MessageMapSubscription message = new MessageMapSubscription(inputIdMap.getText().toString(),inputPasswordMap.getText().toString());
+                            MessageMapSubscription message = new MessageMapSubscription(inputIdMap.getText().toString(),encoded);
                             String json = gson.toJson(message);
 
                             clientSocket.sendMessageMapSubscription(json,callbackSuccessful,callbackUnsuccessful);

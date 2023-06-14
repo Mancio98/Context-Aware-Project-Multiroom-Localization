@@ -16,12 +16,12 @@
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/crop_view.xml"
     },
     {
-        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_referencepointlist_view.xml.flat",
-        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/referencepointlist_view.xml"
-    },
-    {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_list_rooms_bt_layout.xml.flat",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/list_rooms_bt_layout.xml"
+    },
+    {
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_referencepointlist_view.xml.flat",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/referencepointlist_view.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/navigation_nav_graph.xml.flat",
@@ -46,10 +46,6 @@
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_popup_room.xml.flat",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_room.xml"
-    },
-    {
-        "merged": "com.example.multiroomlocalization.app-merged_res-48:/layout_activity_login.xml.flat",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/activity_login.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_referencepoint_row.xml.flat",
@@ -98,6 +94,10 @@
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/drawable_check_mark.png.flat",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/drawable/check_mark.png"
+    },
+    {
+        "merged": "com.example.multiroomlocalization.app-merged_res-48:/layout_popup_add_map.xml.flat",
+        "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_add_map.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/layout_fragment_assignra.xml.flat",
@@ -154,6 +154,10 @@
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/xml_backup_rules.xml.flat",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.example.multiroomlocalization.app-merged_res-48:/layout_layout_password_map.xml.flat",
+        "source": "com.example.multiroomlocalization.app-main-50:/layout/layout_password_map.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-merged_res-48:/mipmap-xhdpi_ic_launcher_round.webp.flat",

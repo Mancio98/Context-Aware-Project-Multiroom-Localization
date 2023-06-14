@@ -34,6 +34,7 @@ import com.google.gson.JsonObject;
 
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -142,7 +143,10 @@ public class LoginActivity extends AppCompatActivity {
                 String email = userInput.getText().toString();
                 String password = passwordInput.getText().toString();
 
-                User user= new User(email,password);
+                String encoded = Base64.getEncoder().encodeToString(password.toString().getBytes());
+                System.out.println(encoded);
+
+                User user= new User(email,encoded);
 
 
                 //loginSuccessfull(new ArrayList<Map>());

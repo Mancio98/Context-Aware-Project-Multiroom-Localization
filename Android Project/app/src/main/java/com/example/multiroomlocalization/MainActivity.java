@@ -859,8 +859,11 @@ public class MainActivity extends AppCompatActivity {
                                                                         }
                                                                     };
 
+                                                                    String encoded = java.util.Base64.getEncoder().encodeToString(password.getText().toString().getBytes());
+                                                                    System.out.println(encoded);
+
                                                                     Gson gson = new Gson();
-                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(), arrListSettings, name.getText().toString());
+                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(encoded, arrListSettings, name.getText().toString());
                                                                     String json = gson.toJson(message);
                                                                     clientSocket.sendMessageEndMappingPhase(callback, json);
 
