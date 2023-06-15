@@ -82,8 +82,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                 listIdArray.add(mapList.get(i).id);
 
             }
-            System.out.println("listIdArray");
-            System.out.println(listIdArray);
             if (mapList.size()>0){
                 text.setVisibility(View.INVISIBLE);
             }
@@ -178,8 +176,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                                 Gson gson = new Gson();
                                 ArrayList<ReferencePoint> referencePointArrayList = gson.fromJson(result, MessageSubscriptionSuccessful.class).getReferencePointArrayList();
 
-
-
                                 adapterReferencePointList = new ReferencePointListAdapter(referencePointArrayList, getApplicationContext(),scanBluetoothService);
 
                                 recyclerView.setAdapter(adapterReferencePointList);
@@ -194,10 +190,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                                         ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                         for(int i=0;i<referencePointArrayList.size();i++) {
-                                            System.out.println("DND");
-                                            System.out.println(referencePointArrayList.get(i).getDnd());
-                                            System.out.println("SPEAKER");
-                                            System.out.println(referencePointArrayList.get(i).getSpeaker().getName());
                                             arrListSettings.add(new Settings(referencePointArrayList.get(i).getId(),referencePointArrayList.get(i).getSpeaker(),referencePointArrayList.get(i).getDnd() ));
                                         }
 
@@ -278,7 +270,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                         if(!listIdArray.contains(inputIdMap.getText().toString())){
 
                             String encoded = Base64.getEncoder().encodeToString(inputPasswordMap.getText().toString().getBytes());
-                            System.out.println(encoded);
 
                             Gson gson = new Gson();
                             MessageMapSubscription message = new MessageMapSubscription(inputIdMap.getText().toString(),encoded);
@@ -305,15 +296,11 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                         startActivity(changeActivity);
                     }
                 });
-
                 dialog = dialogBuilder.create();
                 dialog.setCanceledOnTouchOutside(true);
                 dialog.show();
-
             }
         });
-
-
     }
 
     @Override
@@ -335,8 +322,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-
-
         ScanBluetoothService.LocalBinder binder = (ScanBluetoothService.LocalBinder) service;
         scanBluetoothService = binder.getService();
         scanBluetoothService.setContext(getApplicationContext());

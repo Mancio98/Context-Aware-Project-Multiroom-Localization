@@ -77,8 +77,6 @@ public class ClientSocket extends Thread {
     private Gson gson = new Gson();
     private IncomingMsgHandler incomingMsgHandler;
     private Callback<String> reqPlaylistCallback;
-    private Callback<String> fingerPrintCallback;
-
     private Callback<String> startMappingPhaseCallback;
     private Callback<String> loginSuccessfulCallback;
     private Callback<String> loginUnsuccessfulCallback;
@@ -109,7 +107,6 @@ public class ClientSocket extends Thread {
 
             while(!isInterrupted()){
                 try {
-                    System.out.println("Attivo");
                     String msg = dataIn.readUTF();
 
                     String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
@@ -133,7 +130,6 @@ public class ClientSocket extends Thread {
                     msgHandler(msg);
                 }
                 catch(SocketTimeoutException ste){
-                    System.out.println("30 second");
                     Gson gson = new Gson();
                     MessageKeepAlive message = new MessageKeepAlive();
                     String json = gson.toJson(message);
@@ -150,14 +146,7 @@ public class ClientSocket extends Thread {
             }
         }
 
-        public IncomingMsgHandler(Handler handler) {
-            //this.handler = handler;
-        }
-
-
         private void msgHandler(String msg){
-
-            System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
 
             if(messageType.equals(MessageChangeReferencePoint.type)){
@@ -291,7 +280,6 @@ public class ClientSocket extends Thread {
             socket.setSoTimeout(60000);
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
-            System.out.println("AVVIATO");
             ((Activity) context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -301,7 +289,6 @@ public class ClientSocket extends Thread {
 
         }
         catch(Exception e){
-            System.out.println("catch");
             ((Activity) context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -317,7 +304,7 @@ public class ClientSocket extends Thread {
     }
 
     private void startIncomingMsgHandler(){
-        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
+        incomingMsgHandler = new IncomingMsgHandler();
         incomingMsgHandler.start();
     }
 

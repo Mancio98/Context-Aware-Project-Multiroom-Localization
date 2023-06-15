@@ -133,9 +133,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         registerReceiver(broadcastReceiver, intentFilter);
 
         Bitmap bitmap = BitmapFactory.decodeByteArray(clientSocket.getBb(), 0, clientSocket.getBb().length);
-        System.out.println("BITMAP SIZE");
-        System.out.println(bitmap.getWidth());
-        System.out.println(bitmap.getHeight());
 
         imageview.setImageBitmap(bitmap);
 
@@ -146,11 +143,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                 imageViewWidth = imageview.getWidth();
                 int xGlobal = imageview.getLeft();
                 int yGlobal = imageview.getTop();
-
-                System.out.println("Global");
-                System.out.println("X: " + xGlobal);
-                System.out.println("Y: " + yGlobal);
-                System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
             }
         };
 
@@ -195,7 +187,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                         recyclerView.setAdapter(adapterReferencePointList);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
-                        System.out.println(referencePoints.size());
                         Button buttonConferma = (Button) popup.findViewById(R.id.buttonConfermaSettings);
 
                         buttonConferma.setOnClickListener(new View.OnClickListener() {
@@ -234,10 +225,8 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!scanService.getWifiManager().isScanThrottleEnabled()) {
                 intervalScan = 5000;
-                System.out.println("IntervalScan: " + intervalScan);
             } else {
                 intervalScan = 30000;
-                System.out.println("IntervalScan: " + intervalScan);
             }
         }
 
@@ -268,14 +257,11 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                 }
                 else {
                     currentRef = gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint();
-                    System.out.println("NEW REFERENCE POINT");
                     NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                     if (mNotificationManager.isNotificationPolicyAccessGranted()) {
                         if (currentRef.getDnd()) {
-                            System.out.println("DND TRUE");
                             mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
                         } else {
-                            System.out.println("DND FALSE");
                             mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
                         }
                     }
@@ -388,7 +374,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                 break;
             case 2:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    System.out.println("CASE2");
                     scanService.registerReceiver(broadcastReceiverScan);
                     mHandler.postDelayed(scanRunnable, 3000);
                 }
@@ -429,8 +414,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         @Override
         public void run() {
             scanService.startScan();
-            System.out.println("first");
-            System.out.println(first);
             if(first){
                 mHandler.postDelayed(scanRunnable, intervalScan+5000);
                 first = false;
@@ -464,7 +447,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for (android.net.wifi.ScanResult res : results) {
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
-                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
                 listScan.add(scan);
             }
             Gson gson = new Gson();
@@ -478,7 +460,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
             List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
             for ( android.net.wifi.ScanResult res : results ){
                 com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
                 listScan.add(scan);
             }
             Gson gson = new Gson();
@@ -534,7 +515,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
                     break;
                 case 2:
-                    System.out.println("CASO 2");
                     scanService.registerReceiver(broadcastReceiverScan);
                     mHandler.postDelayed(scanRunnable, 3000);
                     break;

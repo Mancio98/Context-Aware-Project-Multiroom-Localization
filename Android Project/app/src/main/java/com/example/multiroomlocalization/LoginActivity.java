@@ -136,18 +136,14 @@ public class LoginActivity extends AppCompatActivity {
                 String email = userInput.getText().toString();
                 String password = passwordInput.getText().toString();
 
-                String encoded = Base64.getEncoder().encodeToString(password.toString().getBytes());
-                System.out.println(encoded);
+                String encoded = Base64.getEncoder().encodeToString(password.getBytes());
 
                 User user= new User(email,encoded);
 
-
-                //loginSuccessfull(new ArrayList<Map>());
                 ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
                     @Override
                     public void onComplete(String result) {
                         currentUser = user;
-                        System.out.println(result);
                         Gson gson = new Gson();
                         ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
                         loginSuccessful(accountMap);
@@ -164,25 +160,6 @@ public class LoginActivity extends AppCompatActivity {
                 MessageLogin message = new MessageLogin(user);
                 String json = gson.toJson(message);
                 client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
-
-
-
-                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
-                // Check if the notification policy access has been granted for the app.
-                if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-                    startActivity(intent);
-                }
-                else {
-                    if(bool) {
-                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
-                        bool = false;
-                    }else {
-                        bool = true;
-                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
-                    }
-                }
 
             }
         });
