@@ -68,8 +68,8 @@ public class ClientSocket extends Thread {
     private Handler mHandler = new Handler();
     private ScanService scanService;
     private int intervalScan = 10000;
-    private int port = 10682;
-    private String ip ="2.tcp.eu.ngrok.io";// "10.0.2.2";
+    private int port = 18064;
+    private String ip ="7.tcp.eu.ngrok.io";
     private WifiManager wifiManager;
     private Context context;
     private Gson gson = new Gson();
@@ -147,13 +147,6 @@ public class ClientSocket extends Thread {
                     e.printStackTrace();
                     Intent intent1 = new Intent("CLOSE&#95;ALL");
                     context.sendBroadcast(intent1);
-                    /*Intent i = new Intent(context, LoginActivity.class);        // Specify any activity here e.g. home or splash or login etc
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    i.putExtra("EXIT", true);
-                    context.startActivity(i);
-                    ((Activity) context).finish();*/
 
                 }
             }
@@ -432,13 +425,6 @@ public class ClientSocket extends Thread {
         registrationUnsuccessfulCallback = callback2;
         sendMessage(message,false,null);
     }
-
-    /*
-    public void sendMessageRequestImage(Callback<String> callback){
-        mapDetailsCallback = callback;
-        //sendMessage(null,false,null);
-    };
-    */
 
     public void setContext(Context context){
         this.context = context;

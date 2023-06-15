@@ -16,10 +16,6 @@
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/activity_main.xml"
     },
     {
-        "merged": "com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_password_map.xml",
-        "source": "com.example.multiroomlocalization.app-main-50:/layout/layout_password_map.xml"
-    },
-    {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_rooms_bt_layout.xml",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/list_rooms_bt_layout.xml"
     },
@@ -56,16 +52,16 @@
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_input_name_map.xml"
     },
     {
+        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_add_map.xml",
+        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_add_map.xml"
+    },
+    {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/layout_live_activity.xml",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/layout_live_activity.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/list_tracks_layout.xml",
         "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/list_tracks_layout.xml"
-    },
-    {
-        "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/popup_add_map.xml",
-        "source": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-main-50:/layout/popup_add_map.xml"
     },
     {
         "merged": "/Users/luca/.gradle/daemon/8.0/com.example.multiroomlocalization.app-mergeDebugResources-47:/layout/activity_list_map_available.xml",

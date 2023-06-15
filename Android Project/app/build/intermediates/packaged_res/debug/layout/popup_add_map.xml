@@ -44,6 +44,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:inputType="text"
+            android:textAlignment="center"
             android:textSize="20sp" />
     </LinearLayout>
 
@@ -68,9 +69,9 @@
             android:layout_weight="1"
             android:ems="10"
             android:gravity="center"
-            android:inputType="text"
             android:textSize="20sp"
-            tools:inputType="textPassword" />
+            android:inputType="textPassword"
+            />
     </LinearLayout>
 
     <Button

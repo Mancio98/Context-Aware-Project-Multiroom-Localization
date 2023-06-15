@@ -4,6 +4,7 @@ import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CO
 import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
 import static com.example.multiroomlocalization.MainActivity.btUtility;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.IntentFilter;
@@ -13,6 +14,7 @@ import android.media.AudioManager;
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothManager;
 import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
+import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.example.multiroomlocalization.socket.ClientSocket;
 
@@ -27,10 +29,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -42,6 +46,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,6 +60,7 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -71,19 +78,14 @@ public class ActivityLive extends AppCompatActivity {
     private Handler mHandler = new Handler();
     private ReferencePoint currentRef;
     private Bitmap mutableBitmap;
-
     private Activity activity;
     private ConnectBluetoothManager connectBluetoothThread;
-
     boolean serviceBound = false;
-
     private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
     private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
-
     private final Gson gson = new Gson();
     private ControlAudioService audioServiceManager;
     private boolean first = true;
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -283,7 +285,6 @@ public class ActivityLive extends AppCompatActivity {
 
         clientSocket.setCallbackChangeReferencePoint(callback);
 
-
         audioServiceManager = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout));
 
         btUtility = new BluetoothUtility(this);
@@ -299,8 +300,8 @@ public class ActivityLive extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        scanService.registerReceiver(broadcastReceiverScan);
-        mHandler.postDelayed(scanRunnable, 3000);
+        checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, 1);
+
     }
 
     @Override
@@ -342,6 +343,18 @@ public class ActivityLive extends AppCompatActivity {
                 } else {
 
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                }
+                break;
+            case 2:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("CASE2");
+                    scanService.registerReceiver(broadcastReceiverScan);
+                    mHandler.postDelayed(scanRunnable, 3000);
                 }
                 break;
         }
@@ -463,7 +476,24 @@ public class ActivityLive extends AppCompatActivity {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (mNotificationManager.isNotificationPolicyAccessGranted()) {
                 mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+        }
+    }
 
+    public void checkPermission(String permission, int requestCode) {
+        if (ContextCompat.checkSelfPermission(ActivityLive.this, permission) == PackageManager.PERMISSION_DENIED) {
+            // Requesting the permission
+            ActivityCompat.requestPermissions(ActivityLive.this, new String[]{permission}, requestCode);
+        } else {
+            switch (requestCode) {
+                case 1:
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
+                    break;
+                case 2:
+                    System.out.println("CASO 2");
+                    scanService.registerReceiver(broadcastReceiverScan);
+                    mHandler.postDelayed(scanRunnable, 3000);
+                    break;
+            }
         }
     }
 
