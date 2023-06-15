@@ -8,8 +8,6 @@ import java.util.List;
 
 
 public class MessageFingerprint extends Message {
-	//private Fingerprint fingerprint;
-
     public List<ScanResult> fingerprint;
 
     public MessageFingerprint(List<ScanResult> scanResult) {
