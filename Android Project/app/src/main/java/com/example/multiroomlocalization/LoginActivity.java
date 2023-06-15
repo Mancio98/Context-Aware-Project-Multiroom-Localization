@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -36,11 +34,9 @@ public class LoginActivity extends AppCompatActivity {
     Button buttonLogin;
     boolean userEmpty;
     boolean passwordEmpty;
-    boolean bool;
 
-    protected static ClientSocket client;
+    public static ClientSocket client;
     protected static User currentUser;
-    public static Handler handler;
     public static BluetoothUtility btUtility;
 
     @Override
@@ -66,12 +62,10 @@ public class LoginActivity extends AppCompatActivity {
         userEmpty = true;
         passwordEmpty = true;
         buttonLogin.setEnabled(false);
-        bool = true;
         SpannableString content = new SpannableString( "Create an account" ) ;
         content.setSpan( new UnderlineSpan() , 0 , content.length() , 0 ) ;
         textRegistration.setText(content) ;
 
-        handler = new Handler(Looper.getMainLooper());
 
         client = new ClientSocket(LoginActivity.this);
         client.setContext(LoginActivity.this);
@@ -133,17 +127,14 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordInput.getText().toString();
 
                 String encoded = Base64.getEncoder().encodeToString(password.getBytes());
-                System.out.println(encoded);
+
 
                 User user= new User(email,encoded);
 
-
-                //loginSuccessfull(new ArrayList<Map>());
                 ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
                     @Override
                     public void onComplete(String result) {
                         currentUser = user;
-                        System.out.println(result);
                         Gson gson = new Gson();
                         ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
                         loginSuccessful(accountMap);
@@ -160,25 +151,6 @@ public class LoginActivity extends AppCompatActivity {
                 MessageLogin message = new MessageLogin(user);
                 String json = gson.toJson(message);
                 client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
-
-
-
-                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
-                // Check if the notification policy access has been granted for the app.
-                if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-                    startActivity(intent);
-                }
-                else {
-                    if(bool) {
-                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
-                        bool = false;
-                    }else {
-                        bool = true;
-                        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
-                    }
-                }
 
             }
         });

@@ -29,7 +29,6 @@ public class RegistrationActivity  extends AppCompatActivity {
     boolean passwordEmpty;
     EditText username;
     EditText password;
-
     ClientSocket client;
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
@@ -114,7 +113,6 @@ public class RegistrationActivity  extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String encoded = Base64.getEncoder().encodeToString(password.getText().toString().getBytes());
-                System.out.println(encoded);
 
                 User user = new User(username.getText().toString(),encoded);
                 registration.setEnabled(false);
@@ -124,8 +122,6 @@ public class RegistrationActivity  extends AppCompatActivity {
                         dialogBuilder = new AlertDialog.Builder(RegistrationActivity.this);
                         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
                         dialogBuilder.setView(popup);
-
-
 
                         Button button = (Button) popup.findViewById(R.id.buttonPopup);
                         TextView text = (TextView) popup.findViewById(R.id.textPopup);
@@ -152,7 +148,6 @@ public class RegistrationActivity  extends AppCompatActivity {
                     @Override
                     public void onComplete(String result) {
                         Gson gson = new Gson();
-                        //String messageDescription = gson.fromJson(result, JsonObject.class).get("description").getAsString();
                         Toast.makeText(RegistrationActivity.this, "USERNAME GIÁ PRESENTE", Toast.LENGTH_LONG).show();
                         username.setText("");
                         password.setText("");

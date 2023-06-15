@@ -16,7 +16,5 @@ public class MessageImage extends Message {
     	return this.n_byte;
     }
     
-    public void setNByte(int n_byte) {
-    	this.n_byte = n_byte;
-    }
+
 }

@@ -18,15 +18,27 @@ public class MessageEndMappingPhase extends Message {
         this.mapName = mapName;
     }
 
-    public String getKey(){ return key; }
+    public String getKey() {
+        return key;
+    }
 
-    public void setKey(String key){ this.key = key; }
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-    public void setArrSettings(ArrayList<Settings> arrSettings) { this.arrSettings = arrSettings; }
+    public String getMapName() {
+        return mapName;
+    }
 
-    public ArrayList<Settings> getArrSettings() { return arrSettings; }
+    public void setMapName(String mapName) {
+        this.mapName = mapName;
+    }
 
-    public String getMapName() { return mapName; }
+    public ArrayList<Settings> getArrSettings() {
+        return arrSettings;
+    }
 
-    public void setMapName(String mapName) { this.mapName = mapName; }
+    public void setArrSettings(ArrayList<Settings> arrSettings) {
+        this.arrSettings = arrSettings;
+    }
 }

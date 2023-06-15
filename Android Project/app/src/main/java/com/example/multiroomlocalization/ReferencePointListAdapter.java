@@ -26,8 +26,6 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
 
     private final Context context;
     private final ScanBluetoothService serviceBluetooth;
-    private final ArrayList<ArrayAdapter<String>> myAdapter;
-    private final int num = 0;
 
     public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, ScanBluetoothService serviceBluetooth){
 
@@ -35,7 +33,6 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
         listReferencePoint = arrList;
         this.context = context;
         this.serviceBluetooth = serviceBluetooth;
-        myAdapter = new ArrayList<>();
         this.itemsBluetooth = new ArrayList<>();
         populateItemsBluetooth();
     }

@@ -20,7 +20,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,9 +35,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,7 +63,6 @@ import com.example.multiroomlocalization.messages.localization.MessageNewReferen
 import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
 import com.example.multiroomlocalization.socket.ClientSocket;
-import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
@@ -80,10 +76,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
 
 
-    public static final int BT_INTERRUPT_DISCOVERY = 101;
-    public static final int BT_SCAN = 102;
-    public static final int BT_LIST_BOND = 103;
-    public static final int BT_PAIR_DEVICE = 104;
     private Activity activity;
 
     private ImageView playPause;
@@ -108,7 +100,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private byte[] bb;
 
     private int intervalScan = 30000;
-    private final int timerScanTraining = 10000; //* 5 //60000 = 1 min
+
+    private int timerScanTraining = 5 * 60000;
+
     private FloatingActionButton fab;
 
     protected ClientSocket clientSocket;
@@ -116,21 +110,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private final ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
 
-    private final ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
+    private final ArrayList<com.example.multiroomlocalization.localization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.localization.ScanResult>();
 
-    private int seekPosition;
-    private ImageButton nextTrack;
-    private ImageButton previousTrack;
-    private final boolean onTop = false;
-    private float startPlaylistX;
-    private float startPlaylistY;
-    private ArrayList<Speaker> listSpeaker;
-    private TextView timeTextView;
-    private ListView audioPlaylistView;
-
-
-    private final Gson gson = new Gson();
-    private ControlAudioService setupAudioService;
     private ReferencePointListAdapter adapterReferencePointList;
 
     private ScanBluetoothService scanBluetoothService;
@@ -140,9 +121,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     public interface BluetoothPermCallback {
         void onGranted();
-        default void notGranted(){
-
-        }
     }
 
     public static BluetoothPermCallback btPermissionCallback;
@@ -240,15 +218,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             int x1 = (int) event.getX();
             int y1 = (int) event.getY();
 
-            System.out.println("X: " + x1 + " Y: " + y1);
-
-            System.out.println("imageViewWidth: " + imageViewWidth + " imageViewHeight: " + imageViewHeight);
-
-
             float tempx = ((float) x1 / (float) imageViewWidth) * 100;
             float tempy = ((float) y1 / (float) imageViewHeight) * 100;
-
-            System.out.println("tempX: " + tempx + " tempY: " + tempy);
 
             createDialog((int) tempx, (int) tempy);
             return false;
@@ -260,13 +231,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         public void onGlobalLayout() {
             imageViewHeight = imageView.getHeight();
             imageViewWidth = imageView.getWidth();
-            int xGlobal = imageView.getLeft();
-            int yGlobal = imageView.getTop();
 
-            System.out.println("Global");
-            System.out.println("X: " + xGlobal);
-            System.out.println("Y: " + yGlobal);
-            System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
             // don't forget to remove the listener to prevent being called again
             // by future layout events:
             if (first || newImage) {
@@ -276,10 +241,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 canvas = new Canvas(mutableBitmap);
-                System.out.println("Canvas");
-                System.out.println(canvas.getWidth());
-                System.out.println(canvas.getHeight());
-
             }
         }
     };
@@ -334,9 +295,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 }
             });
 
-
-
-
     private void startPopup() {
         dialogBuilder = new AlertDialog.Builder(this);
         final View popup = getLayoutInflater().inflate(R.layout.popup_text, null);
@@ -365,7 +323,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
         dialog.show();
-        System.out.println("show start popup!");
     }
 
     public void checkPermission(String permission, int requestCode) {
@@ -378,13 +335,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
                     break;
                 case 2:
-                    System.out.println("CASO 2");
                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                         @Override
                         public void onComplete(String result) {
-                            System.out.println("response");
-                            System.out.println(result);
-
                             ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
                                 @Override
                                 public void onComplete(String result) {
@@ -408,10 +361,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
                     break;
                 case 3:
-
-                    System.out.println("CASO 3");
                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
-                    System.out.println("PATH: " + path);
+
 
                     imageView.setImageURI(Uri.parse(path));
                     imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
@@ -479,15 +430,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 mPaint.setColor(Color.RED);
                 canvas.drawCircle(tempX, tempY, 20, mPaint);
                 imageView.setImageDrawable(new BitmapDrawable(getResources(), mutableBitmap));
-                System.out.println("Canvas");
-                System.out.println(canvas.getWidth());
-                System.out.println(canvas.getHeight());
-                System.out.println("IMAGEVIEW");
-                System.out.println(imageView.getWidth());
-                System.out.println(imageView.getHeight());
-                System.out.println("imageViewHEIGHT&WIDTH");
-                System.out.println(imageViewWidth);
-                System.out.println(imageViewHeight);
                 ReferencePoint ref = new ReferencePoint(x, y, labelRoom.getText().toString());
                 referencePoints.add(ref);
                 Toast.makeText(getApplicationContext(), "Stanza aggiunta correttamente", Toast.LENGTH_LONG).show();
@@ -521,24 +463,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
                 }
                 break;
-
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, 2);
-                    System.out.println("CASE1");
                 } else {
                     Toast.makeText(MainActivity.this, "PROBLEM", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case 2:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    System.out.println("CASE2");
                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                         @Override
                         public void onComplete(String result) {
-                            System.out.println("response");
-                            System.out.println(result);
-
                             ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
                                 @Override
                                 public void onComplete(String result) {
@@ -561,10 +497,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 }
                 break;
             case 3:
-
-                    System.out.println("CASO 3 ALTRO");
                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
-                    System.out.println("PATH: " + path);
 
                     imageView.setImageURI(Uri.parse(path));
                     imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
@@ -588,9 +521,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             super.run();
             imageView.buildDrawingCache();
             Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-            System.out.println("BMAP SIZE");
-            System.out.println(bmap.getWidth());
-            System.out.println(bmap.getHeight());
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
             bb = bos.toByteArray();
@@ -601,8 +531,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     };
 
     private void createPopupRoomTraining(ReferencePoint point, int index) {
-
-        System.out.println("scan: "+point.getId());
         dialogBuilder = new AlertDialog.Builder(MainActivity.this);
         final View popup = getLayoutInflater().inflate(R.layout.layout_scan_training, null);
         dialogBuilder.setView(popup);
@@ -622,7 +550,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         String json = gson.toJson(message);
         clientSocket.sendMessageNewReferencePoint(json);
 
-        //TODO SISTEMARE TIMER CHE FACCIANO 5 MINUTI ADESSO IMPOSTATO A 10s
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
             public void onTick(long millisUntilFinished) {
@@ -639,9 +566,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
                         timer.setText("Stanza completata");
                         mHandler.removeCallbacks(scanRunnable);
-                        System.out.println("REFERENCE");
-                        System.out.println(referencePoints.size());
-                        System.out.println(index);
 
                         if (index + 1 < referencePoints.size()) {
                             buttonNext.setText("Next");
@@ -695,7 +619,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                                     recyclerView.setAdapter(adapterReferencePointList);
                                                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
-                                                    System.out.println(referencePoints.size());
                                                     Button buttonConferma = (Button) popup.findViewById(R.id.buttonConfermaSettings);
 
                                                     buttonConferma.setOnClickListener(new View.OnClickListener() {
@@ -705,10 +628,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                                             ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                                             for (int i = 0; i < referencePoints.size(); i++) {
-                                                                System.out.println("DND");
-                                                                System.out.println(referencePoints.get(i).getDnd());
-                                                                System.out.println("SPEAKER");
-                                                                System.out.println(referencePoints.get(i).getSpeaker().getName());
                                                                 arrListSettings.add(new Settings(referencePoints.get(i).getId(), referencePoints.get(i).getSpeaker(), referencePoints.get(i).getDnd()));
                                                             }
 
@@ -783,13 +702,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                                                     ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                                                                         @Override
                                                                         public void onComplete(String result) {
-                                                                            System.out.println(password.getText().toString());
-                                                                            System.out.println(result);
-
                                                                             ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
                                                                                 @Override
                                                                                 public void onComplete(String result) {
-                                                                                    System.out.println(result);
                                                                                     Gson gson = new Gson();
                                                                                     ArrayList<Map> accountMap = gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
                                                                                     Intent changeActivity;
@@ -810,7 +725,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                                                     };
 
                                                                     String encoded = java.util.Base64.getEncoder().encodeToString(password.getText().toString().getBytes());
-                                                                    System.out.println(encoded);
 
                                                                     Gson gson = new Gson();
                                                                     MessageEndMappingPhase message = new MessageEndMappingPhase(encoded, arrListSettings, name.getText().toString());
@@ -860,12 +774,11 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 scanService = new ScanService(getApplicationContext());
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    if (!scanService.getWifiManager().isScanThrottleEnabled()) {//Settings.Global.getInt(getApplicationContext().getContentResolver(), "wifi_scan_throttle_enabled") == 0){
+                    if (!scanService.getWifiManager().isScanThrottleEnabled()) {
                         intervalScan = 5000;
-                        System.out.println("IntervalScan: " + intervalScan);
                     } else {
                         intervalScan = 30000;
-                        System.out.println("IntervalScan: " + intervalScan);
+
                     }
                 }
 
@@ -927,15 +840,15 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         private void scanSuccess() {
             List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
-            List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-            for (ScanResult res : results) {
-                com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID, res.SSID, res.level);
-                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID + " level: " + res.level);
+            List<com.example.multiroomlocalization.localization.ScanResult> listScan = new ArrayList<>();
+            for (android.net.wifi.ScanResult res : results) {
+                com.example.multiroomlocalization.localization.ScanResult scan = new com.example.multiroomlocalization.localization.ScanResult(res.BSSID, res.SSID, res.level);
                 listScan.add(scan);
             }
 
             Gson gson = new Gson();
-            MessageFingerprint message = new MessageFingerprint(listScan);
+
+            MessageFingerprint message = new MessageFingerprint(listScan, System.currentTimeMillis());
             String json = gson.toJson(message);
             if(clientSocket != null )  clientSocket.sendMessageFingerprint(json);
         }
@@ -943,15 +856,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         private void scanFailure() {
 
             List<android.net.wifi.ScanResult> results = scanService.getWifiManager().getScanResults();
-            List<com.example.multiroomlocalization.ScanResult> listScan = new ArrayList<>();
-            for ( ScanResult res : results ) {
-                com.example.multiroomlocalization.ScanResult scan = new com.example.multiroomlocalization.ScanResult(res.BSSID,res.SSID,res.level);
-                System.out.println("SSID: " + res.SSID + " BSSID: " + res.BSSID+ " level: " + res.level);
+            List<com.example.multiroomlocalization.localization.ScanResult> listScan = new ArrayList<>();
+            for ( android.net.wifi.ScanResult res : results ) {
+                com.example.multiroomlocalization.localization.ScanResult scan = new com.example.multiroomlocalization.localization.ScanResult(res.BSSID,res.SSID,res.level);
                 listScan.add(scan);
             }
 
             Gson gson = new Gson();
-            MessageFingerprint message = new MessageFingerprint(listScan);
+            MessageFingerprint message = new MessageFingerprint(listScan, System.currentTimeMillis());
             String json = gson.toJson(message);
             if(clientSocket != null )  clientSocket.sendMessageFingerprint(json);
        }

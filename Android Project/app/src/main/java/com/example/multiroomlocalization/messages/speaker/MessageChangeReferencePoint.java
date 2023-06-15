@@ -18,7 +18,4 @@ public class MessageChangeReferencePoint extends Message {
 		return this.referencePoint;
 	}
 
-	public void setReferencePoint(ReferencePoint referencePoint) {
-		this.referencePoint = referencePoint;
-	}
 }

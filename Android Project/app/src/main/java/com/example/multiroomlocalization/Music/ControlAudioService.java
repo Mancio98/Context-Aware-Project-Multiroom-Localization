@@ -1,4 +1,4 @@
-package com.example.multiroomlocalization;
+package com.example.multiroomlocalization.Music;
 
 import static com.example.multiroomlocalization.LoginActivity.client;
 import static com.example.multiroomlocalization.Music.AudioPlaybackService.isMyServiceRunning;
@@ -29,6 +29,7 @@ import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothManager;
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.Music.AudioPlaybackService;
 import com.example.multiroomlocalization.Music.ListSongAdapter;
+import com.example.multiroomlocalization.R;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.gson.Gson;
@@ -49,7 +50,7 @@ public class ControlAudioService {
     private ConnectBluetoothManager bluetoothManager;
     public static boolean blockAutoPlay = true;
 
-    ControlAudioService(Activity activity, @NonNull View view) {
+    public ControlAudioService(Activity activity, @NonNull View view) {
         this.activity = activity;
         this.view = view;
         mediaBrowser = new MediaBrowserCompat(activity,

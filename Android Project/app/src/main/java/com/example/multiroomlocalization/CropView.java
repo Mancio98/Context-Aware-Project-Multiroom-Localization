@@ -15,7 +15,6 @@ import com.canhub.cropper.CropImageView;
 public class CropView extends Dialog {
     private final Uri inputImage;
     private Button salva;
-    //private Uri outputImage;
     private CropImageView cropImageView;
 
     public CropView(@NonNull Context context,Uri inputImage) {

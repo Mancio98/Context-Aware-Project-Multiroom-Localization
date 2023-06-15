@@ -1,6 +1,6 @@
 package com.example.multiroomlocalization.Music;
 
-import static com.example.multiroomlocalization.ControlAudioService.blockAutoPlay;
+import static com.example.multiroomlocalization.Music.ControlAudioService.blockAutoPlay;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,19 +18,16 @@ import androidx.annotation.Nullable;
 
 import com.example.multiroomlocalization.R;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
 
 
     Activity context;
-    ArrayList<ImageButton> playButtons;
 
     public ListSongAdapter(int resource, Context context, @NonNull List<MyAudioTrack> objects, Activity activity) {
         super(context, resource, objects);
         this.context = activity;
-        playButtons = new ArrayList<>();
 
     }
 
