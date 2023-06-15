@@ -166,8 +166,7 @@ public class LoginActivity extends AppCompatActivity {
                 client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
 
 
-                //TODO CODICE PER ATTIVARE DONOTDISTURB
-                /*
+
                 NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 System.out.println(mNotificationManager.isNotificationPolicyAccessGranted());
                 // Check if the notification policy access has been granted for the app.
@@ -183,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
                         bool = true;
                         mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
                     }
-                }*/
+                }
 
             }
         });
@@ -214,14 +213,12 @@ public class LoginActivity extends AppCompatActivity {
             client.start();
     }
 
-
     private void loginSuccessful(ArrayList<Map> accountMap){
         Intent changeActivity;
         changeActivity = new Intent(this,ListMapActivity.class);
         changeActivity.putExtra("Map",accountMap);
         startActivity(changeActivity);
     }
-
 
     @Override
     protected void onDestroy() {

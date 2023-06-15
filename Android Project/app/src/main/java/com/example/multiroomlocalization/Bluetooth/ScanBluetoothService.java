@@ -60,7 +60,7 @@ public class ScanBluetoothService extends Service {
 
     public void newDeviceConnectionCallback(OnDeviceFoundCallback callback){
 
-        System.out.println("newDeviceConnection");
+
         btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
@@ -81,7 +81,7 @@ public class ScanBluetoothService extends Service {
     }
 
     public void addDeviceFoundCallbackAndScan(OnDeviceFoundCallback callback){
-        System.out.println("addDeviceFoundCallback");
+
         if(callback!= null)
             queueCallback.add(callback);
 

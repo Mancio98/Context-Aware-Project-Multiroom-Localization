@@ -215,12 +215,18 @@ public class ConnectBluetoothManager {
     };
 
     private void connectProxy(){
-        System.out.println("start connection proxy");
+
         // Establish connection to the proxy.
 
-        bluetoothAdapter.getProfileProxy(myActivity, profileListenerA2DP, BluetoothProfile.A2DP);
-        bluetoothAdapter.getProfileProxy(myActivity, profileListenerHeadset, BluetoothProfile.HEADSET);
-        System.out.println("finish connection proxy");
+        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+            @Override
+            public void onEnabled() {
+                bluetoothAdapter.getProfileProxy(myActivity, profileListenerA2DP, BluetoothProfile.A2DP);
+                bluetoothAdapter.getProfileProxy(myActivity, profileListenerHeadset, BluetoothProfile.HEADSET);
+            }
+        });
+
+
 
     }
 

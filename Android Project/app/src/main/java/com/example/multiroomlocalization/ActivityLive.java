@@ -289,9 +289,9 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
 
                     }
 
-                    btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
+                    btUtility.enableBluetooth(null, new BluetoothUtility.OnEnableBluetooth() {
                         @Override
-                        public void onGranted() {
+                        public void onEnabled() {
                             audioServiceManager.initBluetoothManagerIfNot(scanBluetoothService);
                             audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
                         }
@@ -305,13 +305,13 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
 
         audioServiceManager = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout));
 
-
+        audioServiceManager.connectMediaBrowser();
     }
 
     @Override
     protected void onStart(){
         super.onStart();
-        audioServiceManager.connectMediaBrowser();
+
         btUtility = new BluetoothUtility(this, activity);
 
         Intent intent = new Intent(this, ScanBluetoothService.class);
@@ -326,13 +326,14 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
+        //btUtility.enableBluetooth(bl);
         checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, 1);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        audioServiceManager.disconnectMediaBrowser();
+
         if (isBound) {
             unbindService(this);
             isBound = false;
@@ -495,7 +496,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onDestroy();
         stopScan();
 
-
+        audioServiceManager.disconnectMediaBrowser();
         if(connectBluetoothThread != null)
             connectBluetoothThread.disconnectEverything(true);
         connectBluetoothThread = null;
