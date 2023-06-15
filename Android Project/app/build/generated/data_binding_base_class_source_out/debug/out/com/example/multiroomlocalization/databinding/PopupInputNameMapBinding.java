@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -27,16 +26,11 @@ public final class PopupInputNameMapBinding implements ViewBinding {
   @NonNull
   public final EditText editTextNameMap;
 
-  @NonNull
-  public final TextView textView8;
-
   private PopupInputNameMapBinding(@NonNull LinearLayout rootView,
-      @NonNull Button buttonConfermaMapName, @NonNull EditText editTextNameMap,
-      @NonNull TextView textView8) {
+      @NonNull Button buttonConfermaMapName, @NonNull EditText editTextNameMap) {
     this.rootView = rootView;
     this.buttonConfermaMapName = buttonConfermaMapName;
     this.editTextNameMap = editTextNameMap;
-    this.textView8 = textView8;
   }
 
   @Override
@@ -78,14 +72,8 @@ public final class PopupInputNameMapBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.textView8;
-      TextView textView8 = ViewBindings.findChildViewById(rootView, id);
-      if (textView8 == null) {
-        break missingId;
-      }
-
       return new PopupInputNameMapBinding((LinearLayout) rootView, buttonConfermaMapName,
-          editTextNameMap, textView8);
+          editTextNameMap);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

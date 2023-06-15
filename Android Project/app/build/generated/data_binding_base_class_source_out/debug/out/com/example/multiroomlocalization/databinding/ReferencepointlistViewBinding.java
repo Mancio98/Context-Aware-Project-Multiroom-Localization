@@ -24,17 +24,12 @@ public final class ReferencepointlistViewBinding implements ViewBinding {
   public final Button buttonConfermaSettings;
 
   @NonNull
-  public final ConstraintLayout constraint;
-
-  @NonNull
   public final RecyclerView recyclerViewReferencePoint;
 
   private ReferencepointlistViewBinding(@NonNull ConstraintLayout rootView,
-      @NonNull Button buttonConfermaSettings, @NonNull ConstraintLayout constraint,
-      @NonNull RecyclerView recyclerViewReferencePoint) {
+      @NonNull Button buttonConfermaSettings, @NonNull RecyclerView recyclerViewReferencePoint) {
     this.rootView = rootView;
     this.buttonConfermaSettings = buttonConfermaSettings;
-    this.constraint = constraint;
     this.recyclerViewReferencePoint = recyclerViewReferencePoint;
   }
 
@@ -71,8 +66,6 @@ public final class ReferencepointlistViewBinding implements ViewBinding {
         break missingId;
       }
 
-      ConstraintLayout constraint = (ConstraintLayout) rootView;
-
       id = R.id.recyclerViewReferencePoint;
       RecyclerView recyclerViewReferencePoint = ViewBindings.findChildViewById(rootView, id);
       if (recyclerViewReferencePoint == null) {
@@ -80,7 +73,7 @@ public final class ReferencepointlistViewBinding implements ViewBinding {
       }
 
       return new ReferencepointlistViewBinding((ConstraintLayout) rootView, buttonConfermaSettings,
-          constraint, recyclerViewReferencePoint);
+          recyclerViewReferencePoint);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

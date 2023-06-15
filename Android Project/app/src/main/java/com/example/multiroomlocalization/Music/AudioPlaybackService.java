@@ -2,25 +2,18 @@ package com.example.multiroomlocalization.Music;
 
 import static com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MUSIC;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-
-import android.media.AudioFocusRequest;
 import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.MediaMetadata;
-import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
@@ -28,24 +21,16 @@ import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-
 import androidx.media.MediaBrowserServiceCompat;
-import androidx.media.session.MediaButtonReceiver;
 
-import com.example.multiroomlocalization.R;
 import com.example.multiroomlocalization.messages.music.MessagePlaylist;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
-
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import java.util.List;
 
 public class AudioPlaybackService extends MediaBrowserServiceCompat implements Player.Listener{
@@ -53,26 +38,16 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     private static final String MY_EMPTY_MEDIA_ROOT_ID = "empty_root_id";
 
     private MediaSessionCompat mediaSession;
-    private PlaybackStateCompat.Builder stateBuilder;
     private Context context;
     public static boolean isMyServiceRunning = false;
-    private MediaPlayer mediaPlayer;
+
     private ExoPlayer exoPlayer;
 
-    private final AudioAttributes attrs = new AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .build();
     private final com.google.android.exoplayer2.audio.AudioAttributes attrs2 = new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
             .setContentType(AUDIO_CONTENT_TYPE_MUSIC)
             .build();
-    private AudioFocusRequest focusRequest;
 
     public static int currentTrack = 0;
-
-    private int resumePosition;
-    private TelephonyManager telephonyManager;
-    private PhoneStateListener phoneStateListener;
-    private boolean ongoingCall = false;
 
     private List<MyAudioTrack> trackList;
 
@@ -269,11 +244,11 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         context = getApplicationContext();
 
-        //callStateListener();
+
 
         mediaSession = new MediaSessionCompat(context, "LOG_TAG");
 
-        // MySessionCallback() has methods that handle callbacks from a media controller
+        // MySessionCallback has methods that handle callbacks from a media controller
         mediaSession.setCallback(myMediaSessionCallback);
 
         // Set the session's token so that client activities can communicate with it.
@@ -296,10 +271,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             exoPlayer.release();
             exoPlayer = null;
         }
-        //Disable the PhoneStateListener
-        if (phoneStateListener != null) {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-        }
+
 
         stopForeground(true);
         stopSelf();
@@ -308,11 +280,9 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        //MediaButtonReceiver.handleIntent(mediaSession, intent);
-        //Notification notification = buildNotification();
-        ///startForeground(1,notification);
+
         String myPlaylist = intent.getStringExtra("playlist");
-        System.out.println(myPlaylist);
+
         if(myPlaylist != null)
             trackList = gson.fromJson(myPlaylist, MessagePlaylist.class).getSong();
         initExoPlayer();
@@ -321,63 +291,10 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
     }
 
 
-    private Notification buildNotification(){
 
-        MediaControllerCompat controller = mediaSession.getController();
-
-        //MediaMetadataCompat mediaMetadata = controller.getMetadata();
-        //MediaDescriptionCompat description = mediaMetadata.getDescription();
-
-        String NOTIFICATION_CHANNEL_ID = "multiroomlocalization";
-        String channelName = "Music Playback";
-
-       /* NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-        chan.setLightColor(Color.BLUE);
-        chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        NotificationManager manager = (NotificationManager) (getSystemService(Context.NOTIFICATION_SERVICE));
-        manager.createNotificationChannel(chan);*/
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
-
-                builder
-                        // Add the metadata for the currently playing track
-                        .setContentTitle("Title")
-                        .setContentText("Subtitle")
-                        .setSubText("Description")
-                        //.setLargeIcon("description.getIconBitmap()")
-                        // Enable launching the player by clicking the notification
-                        .setContentIntent(controller.getSessionActivity())
-                        .setCategory(Notification.CATEGORY_SERVICE)
-                        .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
-                        .setOngoing(true)
-                        // Stop the service when the notification is swiped away
-                        .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context,
-                                PlaybackStateCompat.ACTION_STOP))
-                        // Add an app icon and set its accent color
-                        // Be careful about the color
-                        .setSmallIcon(R.drawable.ic_launcher_foreground)
-
-                        // Add a pause button
-                        .addAction(new NotificationCompat.Action(
-                                android.R.drawable.ic_media_pause, "pause",
-                                MediaButtonReceiver.buildMediaButtonPendingIntent(context,
-                                        PlaybackStateCompat.ACTION_PLAY_PAUSE)))
-                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                        // Take advantage of MediaStyle features
-                        .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                                .setMediaSession(mediaSession.getSessionToken())
-                                .setShowActionsInCompactView(0)
-
-                                // Add a cancel button
-                                .setShowCancelButton(true)
-                                .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context,
-                                        PlaybackStateCompat.ACTION_STOP)));
-
-        return builder.build();
-
-    }
     private void initExoPlayer() {
 
-        // Build the media items.
+
         exoPlayer = new ExoPlayer.Builder(context).build();
 
         exoPlayer.addListener(new Player.Listener() {
@@ -400,63 +317,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         exoPlayer.prepare();
         exoPlayer.seekTo(0,0);
 
-    }
-
-
-/*
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        //Invoked when there has been an error during an asynchronous operation.
-        switch (what) {
-            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                Log.d("MediaPlayer Error", "MEDIA ERROR NOT VALID FOR PROGRESSIVE PLAYBACK " + extra);
-                break;
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                Log.d("MediaPlayer Error", "MEDIA ERROR SERVER DIED " + extra);
-                break;
-            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                Log.d("MediaPlayer Error", "MEDIA ERROR UNKNOWN " + extra);
-                break;
-        }
-        return false;
-
-    }
-*/
-
-    //Handle incoming phone calls
-    private void callStateListener() {
-        // Get the telephony manager
-        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        //Starting listening for PhoneState changes
-        phoneStateListener = new PhoneStateListener() {
-            @Override
-            public void onCallStateChanged(int state, String incomingNumber) {
-                switch (state) {
-                    //if at least one call exists or the phone is ringing
-                    //pause the MediaPlayer
-                    case TelephonyManager.CALL_STATE_OFFHOOK:
-                    case TelephonyManager.CALL_STATE_RINGING:
-                        if (mediaPlayer != null) {
-                            pauseAudio();
-                            ongoingCall = true;
-                        }
-                        break;
-                    case TelephonyManager.CALL_STATE_IDLE:
-                        // Phone idle. Start playing.
-                        if (mediaPlayer != null) {
-                            if (ongoingCall) {
-                                ongoingCall = false;
-                                resumeAudio();
-                            }
-                        }
-                        break;
-                }
-            }
-        };
-        // Register the listener with the telephony manager
-        // Listen for changes to the device call state.
-        telephonyManager.listen(phoneStateListener,
-                PhoneStateListener.LISTEN_CALL_STATE);
     }
 
 

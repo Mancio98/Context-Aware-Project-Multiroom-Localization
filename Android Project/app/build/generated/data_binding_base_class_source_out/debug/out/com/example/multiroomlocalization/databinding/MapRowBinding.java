@@ -24,9 +24,6 @@ public final class MapRowBinding implements ViewBinding {
   public final TextView MapId;
 
   @NonNull
-  public final TextView border2;
-
-  @NonNull
   public final Button buttonSelectMap;
 
   @NonNull
@@ -36,11 +33,9 @@ public final class MapRowBinding implements ViewBinding {
   public final TextView mapName;
 
   private MapRowBinding(@NonNull RelativeLayout rootView, @NonNull TextView MapId,
-      @NonNull TextView border2, @NonNull Button buttonSelectMap, @NonNull TextView isReady,
-      @NonNull TextView mapName) {
+      @NonNull Button buttonSelectMap, @NonNull TextView isReady, @NonNull TextView mapName) {
     this.rootView = rootView;
     this.MapId = MapId;
-    this.border2 = border2;
     this.buttonSelectMap = buttonSelectMap;
     this.isReady = isReady;
     this.mapName = mapName;
@@ -79,12 +74,6 @@ public final class MapRowBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.border2;
-      TextView border2 = ViewBindings.findChildViewById(rootView, id);
-      if (border2 == null) {
-        break missingId;
-      }
-
       id = R.id.buttonSelectMap;
       Button buttonSelectMap = ViewBindings.findChildViewById(rootView, id);
       if (buttonSelectMap == null) {
@@ -103,8 +92,7 @@ public final class MapRowBinding implements ViewBinding {
         break missingId;
       }
 
-      return new MapRowBinding((RelativeLayout) rootView, MapId, border2, buttonSelectMap, isReady,
-          mapName);
+      return new MapRowBinding((RelativeLayout) rootView, MapId, buttonSelectMap, isReady, mapName);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

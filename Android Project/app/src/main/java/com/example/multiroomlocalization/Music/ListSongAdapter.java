@@ -34,16 +34,6 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
 
     }
 
-    public ListSongAdapter(@NonNull Context context, int resource, @NonNull List<MyAudioTrack> objects, Activity activity) {
-        super(context, resource, objects);
-        this.context = activity;
-        playButtons = new ArrayList<>();
-    }
-
-    public ArrayList<ImageButton> getPlayButtons() {
-        return playButtons;
-    }
-
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {

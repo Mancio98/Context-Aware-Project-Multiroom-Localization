@@ -25,20 +25,16 @@ public final class ActivityListMapAvailableBinding implements ViewBinding {
   public final FloatingActionButton fabAddMap;
 
   @NonNull
-  public final ConstraintLayout linearLayout3;
-
-  @NonNull
   public final RecyclerView recyclerViewMap;
 
   @NonNull
   public final TextView textViewNoMap;
 
   private ActivityListMapAvailableBinding(@NonNull ConstraintLayout rootView,
-      @NonNull FloatingActionButton fabAddMap, @NonNull ConstraintLayout linearLayout3,
-      @NonNull RecyclerView recyclerViewMap, @NonNull TextView textViewNoMap) {
+      @NonNull FloatingActionButton fabAddMap, @NonNull RecyclerView recyclerViewMap,
+      @NonNull TextView textViewNoMap) {
     this.rootView = rootView;
     this.fabAddMap = fabAddMap;
-    this.linearLayout3 = linearLayout3;
     this.recyclerViewMap = recyclerViewMap;
     this.textViewNoMap = textViewNoMap;
   }
@@ -76,8 +72,6 @@ public final class ActivityListMapAvailableBinding implements ViewBinding {
         break missingId;
       }
 
-      ConstraintLayout linearLayout3 = (ConstraintLayout) rootView;
-
       id = R.id.recyclerViewMap;
       RecyclerView recyclerViewMap = ViewBindings.findChildViewById(rootView, id);
       if (recyclerViewMap == null) {
@@ -91,7 +85,7 @@ public final class ActivityListMapAvailableBinding implements ViewBinding {
       }
 
       return new ActivityListMapAvailableBinding((ConstraintLayout) rootView, fabAddMap,
-          linearLayout3, recyclerViewMap, textViewNoMap);
+          recyclerViewMap, textViewNoMap);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

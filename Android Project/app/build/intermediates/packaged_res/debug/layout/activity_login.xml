@@ -9,7 +9,6 @@
     tools:context=".LoginActivity">
 
     <TextView
-        android:id="@+id/RegistrationText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -19,7 +18,6 @@
         android:textSize="60sp" />
 
     <TextView
-        android:id="@+id/usernameText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -36,7 +34,6 @@
         android:textAlignment="center" />
 
     <TextView
-        android:id="@+id/passwordText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

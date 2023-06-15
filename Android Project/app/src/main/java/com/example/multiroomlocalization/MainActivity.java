@@ -3,11 +3,60 @@ package com.example.multiroomlocalization;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
 import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.IBinder;
+import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Base64;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
-
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
-import com.example.multiroomlocalization.messages.connection.MessageKeepAlive;
-
+import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
@@ -16,100 +65,18 @@ import com.example.multiroomlocalization.messages.localization.MessageFingerprin
 import com.example.multiroomlocalization.messages.localization.MessageNewReferencePoint;
 import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
 import com.example.multiroomlocalization.messages.localization.MessageStartScanReferencePoint;
-import com.example.multiroomlocalization.speaker.Speaker;
-import com.example.multiroomlocalization.localization.ReferencePoint;
-
-import android.Manifest;
-import android.app.Activity;
-
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-
-import android.content.IntentFilter;
-
-import android.content.pm.PackageManager;
-
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.os.Bundle;
-
-import android.os.CountDownTimer;
-import android.os.Handler;
-
-
-import android.os.IBinder;
-import android.util.Base64;
-
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-
-import java.io.ByteArrayOutputStream;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-
-
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-
-import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.MotionEvent;
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-
 import com.example.multiroomlocalization.socket.ClientSocket;
-
-
+import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-
 import com.google.gson.Gson;
 
-import android.view.ViewTreeObserver;
-import android.widget.EditText;
+import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
 
@@ -122,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private ImageView playPause;
 
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private ScanService scanService;
     private Canvas canvas;
     private AlertDialog.Builder dialogBuilder;
@@ -142,21 +109,21 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private byte[] bb;
 
     private int intervalScan = 30000;
-    private int timerScanTraining = 10000; //* 5 //60000 = 1 min
+    private final int timerScanTraining = 10000; //* 5 //60000 = 1 min
     private FloatingActionButton fab;
 
     protected ClientSocket clientSocket;
     private CropView cv;
 
-    private ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
+    private final ArrayList<ReferencePoint> referencePoints = new ArrayList<ReferencePoint>();
 
-    private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
+    private final ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
 
     private int seekPosition;
     private ImageButton nextTrack;
     private ImageButton previousTrack;
     private ArrayList<ListRoomsElement> deviceForRoom;
-    private boolean onTop = false;
+    private final boolean onTop = false;
     private float startPlaylistX;
     private float startPlaylistY;
     private ArrayList<Speaker> listSpeaker;
@@ -167,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
     private ReferencePointListAdapter adapterReferencePointList;
-    //private ScanBluetooth scanBluetoothManager;
+
     private ScanBluetoothService scanBluetoothService;
     private boolean isBound=false;
 
@@ -177,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         void onGranted();
         default void notGranted(){
 
-        };
+        }
     }
 
     public static BluetoothPermCallback btPermissionCallback;
@@ -286,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         });*/
 
 
-        //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
+
     }
 
 
@@ -352,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
     };
 
-    private Runnable scanRunnable = new Runnable() {
+    private final Runnable scanRunnable = new Runnable() {
         @Override
         public void run() {
             scanService.startScan();
@@ -388,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 @Override
                                 public boolean onTouch(View view, MotionEvent motionEvent) {
                                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                                        //t.run();
+
                                         checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 3);
                                     }
                                     return false;
@@ -480,8 +447,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     System.out.println("CASO 3");
                     String path = MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), cv.getCropImageView().getCroppedImage(), "IMG_" + Calendar.getInstance().getTime(), null);
                     System.out.println("PATH: " + path);
-                    final Bitmap[] bmap = new Bitmap[1];
-                    CountDownLatch latch = new CountDownLatch(1);
 
                     imageView.setImageURI(Uri.parse(path));
                     imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
@@ -523,11 +488,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-                if (charSequence.toString().trim().length() == 0) {
-                    save.setEnabled(false);
-                } else {
-                    save.setEnabled(true);
-                }
+                save.setEnabled(charSequence.toString().trim().length() != 0);
             }
 
             @Override
@@ -573,7 +534,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
 
-    //listener to get if user granted permission for bluetooth connect and scan (only for sdk > 30)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -587,14 +547,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         if(grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                             btPermissionCallback.onGranted();
 
-
-                            Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         btPermissionCallback.onGranted();
 
-
-                        Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(this, "BT Permission Denied", Toast.LENGTH_SHORT).show();
@@ -992,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
 
-    private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
+    private final BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean success = intent.getBooleanExtra(

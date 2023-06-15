@@ -4,7 +4,6 @@ package com.example.multiroomlocalization.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,24 +21,15 @@ public final class ActivityMainBinding implements ViewBinding {
   private final CoordinatorLayout rootView;
 
   @NonNull
-  public final FrameLayout RaRooms;
-
-  @NonNull
   public final FloatingActionButton fab;
-
-  @NonNull
-  public final CoordinatorLayout linearLayout;
 
   @NonNull
   public final ImageView map;
 
-  private ActivityMainBinding(@NonNull CoordinatorLayout rootView, @NonNull FrameLayout RaRooms,
-      @NonNull FloatingActionButton fab, @NonNull CoordinatorLayout linearLayout,
-      @NonNull ImageView map) {
+  private ActivityMainBinding(@NonNull CoordinatorLayout rootView,
+      @NonNull FloatingActionButton fab, @NonNull ImageView map) {
     this.rootView = rootView;
-    this.RaRooms = RaRooms;
     this.fab = fab;
-    this.linearLayout = linearLayout;
     this.map = map;
   }
 
@@ -70,19 +60,11 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.RaRooms;
-      FrameLayout RaRooms = ViewBindings.findChildViewById(rootView, id);
-      if (RaRooms == null) {
-        break missingId;
-      }
-
       id = R.id.fab;
       FloatingActionButton fab = ViewBindings.findChildViewById(rootView, id);
       if (fab == null) {
         break missingId;
       }
-
-      CoordinatorLayout linearLayout = (CoordinatorLayout) rootView;
 
       id = R.id.map;
       ImageView map = ViewBindings.findChildViewById(rootView, id);
@@ -90,7 +72,7 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((CoordinatorLayout) rootView, RaRooms, fab, linearLayout, map);
+      return new ActivityMainBinding((CoordinatorLayout) rootView, fab, map);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

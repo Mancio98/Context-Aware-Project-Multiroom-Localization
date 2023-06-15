@@ -1,8 +1,8 @@
 package com.example.multiroomlocalization;
 
 public class User {
-    private String username;
-    private String password;
+    private final String username;
+    private final String password;
 
     User(String username,String password){
         this.username = username;

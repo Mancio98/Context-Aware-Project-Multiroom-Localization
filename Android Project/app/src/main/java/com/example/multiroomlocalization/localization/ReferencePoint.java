@@ -1,15 +1,6 @@
 package com.example.multiroomlocalization.localization;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import androidx.annotation.NonNull;
-
-
 import com.example.multiroomlocalization.speaker.Speaker;
-
-import java.util.HashMap;
-import java.util.List;
 
 public class ReferencePoint{
 

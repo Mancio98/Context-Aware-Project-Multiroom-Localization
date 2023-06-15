@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="rooms_array">
-        <item name="cucina">Cucina</item>
-        <item name="camera da letto">Camera da Letto</item>
-        <item name="salotto">Salotto</item>
-    </string-array>
 
 </resources>

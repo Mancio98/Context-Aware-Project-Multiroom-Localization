@@ -1,6 +1,5 @@
 package com.example.multiroomlocalization.messages.localization;
 
-import com.example.multiroomlocalization.Fingerprint;
 import com.example.multiroomlocalization.ScanResult;
 import com.example.multiroomlocalization.messages.Message;
 
@@ -8,7 +7,6 @@ import java.util.List;
 
 
 public class MessageFingerprint extends Message {
-	//private Fingerprint fingerprint;
 
     public List<ScanResult> fingerprint;
 

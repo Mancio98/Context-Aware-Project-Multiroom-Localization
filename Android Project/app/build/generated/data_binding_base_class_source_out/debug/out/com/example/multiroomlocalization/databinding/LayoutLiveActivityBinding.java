@@ -8,7 +8,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -31,9 +30,6 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
 
   @NonNull
   public final TextView audioTime;
-
-  @NonNull
-  public final RelativeLayout audiocontroller;
 
   @NonNull
   public final ImageButton closePlaylistButton;
@@ -70,16 +66,14 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
 
   private LayoutLiveActivityBinding(@NonNull CoordinatorLayout rootView,
       @NonNull CoordinatorLayout activityLiveLayout, @NonNull TextView audioTime,
-      @NonNull RelativeLayout audiocontroller, @NonNull ImageButton closePlaylistButton,
-      @NonNull LinearLayout controllerButtons, @NonNull ImageView mapView,
-      @NonNull ImageButton nexttrack, @NonNull ImageButton openplaylist,
+      @NonNull ImageButton closePlaylistButton, @NonNull LinearLayout controllerButtons,
+      @NonNull ImageView mapView, @NonNull ImageButton nexttrack, @NonNull ImageButton openplaylist,
       @NonNull ListView playlistView, @NonNull ImageButton playpause,
       @NonNull ImageButton previoustrack, @NonNull SeekBar seekBar,
       @NonNull FloatingActionButton settingsButton, @NonNull LinearLayout timeControl) {
     this.rootView = rootView;
     this.activityLiveLayout = activityLiveLayout;
     this.audioTime = audioTime;
-    this.audiocontroller = audiocontroller;
     this.closePlaylistButton = closePlaylistButton;
     this.controllerButtons = controllerButtons;
     this.mapView = mapView;
@@ -125,12 +119,6 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
       id = R.id.audio_time;
       TextView audioTime = ViewBindings.findChildViewById(rootView, id);
       if (audioTime == null) {
-        break missingId;
-      }
-
-      id = R.id.audiocontroller;
-      RelativeLayout audiocontroller = ViewBindings.findChildViewById(rootView, id);
-      if (audiocontroller == null) {
         break missingId;
       }
 
@@ -201,9 +189,8 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
       }
 
       return new LayoutLiveActivityBinding((CoordinatorLayout) rootView, activityLiveLayout,
-          audioTime, audiocontroller, closePlaylistButton, controllerButtons, mapView, nexttrack,
-          openplaylist, playlistView, playpause, previoustrack, seekBar, settingsButton,
-          timeControl);
+          audioTime, closePlaylistButton, controllerButtons, mapView, nexttrack, openplaylist,
+          playlistView, playpause, previoustrack, seekBar, settingsButton, timeControl);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

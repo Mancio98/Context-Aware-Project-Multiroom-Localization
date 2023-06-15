@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -21,15 +20,10 @@ public final class PopupUploadMapBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final TextView textView2;
-
-  @NonNull
   public final Button upload;
 
-  private PopupUploadMapBinding(@NonNull ConstraintLayout rootView, @NonNull TextView textView2,
-      @NonNull Button upload) {
+  private PopupUploadMapBinding(@NonNull ConstraintLayout rootView, @NonNull Button upload) {
     this.rootView = rootView;
-    this.textView2 = textView2;
     this.upload = upload;
   }
 
@@ -60,19 +54,13 @@ public final class PopupUploadMapBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.textView2;
-      TextView textView2 = ViewBindings.findChildViewById(rootView, id);
-      if (textView2 == null) {
-        break missingId;
-      }
-
       id = R.id.upload;
       Button upload = ViewBindings.findChildViewById(rootView, id);
       if (upload == null) {
         break missingId;
       }
 
-      return new PopupUploadMapBinding((ConstraintLayout) rootView, textView2, upload);
+      return new PopupUploadMapBinding((ConstraintLayout) rootView, upload);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

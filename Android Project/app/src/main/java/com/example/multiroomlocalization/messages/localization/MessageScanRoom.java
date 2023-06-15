@@ -6,7 +6,7 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageScanRoom extends Message {
 
-    private String roomId;
+    private final String roomId;
 
 
     public MessageScanRoom(String roomId) {

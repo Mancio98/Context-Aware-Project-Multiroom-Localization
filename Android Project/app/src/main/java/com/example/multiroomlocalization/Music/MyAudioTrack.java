@@ -7,13 +7,6 @@ public class MyAudioTrack {
     private final String author;
     private final String duration;
 
-    public MyAudioTrack(String path, String title, String author, String duration) {
-        this.path = path;
-        this.title = title;
-        this.author = author;
-        this.duration = duration;
-    }
-
 
     public String getPath() {
         return path;
@@ -25,10 +18,6 @@ public class MyAudioTrack {
 
     public String getAuthor() {
         return author;
-    }
-
-    public String getDuration() {
-        return duration;
     }
 
 

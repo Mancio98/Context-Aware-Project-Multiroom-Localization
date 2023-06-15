@@ -2,8 +2,8 @@ package com.example.multiroomlocalization.messages.connection;
 
 import com.example.multiroomlocalization.messages.Message;
 public class MessageConnection extends Message {
-    private String id;
-    private String name;
+    private final String id;
+    private final String name;
 
     public MessageConnection(String id, String name) {
         super("CONNECTION");

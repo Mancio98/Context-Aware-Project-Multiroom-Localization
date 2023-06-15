@@ -24,16 +24,12 @@ public final class CropViewBinding implements ViewBinding {
   public final CropImageView cropImageView;
 
   @NonNull
-  public final ConstraintLayout linearLayout2;
-
-  @NonNull
   public final Button salvaCrop;
 
   private CropViewBinding(@NonNull ConstraintLayout rootView, @NonNull CropImageView cropImageView,
-      @NonNull ConstraintLayout linearLayout2, @NonNull Button salvaCrop) {
+      @NonNull Button salvaCrop) {
     this.rootView = rootView;
     this.cropImageView = cropImageView;
-    this.linearLayout2 = linearLayout2;
     this.salvaCrop = salvaCrop;
   }
 
@@ -70,16 +66,13 @@ public final class CropViewBinding implements ViewBinding {
         break missingId;
       }
 
-      ConstraintLayout linearLayout2 = (ConstraintLayout) rootView;
-
       id = R.id.salvaCrop;
       Button salvaCrop = ViewBindings.findChildViewById(rootView, id);
       if (salvaCrop == null) {
         break missingId;
       }
 
-      return new CropViewBinding((ConstraintLayout) rootView, cropImageView, linearLayout2,
-          salvaCrop);
+      return new CropViewBinding((ConstraintLayout) rootView, cropImageView, salvaCrop);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

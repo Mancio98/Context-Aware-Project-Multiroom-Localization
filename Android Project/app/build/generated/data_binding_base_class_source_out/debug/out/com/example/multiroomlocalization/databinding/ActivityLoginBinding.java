@@ -22,9 +22,6 @@ public final class ActivityLoginBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
-  public final TextView RegistrationText;
-
-  @NonNull
   public final Button buttonRegistration;
 
   @NonNull
@@ -32,9 +29,6 @@ public final class ActivityLoginBinding implements ViewBinding {
 
   @NonNull
   public final EditText editPasswordRegistration;
-
-  @NonNull
-  public final TextView passwordText;
 
   @NonNull
   public final TextView textDnd;
@@ -45,24 +39,17 @@ public final class ActivityLoginBinding implements ViewBinding {
   @NonNull
   public final TextView textViewLink;
 
-  @NonNull
-  public final TextView usernameText;
-
-  private ActivityLoginBinding(@NonNull LinearLayout rootView, @NonNull TextView RegistrationText,
-      @NonNull Button buttonRegistration, @NonNull EditText editMailRegistration,
-      @NonNull EditText editPasswordRegistration, @NonNull TextView passwordText,
-      @NonNull TextView textDnd, @NonNull TextView textRegistration, @NonNull TextView textViewLink,
-      @NonNull TextView usernameText) {
+  private ActivityLoginBinding(@NonNull LinearLayout rootView, @NonNull Button buttonRegistration,
+      @NonNull EditText editMailRegistration, @NonNull EditText editPasswordRegistration,
+      @NonNull TextView textDnd, @NonNull TextView textRegistration,
+      @NonNull TextView textViewLink) {
     this.rootView = rootView;
-    this.RegistrationText = RegistrationText;
     this.buttonRegistration = buttonRegistration;
     this.editMailRegistration = editMailRegistration;
     this.editPasswordRegistration = editPasswordRegistration;
-    this.passwordText = passwordText;
     this.textDnd = textDnd;
     this.textRegistration = textRegistration;
     this.textViewLink = textViewLink;
-    this.usernameText = usernameText;
   }
 
   @Override
@@ -92,12 +79,6 @@ public final class ActivityLoginBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.RegistrationText;
-      TextView RegistrationText = ViewBindings.findChildViewById(rootView, id);
-      if (RegistrationText == null) {
-        break missingId;
-      }
-
       id = R.id.buttonRegistration;
       Button buttonRegistration = ViewBindings.findChildViewById(rootView, id);
       if (buttonRegistration == null) {
@@ -113,12 +94,6 @@ public final class ActivityLoginBinding implements ViewBinding {
       id = R.id.editPasswordRegistration;
       EditText editPasswordRegistration = ViewBindings.findChildViewById(rootView, id);
       if (editPasswordRegistration == null) {
-        break missingId;
-      }
-
-      id = R.id.passwordText;
-      TextView passwordText = ViewBindings.findChildViewById(rootView, id);
-      if (passwordText == null) {
         break missingId;
       }
 
@@ -140,15 +115,8 @@ public final class ActivityLoginBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.usernameText;
-      TextView usernameText = ViewBindings.findChildViewById(rootView, id);
-      if (usernameText == null) {
-        break missingId;
-      }
-
-      return new ActivityLoginBinding((LinearLayout) rootView, RegistrationText, buttonRegistration,
-          editMailRegistration, editPasswordRegistration, passwordText, textDnd, textRegistration,
-          textViewLink, usernameText);
+      return new ActivityLoginBinding((LinearLayout) rootView, buttonRegistration,
+          editMailRegistration, editPasswordRegistration, textDnd, textRegistration, textViewLink);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

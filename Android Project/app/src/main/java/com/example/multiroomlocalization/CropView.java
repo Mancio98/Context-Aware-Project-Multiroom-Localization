@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -14,7 +13,7 @@ import androidx.annotation.NonNull;
 import com.canhub.cropper.CropImageView;
 
 public class CropView extends Dialog {
-    private Uri inputImage;
+    private final Uri inputImage;
     private Button salva;
     //private Uri outputImage;
     private CropImageView cropImageView;

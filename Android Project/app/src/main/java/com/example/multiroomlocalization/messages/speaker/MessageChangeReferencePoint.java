@@ -2,8 +2,6 @@ package com.example.multiroomlocalization.messages.speaker;
 
 
 import com.example.multiroomlocalization.localization.ReferencePoint;
-
-import com.example.multiroomlocalization.speaker.Speaker;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageChangeReferencePoint extends Message {
