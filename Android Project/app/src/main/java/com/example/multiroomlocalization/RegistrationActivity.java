@@ -1,6 +1,10 @@
 package com.example.multiroomlocalization;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,6 +23,8 @@ import com.example.multiroomlocalization.messages.connection.MessageRegistration
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import java.util.Base64;
 
 public class RegistrationActivity  extends AppCompatActivity {
     Button registration;
@@ -45,6 +51,16 @@ public class RegistrationActivity  extends AppCompatActivity {
 
 
         client = LoginActivity.client;
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                RegistrationActivity.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
 
         username.addTextChangedListener(new TextWatcher() {
@@ -100,7 +116,10 @@ public class RegistrationActivity  extends AppCompatActivity {
         registration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                User user = new User(username.getText().toString(),password.getText().toString());
+                String encoded = Base64.getEncoder().encodeToString(password.getText().toString().getBytes());
+                System.out.println(encoded);
+
+                User user = new User(username.getText().toString(),encoded);
                 registration.setEnabled(false);
                 ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
                     @Override

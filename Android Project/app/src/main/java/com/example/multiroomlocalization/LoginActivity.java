@@ -3,8 +3,11 @@ package com.example.multiroomlocalization;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -31,6 +34,7 @@ import com.google.gson.JsonObject;
 
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -53,9 +57,15 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        ScanService scanService = new ScanService(getApplicationContext());
         setContentView(R.layout.activity_login);
         TextView link = findViewById(R.id.textViewLink);
         link.setMovementMethod(LinkMovementMethod.getInstance());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!scanService.getWifiManager().isScanThrottleEnabled()) {
+                link.setVisibility(View.INVISIBLE);
+            }
+        }
 
         userInput = findViewById(R.id.editMailRegistration);
         passwordInput = findViewById(R.id.editPasswordRegistration);
@@ -73,7 +83,6 @@ public class LoginActivity extends AppCompatActivity {
 
         client = new ClientSocket(LoginActivity.this);
         client.setContext(LoginActivity.this);
-
 
         textRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,7 +140,10 @@ public class LoginActivity extends AppCompatActivity {
                 String email = userInput.getText().toString();
                 String password = passwordInput.getText().toString();
 
-                User user= new User(email,password);
+                String encoded = Base64.getEncoder().encodeToString(password.toString().getBytes());
+                System.out.println(encoded);
+
+                User user= new User(email,encoded);
 
 
                 //loginSuccessfull(new ArrayList<Map>());
@@ -181,6 +193,21 @@ public class LoginActivity extends AppCompatActivity {
         });
 
 
+        TextView dnd = findViewById(R.id.textDnd);
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (mNotificationManager.isNotificationPolicyAccessGranted()) {
+            dnd.setVisibility(View.INVISIBLE);
+        }
+
+        dnd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                startActivity(intent);
+
+            }
+        });
     }
 
     @Override
@@ -195,59 +222,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent changeActivity;
         changeActivity = new Intent(this,ListMapActivity.class);
         changeActivity.putExtra("Map",accountMap);
-
-        /*Intent changeActivity = new Intent(this,ListMapActivity.class);
-
-        String address = userInput.getText().toString();
-        Integer port = Integer.parseInt(passwordInput.getText().toString());
-        client = new ClientSocket(LoginActivity.this);
-        client.setAddress(address,port);
-        client.setContext(LoginActivity.this);
-        client.start();
-
-        new AlertDialog.Builder(LoginActivity.this)
-                .setTitle("Delete entry")
-                .setMessage("Are you sure you want to delete this entry?")
-
-                // Specifying a listener allows you to take an action before dismissing the dialog.
-                // The dialog is automatically dismissed when a dialog button is clicked.
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        User user = new User("luca","12345");
-                        ClientSocket.Callback<String> callbackSuccessful = new ClientSocket.Callback<String>() {
-                            @Override
-                            public void onComplete(String result) {
-                                currentUser = user;
-                                System.out.println(result);
-                                Gson gson = new Gson();
-                                ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
-                                //loginSuccessfull(accountMap);
-                                changeActivity.putExtra("Map",accountMap);
-                                startActivity(changeActivity);
-
-                            }
-                        };
-                        ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
-                            @Override
-                            public void onComplete(String result) {
-                                Toast.makeText(LoginActivity.this, "ERROR: CREDENZIALI NON CORRETTE", Toast.LENGTH_LONG).show();
-                            }
-                        };
-
-                        Gson gson = new Gson();
-                        MessageLogin message = new MessageLogin(user);
-                        String json = gson.toJson(message);
-                        client.sendMessageLogin(callbackSuccessful,callbackUnsuccessful,json);
-                    }
-                })
-
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-                */
-
-
         startActivity(changeActivity);
     }
 

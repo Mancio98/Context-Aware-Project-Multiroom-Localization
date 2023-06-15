@@ -9,6 +9,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.Editable;
@@ -39,6 +43,7 @@ import com.google.gson.Gson;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Base64;
 
 public class ListMapActivity extends AppCompatActivity implements ServiceConnection {
 
@@ -83,6 +88,16 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                 text.setVisibility(View.INVISIBLE);
             }
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ListMapActivity.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
         adapter = new MapListAdapter(mapList,ListMapActivity.this,clientSocket);
         recyclerView.setAdapter(adapter);
@@ -261,8 +276,12 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                         };
 
                         if(!listIdArray.contains(inputIdMap.getText().toString())){
+
+                            String encoded = Base64.getEncoder().encodeToString(inputPasswordMap.getText().toString().getBytes());
+                            System.out.println(encoded);
+
                             Gson gson = new Gson();
-                            MessageMapSubscription message = new MessageMapSubscription(inputIdMap.getText().toString(),inputPasswordMap.getText().toString());
+                            MessageMapSubscription message = new MessageMapSubscription(inputIdMap.getText().toString(),encoded);
                             String json = gson.toJson(message);
 
                             clientSocket.sendMessageMapSubscription(json,callbackSuccessful,callbackUnsuccessful);
@@ -274,9 +293,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                     }
                 });
 
-
-
-
                 Button buttonCreateMap = (Button) popup.findViewById(R.id.buttonCreateMap);
                 buttonCreateMap.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -284,6 +300,7 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                         dialog.cancel();
                         Intent changeActivity;
                         changeActivity = new Intent(ListMapActivity.this,MainActivity.class);
+                        changeActivity.putExtra("listMap",mapList);
                         finish();
                         startActivity(changeActivity);
                     }
@@ -292,9 +309,6 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
                 dialog = dialogBuilder.create();
                 dialog.setCanceledOnTouchOutside(true);
                 dialog.show();
-
-
-
 
             }
         });

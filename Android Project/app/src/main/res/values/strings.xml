@@ -33,6 +33,7 @@
     <string name="settings"> Abbiamo quasi finito \n Associa per ogni stanza uno speaker e scegli se attivare la DoNotDisturb mode </string>
     <string name="noMap"> Nessuna mappa associata a questo account, creane una nuova o registrati ad una già esistente </string>
     <string name="suggestionSettings"> Per una migliore esperienza dell\'app disabilita l\'impostazione \"Wifi Scan Throttling\" \n <a href="https://dannyda.com/2023/02/10/how-to-remove-android-wifi-scan-throttling/">LINK</a></string>
+    <string name="dnd"> Per poter utilizzare la DnD attiva l\'impostazione cliccando qui </string>
 
 
 </resources>

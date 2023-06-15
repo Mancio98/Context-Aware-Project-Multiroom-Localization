@@ -12,6 +12,7 @@ import com.example.multiroomlocalization.LoginActivity;
 import com.example.multiroomlocalization.ScanService;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
@@ -67,11 +68,8 @@ public class ClientSocket extends Thread {
     private Handler mHandler = new Handler();
     private ScanService scanService;
     private int intervalScan = 10000;
-
-
-    private int port = 10682;
-    private String ip = "2.tcp.eu.ngrok.io";// "10.0.2.2";
-
+    private int port = 18064;
+    private String ip ="7.tcp.eu.ngrok.io";
     private WifiManager wifiManager;
     private Context context;
     private Gson gson = new Gson();
@@ -122,10 +120,9 @@ public class ClientSocket extends Thread {
                         try {
                             dataOut.writeUTF(gson.toJson(new MessageAcknowledge()));
                             dataOut.flush();
-                            //byte[] data = null;
+
                             setBb(new byte[gson.fromJson(msg,MessageImage.class).getNByte()]);
                             if (bb.length > 0) {
-                                //bb = new byte[len];
                                 dataIn.readFully(bb, 0, bb.length); // read the message
                             }
                             sendMessage(gson.toJson(new MessageImageFinish()), false, null);
@@ -148,6 +145,9 @@ public class ClientSocket extends Thread {
                 catch (IOException e) {
                     interrupt();
                     e.printStackTrace();
+                    Intent intent1 = new Intent("CLOSE&#95;ALL");
+                    context.sendBroadcast(intent1);
+
                 }
             }
         }
@@ -356,6 +356,9 @@ public class ClientSocket extends Thread {
     };
 */
 
+    public void sendMessageKeepAlive(String message){
+        sendMessage(message,false,null);
+    }
     public void sendImage(byte[] bb,Callback<String> callback){
         imageCallback = callback;
         sendMessage(null,true,bb);
@@ -422,11 +425,6 @@ public class ClientSocket extends Thread {
         registrationUnsuccessfulCallback = callback2;
         sendMessage(message,false,null);
     }
-
-    public void sendMessageRequestImage(Callback<String> callback){
-        mapDetailsCallback = callback;
-        //sendMessage(null,false,null);
-    };
 
     public void setContext(Context context){
         this.context = context;

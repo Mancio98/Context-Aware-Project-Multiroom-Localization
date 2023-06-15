@@ -3,8 +3,11 @@ package com.example.multiroomlocalization;
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
 
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+
 //import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
+import com.example.multiroomlocalization.messages.connection.MessageKeepAlive;
+
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.messages.localization.MessageEndMappingPhase;
@@ -26,6 +29,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+
+import android.content.IntentFilter;
+
 import android.content.pm.PackageManager;
 
 import android.net.wifi.ScanResult;
@@ -166,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private ScanBluetoothService scanBluetoothService;
     private boolean isBound=false;
 
+    private ArrayList<Map> mapArrayList;
 
     public interface BluetoothPermCallback {
         void onGranted();
@@ -194,21 +201,25 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         });
 
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CLOSE&#95;ALL");
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                MainActivity.this.finish();
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
+
         activity = this;
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String address = extras.getString("add");
-            Integer port = extras.getInt("port");
-            //The key argument here must match that used in the other activity
-            //clientSocket.setAddress(address, port);
+            mapArrayList = extras.getParcelableArrayList("listMap");
         }
 
         imageView = (ImageView) findViewById(R.id.map);
-        // TODO DA PROVARE
-        //imageView.getLayoutParams().height = 2000;
-        //imageView.getLayoutParams().width = 1400;
-        //imageView.requestLayout();
 
         if (imageView.getDrawable() == null) {
             dialogBuilder = new AlertDialog.Builder(this);
@@ -261,10 +272,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     listSpeaker.add(new Speaker(device.getName(), device.getAddress(), room.getName()));
                 });
 
-
-                //clientSocket.sendMessageListSpeaker(listSpeaker);
-
-
                 /* fare metodo per inizializzre il thread
                 connectBluetoothThread = new ConnectBluetoothThread(activity);
 
@@ -282,43 +289,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
     }
-
-
-/*
-        imageView.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                imageViewHeight = imageView.getHeight();
-                imageViewWidth = imageView.getWidth();
-                int xGlobal = imageView.getLeft();
-                int yGlobal = imageView.getTop();
-
-                System.out.println("Global");
-                System.out.println("X: " + xGlobal);
-                System.out.println("Y: " + yGlobal);
-                System.out.println("Height: " + imageViewHeight + " Width: " + imageViewWidth);
-                // don't forget to remove the listener to prevent being called again
-                // by future layout events:
-                if(first || newImage) {
-                    first=false;
-                    newImage = false;
-                    Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
-                    mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-                    canvas = new Canvas(mutableBitmap);
-
-                }
-            });
-
-        }else{
-
-        imageView.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
-
-        imageView.setOnTouchListener(touchListener);
-
-                createDialog(tempx,tempy);
-                return false;
-            }
-        });*/
 
 
     @Override
@@ -372,7 +342,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
                 first = false;
                 newImage = false;
-                //Bitmap bitmap = Bitmap.createBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap());
                 Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) imageView.getDrawable()).getBitmap(), imageViewWidth, imageViewHeight, true);
                 mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 canvas = new Canvas(mutableBitmap);
@@ -394,53 +363,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     };
 
     private void stopScan() {
+        if (scanService!=null) scanService.registerReceiver(null);
         mHandler.removeCallbacks(scanRunnable);
     }
-
-
-   /* @Override
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            dialogBuilder = new AlertDialog.Builder(this);
-            final View popup = getLayoutInflater().inflate(R.layout.popup_upload_map, null);
-            upload = (Button) popup.findViewById(R.id.upload);
-
-            dialogBuilder.setView(popup);
-            dialog = dialogBuilder.create();
-
-            dialog.show();
-
-            upload.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    // create an instance of the
-                    // intent of the type image
-                    Intent i = new Intent();
-                    i.setType("image/*");
-                    i.setAction(Intent.ACTION_GET_CONTENT);
-
-                    someActivityResultLauncher.launch(i);
-                }
-            });
-
-
-            System.out.println("Presss");
-            return true;
-        } else if (id == R.id.action_client) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-    */
 
     // You can do the assignment inside onAttach or onCreate, i.e, before the activity is displayed
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
@@ -540,7 +465,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             clientSocket.sendImage(bb, callback1);
                         }
                     };
+
+
                     Gson gson = new Gson();
+
                     MessageStartMappingPhase message = new MessageStartMappingPhase(len);
                     String json = gson.toJson(message);
 
@@ -564,26 +492,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
                     cv.cancel();
                     t.start();
-                    /*
-                    imageView.buildDrawingCache();
-                    bmap[0] = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-                    latch.countDown();
-
-
-                    System.out.println("BMAP SIZE");
-                    System.out.println(bmap[0].getWidth());
-                    System.out.println(bmap[0].getHeight());
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bmap[0].compress(Bitmap.CompressFormat.PNG, 100, bos);
-                    bb = bos.toByteArray();
-                    imageMap = Base64.encodeToString(bb, 0);
-
-                    len = bb.length;*/
 
                     startPopup();
                     break;
             }
-
         }
     }
 
@@ -719,9 +631,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         }
                     };
                     Gson gson = new Gson();
+
                     MessageStartMappingPhase message = new MessageStartMappingPhase(len);
                     String json = gson.toJson(message);
-
                     clientSocket.sendMessageStartMappingPhase(callback, json);
                     fab.setEnabled(false);
                 } else {
@@ -741,23 +653,20 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     newImage = true;
 
                     cv.cancel();
-
                     t.start();
-
 
                     startPopup();
 
-
-
-                break;
+                    break;
         }
     }
 
     Thread t = new Thread(){
-        public void run(){
+
+        @Override
+        public void run() {
             super.run();
             imageView.buildDrawingCache();
-
             Bitmap bmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
             System.out.println("BMAP SIZE");
             System.out.println(bmap.getWidth());
@@ -770,6 +679,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             len = bb.length;
         }
     };
+
     private void createPopupRoomTraining(ReferencePoint point, int index) {
 
         System.out.println("scan: "+point.getId());
@@ -792,7 +702,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         String json = gson.toJson(message);
         clientSocket.sendMessageNewReferencePoint(json);
 
-
         //TODO SISTEMARE TIMER CHE FACCIANO 5 MINUTI ADESSO IMPOSTATO A 10s
         CountDownTimer countDownTimer = new CountDownTimer(timerScanTraining, 1000) {
 
@@ -809,11 +718,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     public void onClick(View view) {
 
                         timer.setText("Stanza completata");
+                        mHandler.removeCallbacks(scanRunnable);
                         System.out.println("REFERENCE");
                         System.out.println(referencePoints.size());
                         System.out.println(index);
-
-                        mHandler.removeCallbacks(scanRunnable);
 
                         if (index + 1 < referencePoints.size()) {
                             buttonNext.setText("Next");
@@ -978,22 +886,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                                                             String json = gson.toJson(message);
                                                                             clientSocket.sendMessageLogin(callbackSuccessful, null, json);
 
-                                                                           /* ClientSocket.Callback<String> callback1 = new ClientSocket.Callback<String>() {
-                                                                                @Override
-                                                                                public void onComplete(String result) {
-                                                                                    Toast.makeText(getApplicationContext(), gson.fromJson(result, MessageChangeReferencePoint.class).getReferencePoint().getId(),Toast.LENGTH_LONG).show();
-                                                                                }
-                                                                            };
-                                                                            clientSocket.addCallbackChangeReferencePoint(callback1);
-                                                                            //AGGIUNTO PER PROVARE CON MATTI POI SARà DA ELIMINARE
-                                                                            //mHandler.postDelayed(scanRunnable, 5000);
-
-                                                                            */
                                                                         }
                                                                     };
 
+                                                                    String encoded = java.util.Base64.getEncoder().encodeToString(password.getText().toString().getBytes());
+                                                                    System.out.println(encoded);
+
                                                                     Gson gson = new Gson();
-                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(password.getText().toString(), arrListSettings, name.getText().toString());
+                                                                    MessageEndMappingPhase message = new MessageEndMappingPhase(encoded, arrListSettings, name.getText().toString());
                                                                     String json = gson.toJson(message);
                                                                     clientSocket.sendMessageEndMappingPhase(callback, json);
 
@@ -1072,7 +972,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         dialogBuilder.setView(popup);
         dialog = dialogBuilder.create();
 
-
         Button next = (Button) popup.findViewById(R.id.buttonPopup);
         TextView text = (TextView) popup.findViewById(R.id.textPopup);
 
@@ -1118,7 +1017,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if(clientSocket != null )  clientSocket.sendMessageFingerprint(json);
         }
 
         private void scanFailure() {
@@ -1134,7 +1033,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             Gson gson = new Gson();
             MessageFingerprint message = new MessageFingerprint(listScan);
             String json = gson.toJson(message);
-            clientSocket.sendMessageFingerprint(json);
+            if(clientSocket != null )  clientSocket.sendMessageFingerprint(json);
        }
 
 
@@ -1171,5 +1070,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     protected void onDestroy() {
         super.onDestroy();
         activity = null;
+        stopScan();
+        clientSocket = null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        Intent changeActivity;
+        changeActivity = new Intent(this,ListMapActivity.class);
+        changeActivity.putExtra("Map",mapArrayList);
+        startActivity(changeActivity);
+        finish();
     }
 }

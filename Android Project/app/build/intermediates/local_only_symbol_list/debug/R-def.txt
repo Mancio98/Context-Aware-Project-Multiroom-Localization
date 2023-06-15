@@ -82,6 +82,7 @@ id song_title
 id spinnerBluetooth
 id spinner_btdevices
 id switchDnd
+id textDnd
 id textPopup
 id textRegistration
 id textRoom
@@ -137,6 +138,7 @@ string dialog_cancel
 string dialog_conferma
 string dialog_request_connection_bt
 string discovered_devices
+string dnd
 string done
 string first_fragment_label
 string hello_first_fragment

@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.multiroomlocalization.messages.connection.MessageKeepAlive;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.localization.MessageImage;
 import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
@@ -60,8 +61,7 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
         holder.mapName.setText(currentData.name);
         if(currentData.isReady != true){
             holder.isReady.setText("Not ready");
-            //TODO DA SCOMMENTARE ALLA FINE
-            //holder.selectMap.setEnabled(false);
+            holder.selectMap.setEnabled(false);
             holder.selectMap.setText("NON DISPONIBILE");
         }
         else holder.isReady.setText("Ready");
@@ -75,8 +75,6 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
                                 ClientSocket.Callback<String> callback = new ClientSocket.Callback<String>() {
                                     @Override
                                     public void onComplete(String result) {
-                                        Gson gson = new Gson();
-
                                         Intent changeActivity;
                                         changeActivity = new Intent(context,ActivityLive.class);
                                         changeActivity.putExtra("ReferencePoint",result);
@@ -87,6 +85,7 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
                                 };
 
                                 Gson gson = new Gson();
+
                                 MessageMapRequest message = new MessageMapRequest(list.get(position).id);
                                 String json = gson.toJson(message);
                                 client.sendMessageMapRequest(callback,json);

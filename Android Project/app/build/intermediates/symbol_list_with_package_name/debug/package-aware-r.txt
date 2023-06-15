@@ -3859,6 +3859,7 @@ id tag_unhandled_key_listeners
 id tag_window_insets_animation_callback
 id text
 id text2
+id textDnd
 id textEnd
 id textPopup
 id textRegistration
@@ -4231,6 +4232,7 @@ string dialog_cancel
 string dialog_conferma
 string dialog_request_connection_bt
 string discovered_devices
+string dnd
 string done
 string error_a11y_label
 string error_icon_content_description
