@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #Thu Jun 15 19:45:05 CEST 2023
 base.0=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
@@ -11,6 +12,21 @@ base.6=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android 
 base.7=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex
 base.8=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/6/classes.dex
 base.9=/Users/luca/Desktop/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex
+=======
+#Thu Jun 15 20:26:25 CEST 2023
+base.0=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
+base.1=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
+base.10=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/8/classes.dex
+base.11=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeExtDexDebug/classes2.dex
+base.2=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/1/classes.dex
+base.3=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/12/classes.dex
+base.4=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/13/classes.dex
+base.5=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/14/classes.dex
+base.6=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/15/classes.dex
+base.7=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex
+base.8=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/6/classes.dex
+base.9=/Users/andreamancini/AndroidStudioProjects/Context-Aware-Project-Multiroom-Localization/Android Project/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex
+>>>>>>> d08da389ffa5f06d6f08acacc25aaa35d7d3c2f4
 path.0=classes.dex
 path.1=0/classes.dex
 path.10=8/classes.dex

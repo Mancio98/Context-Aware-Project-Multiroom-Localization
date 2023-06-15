@@ -164,6 +164,10 @@
         "source": "com.example.multiroomlocalization.app-main-50:/xml/data_extraction_rules.xml"
     },
     {
+        "merged": "com.example.multiroomlocalization.app-merged_res-48:/drawable_ic_media_playlist.xml.flat",
+        "source": "com.example.multiroomlocalization.app-main-50:/drawable/ic_media_playlist.xml"
+    },
+    {
         "merged": "com.example.multiroomlocalization.app-merged_res-48:/layout_popup_text.xml.flat",
         "source": "com.example.multiroomlocalization.app-main-50:/layout/popup_text.xml"
     }

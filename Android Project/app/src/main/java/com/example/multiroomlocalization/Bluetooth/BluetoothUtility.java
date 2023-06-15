@@ -5,21 +5,17 @@ import static com.example.multiroomlocalization.MainActivity.btPermissionCallbac
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Parcelable;
-import android.util.ArraySet;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCaller;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 
 import com.example.multiroomlocalization.BetterActivityResult;
@@ -29,31 +25,35 @@ public class BluetoothUtility {
 
     private static BetterActivityResult<Intent, ActivityResult> activityLauncher;
     public static final int BT_CONNECT_AND_SCAN = 101;
+    private OnEnableBluetooth callbackOnEnable;
 
     private Activity activity;
+    private ActivityResultLauncher<Intent> someActivityResultLauncher;
+    private BluetoothAdapter bluetoothAdapter;
+
     public interface OnEnableBluetooth {
 
         void onEnabled();
 
         default void onDisabled(Activity activity) {
-            Toast.makeText(activity, "Enabled bluetooth is mandatory", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Enable bluetooth is mandatory", Toast.LENGTH_LONG).show();
         }
     }
 
     public BluetoothUtility (ActivityResultCaller caller, Activity activity){
         this.activity = activity;
-        activityLauncher = BetterActivityResult.registerActivityForResult(caller);
+        //activityLauncher = BetterActivityResult.registerActivityForResult(caller);
+        initActivityResult(caller);
+        bluetoothAdapter = activity.getSystemService(BluetoothManager.class).getAdapter();
     }
-    private void setActivityLauncher(ActivityResultCaller caller) {
-        activityLauncher = BetterActivityResult.registerActivityForResult(caller);
-    }
+
 
 
     //method to query user to enable bluetooth
-    public void enableBluetooth(BluetoothAdapter bluetoothAdapter, OnEnableBluetooth callback) {
+    public void enableBluetooth(BluetoothAdapter bluetoothAdapters, OnEnableBluetooth callback) {
 
 
-        //setActivityLauncher(activity.);
+        callbackOnEnable = callback;
 
         checkPermission(new MainActivity.BluetoothPermCallback() {
             @Override
@@ -63,23 +63,10 @@ public class BluetoothUtility {
 
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
-                    activityLauncher.launch(enableBtIntent, result -> {
-
-                        if (result.getResultCode() == Activity.RESULT_OK) {
-                            callback.onEnabled();
-
-                        } else {
-
-                            callback.onDisabled(activity);
-
-                        }
-                    });
-
+                    someActivityResultLauncher.launch(enableBtIntent);
                 }
-                else {
-
+                else
                     callback.onEnabled();
-                }
             }
         });
 
@@ -100,6 +87,22 @@ public class BluetoothUtility {
 
 
             });
+
+    }
+
+    private void initActivityResult(ActivityResultCaller caller){
+
+         someActivityResultLauncher = caller.registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                callbackOnEnable.onEnabled();
+
+            } else {
+
+                callbackOnEnable.onDisabled(activity);
+
+            }
+        });
 
     }
 

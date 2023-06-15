@@ -2,7 +2,7 @@ package com.example.multiroomlocalization;
 
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
 import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import android.Manifest;
 import android.app.Activity;
@@ -180,7 +180,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                clientSocket.setSenderFingerprint(true);
                 btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
                     @Override
                     public void onGranted() {
@@ -202,6 +202,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                             @Override
                             public void onClick(View view) {
                                 adapterReferencePointList.closeBluetoothScan();
+                                clientSocket.setSenderFingerprint(false);
                                 ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                 for (int i = 0; i < referencePoints.size(); i++) {
@@ -288,9 +289,9 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
 
                     }
 
-                    btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
+                    btUtility.enableBluetooth(null, new BluetoothUtility.OnEnableBluetooth() {
                         @Override
-                        public void onGranted() {
+                        public void onEnabled() {
                             audioServiceManager.initBluetoothManagerIfNot(scanBluetoothService);
                             audioServiceManager.connectToSpeaker(currentRef.getSpeaker());
                         }
@@ -304,13 +305,13 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
 
         audioServiceManager = new ControlAudioService(activity, (View)findViewById(R.id.activity_live_layout));
 
-
+        audioServiceManager.connectMediaBrowser();
     }
 
     @Override
     protected void onStart(){
         super.onStart();
-        audioServiceManager.connectMediaBrowser();
+
         btUtility = new BluetoothUtility(this, activity);
 
         Intent intent = new Intent(this, ScanBluetoothService.class);
@@ -325,13 +326,14 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
+        //btUtility.enableBluetooth(bl);
         checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, 1);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        audioServiceManager.disconnectMediaBrowser();
+
         if (isBound) {
             unbindService(this);
             isBound = false;
@@ -494,18 +496,9 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onDestroy();
         stopScan();
 
-        /*
-        try {
-
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
-            activity.unregisterReceiver(btUtility.getConnectA2dpReceiver());
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }*/
-
+        audioServiceManager.disconnectMediaBrowser();
         if(connectBluetoothThread != null)
-            connectBluetoothThread.disconnectEverything();
+            connectBluetoothThread.disconnectEverything(true);
         connectBluetoothThread = null;
         activity = null;
         clientSocket = null;
