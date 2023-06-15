@@ -12,7 +12,6 @@ import android.widget.CompoundButton;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.speaker.Speaker;
@@ -22,13 +21,13 @@ import java.util.Set;
 
 public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePointHolder> {
 
-    private ArrayList<ReferencePoint> listReferencePoint;
-    private ArrayList<Speaker> itemsBluetooth;
+    private final ArrayList<ReferencePoint> listReferencePoint;
+    private final ArrayList<Speaker> itemsBluetooth;
 
-    private Context context;
-    private ScanBluetoothService serviceBluetooth;
-    private ArrayList<ArrayAdapter<String>> myAdapter;
-    private int num = 0;
+    private final Context context;
+    private final ScanBluetoothService serviceBluetooth;
+    private final ArrayList<ArrayAdapter<String>> myAdapter;
+    private final int num = 0;
 
     public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, ScanBluetoothService serviceBluetooth){
 
@@ -130,16 +129,14 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
         ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, speakerName);
         holder.spinnerBluetooth.setAdapter(adapter);
 
-        //myAdapter.add(adapter);
 
         holder.spinnerBluetooth.setSelection(0);
 
 
         if (currentData.getSpeaker() != null){
-            System.out.println(currentData.getId());
-            System.out.println(currentData.getSpeaker().getName());
+
             int index = speakerMac.indexOf(currentData.getSpeaker().getMac());
-            System.out.println(index);
+
             holder.spinnerBluetooth.setSelection(index);
 
         }

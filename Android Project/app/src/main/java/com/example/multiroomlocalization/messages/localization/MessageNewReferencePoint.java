@@ -4,7 +4,7 @@ import com.example.multiroomlocalization.localization.ReferencePoint;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageNewReferencePoint  extends Message {
-    private ReferencePoint referencePoint;
+    private final ReferencePoint referencePoint;
     private int x;
     private int y;
 

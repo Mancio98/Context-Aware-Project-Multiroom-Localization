@@ -1,34 +1,20 @@
 package com.example.multiroomlocalization;
 
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
-import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
 import static com.example.multiroomlocalization.LoginActivity.btUtility;
+import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
 
 import android.Manifest;
 import android.app.Activity;
-
-import android.bluetooth.BluetoothDevice;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-
-import android.app.NotificationManager;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.media.AudioManager;
-
-import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
-import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothManager;
-//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
-import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
-import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
-import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
-import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
-import com.example.multiroomlocalization.socket.ClientSocket;
-
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -36,14 +22,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
+import android.media.AudioManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-
-import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -57,24 +41,23 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
+import com.example.multiroomlocalization.Bluetooth.ConnectBluetoothManager;
+import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.localization.ReferencePoint;
+import com.example.multiroomlocalization.messages.localization.MessageFingerprint;
 import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
 import com.example.multiroomlocalization.messages.music.MessageSettings;
-import com.example.multiroomlocalization.speaker.Speaker;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
+import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 public class ActivityLive extends AppCompatActivity implements ServiceConnection {
     private ArrayList<ReferencePoint> referencePoints;
@@ -87,18 +70,14 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
     private Canvas canvas;
     private ScanService scanService;
     private int intervalScan = 30000;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private ReferencePoint currentRef;
     private Bitmap mutableBitmap;
     private Activity activity;
     private ConnectBluetoothManager connectBluetoothThread;
     boolean serviceBound = false;
-    private HashMap<String,ArrayList<com.example.multiroomlocalization.ScanResult>> resultScan = new HashMap<>();
-    private ArrayList<com.example.multiroomlocalization.ScanResult> scanResultArrayList = new ArrayList<com.example.multiroomlocalization.ScanResult>();
-    private final Gson gson = new Gson();
     private ControlAudioService audioServiceManager;
-    //private ScanBluetooth scanBluetoothManager;
-    private ArrayList<Speaker> listSpeaker;
+
     private ReferencePointListAdapter adapterReferencePointList;
     private ScanBluetoothService scanBluetoothService;
     private boolean isBound = false;
@@ -289,7 +268,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
 
                     }
 
-                    btUtility.enableBluetooth(null, new BluetoothUtility.OnEnableBluetooth() {
+                    btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
                         @Override
                         public void onEnabled() {
                             audioServiceManager.initBluetoothManagerIfNot(scanBluetoothService);
@@ -326,7 +305,6 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onResume();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-        //btUtility.enableBluetooth(bl);
         checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, 1);
     }
 
@@ -353,7 +331,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         serviceBound = savedInstanceState.getBoolean("ServiceState");
     }
 
-    //listener to get if user granted permission for bluetooth connect and scan (only for sdk > 30)
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -367,14 +345,9 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                         if(grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                             btPermissionCallback.onGranted();
 
-
-                            Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         btPermissionCallback.onGranted();
-
-
-                        Toast.makeText(this, "BT Permission Granted", Toast.LENGTH_SHORT).show();
                     }
                 } else {
 
@@ -425,7 +398,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         canvas.drawText(referencePoint.getId(), x - halfTextLength, y, paint);
     }
 
-    private Runnable scanRunnable = new Runnable() {
+    private final Runnable scanRunnable = new Runnable() {
         @Override
         public void run() {
             scanService.startScan();
@@ -446,7 +419,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         scanService.registerReceiver(null);
         mHandler.removeCallbacks(scanRunnable);
     }
-    private BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
+    private final BroadcastReceiver broadcastReceiverScan = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean success = intent.getBooleanExtra(

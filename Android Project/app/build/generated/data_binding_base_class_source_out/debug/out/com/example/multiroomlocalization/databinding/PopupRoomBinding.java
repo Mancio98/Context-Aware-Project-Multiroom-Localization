@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -30,16 +29,12 @@ public final class PopupRoomBinding implements ViewBinding {
   @NonNull
   public final EditText labelRoom;
 
-  @NonNull
-  public final TextView textView;
-
   private PopupRoomBinding(@NonNull LinearLayout rootView, @NonNull Button buttonCancel,
-      @NonNull Button buttonSave, @NonNull EditText labelRoom, @NonNull TextView textView) {
+      @NonNull Button buttonSave, @NonNull EditText labelRoom) {
     this.rootView = rootView;
     this.buttonCancel = buttonCancel;
     this.buttonSave = buttonSave;
     this.labelRoom = labelRoom;
-    this.textView = textView;
   }
 
   @Override
@@ -87,14 +82,7 @@ public final class PopupRoomBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.textView;
-      TextView textView = ViewBindings.findChildViewById(rootView, id);
-      if (textView == null) {
-        break missingId;
-      }
-
-      return new PopupRoomBinding((LinearLayout) rootView, buttonCancel, buttonSave, labelRoom,
-          textView);
+      return new PopupRoomBinding((LinearLayout) rootView, buttonCancel, buttonSave, labelRoom);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -30,17 +29,13 @@ public final class LayoutPasswordMapBinding implements ViewBinding {
   @NonNull
   public final EditText passwordInputMap;
 
-  @NonNull
-  public final TextView textView3;
-
   private LayoutPasswordMapBinding(@NonNull LinearLayout rootView,
       @NonNull Button buttonSendPassword, @NonNull EditText editTextInputMapName,
-      @NonNull EditText passwordInputMap, @NonNull TextView textView3) {
+      @NonNull EditText passwordInputMap) {
     this.rootView = rootView;
     this.buttonSendPassword = buttonSendPassword;
     this.editTextInputMapName = editTextInputMapName;
     this.passwordInputMap = passwordInputMap;
-    this.textView3 = textView3;
   }
 
   @Override
@@ -88,14 +83,8 @@ public final class LayoutPasswordMapBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.textView3;
-      TextView textView3 = ViewBindings.findChildViewById(rootView, id);
-      if (textView3 == null) {
-        break missingId;
-      }
-
       return new LayoutPasswordMapBinding((LinearLayout) rootView, buttonSendPassword,
-          editTextInputMapName, passwordInputMap, textView3);
+          editTextInputMapName, passwordInputMap);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

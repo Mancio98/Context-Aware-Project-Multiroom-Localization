@@ -3,8 +3,8 @@ package com.example.multiroomlocalization.messages.connection;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageConnectionBack  extends Message {
-    private String id;
-    private boolean accepted;
+    private final String id;
+    private final boolean accepted;
 
     public MessageConnectionBack(String id, boolean accepted) {
         super("CONNECTION_BACK");

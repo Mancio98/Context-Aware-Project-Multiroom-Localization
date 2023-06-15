@@ -7,7 +7,7 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageReferencePointResult extends Message {
 
-	private ReferencePoint referencePoint;
+	private final ReferencePoint referencePoint;
 
 	public MessageReferencePointResult(ReferencePoint referencePoint) {
 		super("REFERENCE_POINT_RESULT");

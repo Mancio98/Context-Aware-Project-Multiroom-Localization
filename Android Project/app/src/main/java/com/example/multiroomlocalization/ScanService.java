@@ -8,15 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
-import android.os.Bundle;
 import android.os.RemoteException;
-import android.os.ResultReceiver;
-import android.support.v4.os.IResultReceiver;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import java.io.Serializable;
 import java.util.List;
 
 public class ScanService extends IntentService {
@@ -28,7 +24,7 @@ public class ScanService extends IntentService {
     public ScanService(Context contextTemp) {
         super(null);
         context = contextTemp;
-        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);;
+        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
             @Override

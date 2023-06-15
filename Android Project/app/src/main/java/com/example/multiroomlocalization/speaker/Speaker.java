@@ -10,7 +10,7 @@ import java.util.Set;
 public class Speaker {
     private final String name;
 
-    private String mac;
+    private final String mac;
     private String room;
 
 
@@ -31,7 +31,7 @@ public class Speaker {
         ArrayList<Speaker> listSpeaker = new ArrayList<>();
 
         list.forEach((device) -> {
-            System.out.println(device.getBluetoothClass().getDeviceClass());
+
             if(device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES ||
                     device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER)
                 listSpeaker.add(new Speaker(device.getName(),device.getAddress()));
@@ -47,11 +47,6 @@ public class Speaker {
 
     }
 
-    public void printSpeaker(){
-        System.out.println("Speaker: "+name+" "+mac);
-    }
-    public String getRoom() {
-        return room;
-    }
+
 
 }

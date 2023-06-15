@@ -4,7 +4,7 @@ import com.example.multiroomlocalization.User;
 import com.example.multiroomlocalization.messages.Message;
 
 public class MessageRegistration extends Message {
-    private User user;
+    private final User user;
 
     public MessageRegistration(User user) {
         super("REGISTRATION");

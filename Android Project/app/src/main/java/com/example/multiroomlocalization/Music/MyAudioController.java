@@ -2,12 +2,11 @@ package com.example.multiroomlocalization.Music;
 
 import android.content.Context;
 import android.content.Intent;
-import android.view.View;
 import android.widget.MediaController;
 
 public class MyAudioController extends MediaController implements MediaController.MediaPlayerControl {
 
-    private Context myContext;
+    private final Context myContext;
 
     public MyAudioController(Context context) {
         super(context);
@@ -49,24 +48,6 @@ public class MyAudioController extends MediaController implements MediaControlle
         myContext.sendBroadcast(broadcastIntent);
     }
 
-    public static final String Broadcast_NEXT_AUDIO = "com.example.multiroomlocalization.myAudioController.NextAudio";
-    View.OnClickListener nextTrack = new OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            Intent broadcastIntent = new Intent(Broadcast_NEXT_AUDIO);
-            myContext.sendBroadcast(broadcastIntent);
-        }
-    };
-
-    public static final String Broadcast_PREV_AUDIO = "com.example.multiroomlocalization.myAudioController.PrevAudio";
-    View.OnClickListener prevTrack = new OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            Intent broadcastIntent = new Intent(Broadcast_PREV_AUDIO);
-            myContext.sendBroadcast(broadcastIntent);
-        }
-    };
-    
 
     @Override
     public boolean isPlaying() {

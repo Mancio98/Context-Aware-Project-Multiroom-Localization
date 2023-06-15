@@ -4,8 +4,8 @@ import com.example.multiroomlocalization.messages.Message;
 
 public class MessageConnectionEnd extends Message {
 
-    private String id;
-    private String name;
+    private final String id;
+    private final String name;
 
     public MessageConnectionEnd(String id, String name) {
         super("CONNECTION_END");

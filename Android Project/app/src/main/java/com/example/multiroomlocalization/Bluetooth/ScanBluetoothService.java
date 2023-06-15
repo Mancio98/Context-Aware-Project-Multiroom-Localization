@@ -13,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -21,13 +20,8 @@ import androidx.annotation.Nullable;
 
 import com.example.multiroomlocalization.MainActivity;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 
 public class ScanBluetoothService extends Service {
 
@@ -61,7 +55,7 @@ public class ScanBluetoothService extends Service {
     public void newDeviceConnectionCallback(OnDeviceFoundCallback callback){
 
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {
@@ -85,7 +79,7 @@ public class ScanBluetoothService extends Service {
         if(callback!= null)
             queueCallback.add(callback);
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {
@@ -146,8 +140,7 @@ public class ScanBluetoothService extends Service {
 
             //when i found a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Discovery has found a device. Get the BluetoothDevice
-                // object and its info from the Intent.
+
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (device != null) {
 
@@ -157,13 +150,13 @@ public class ScanBluetoothService extends Service {
                         public void onGranted() {
 
                             System.out.println(device.getName());
-                            System.out.println(device.getBluetoothClass().getDeviceClass());
+
                             if(device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES ||
                                     device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER) {
                                 String deviceName = device.getName();
-                                String deviceHardwareAddress = device.getAddress(); // MAC address
+                                String deviceHardwareAddress = device.getAddress();
 
-                                //System.out.println(deviceName);
+
 
                                 if(currentFoundCallback!= null && deviceHardwareAddress != null)
                                     currentFoundCallback.onFound(deviceName, deviceHardwareAddress, device);
@@ -173,7 +166,7 @@ public class ScanBluetoothService extends Service {
                     });
                 }
 
-                //when scanning is finished
+
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 
                 if(currentFoundCallback != null) {
@@ -186,7 +179,7 @@ public class ScanBluetoothService extends Service {
                 }
                 Log.i("devices_scan", "finished");
 
-                //when scanning is started
+
             } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
 
                 Log.i("devices_scan", "started");

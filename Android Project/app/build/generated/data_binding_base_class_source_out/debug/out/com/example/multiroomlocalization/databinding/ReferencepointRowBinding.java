@@ -22,9 +22,6 @@ public final class ReferencepointRowBinding implements ViewBinding {
   private final RelativeLayout rootView;
 
   @NonNull
-  public final TextView border2;
-
-  @NonNull
   public final TextView roomId;
 
   @NonNull
@@ -33,10 +30,9 @@ public final class ReferencepointRowBinding implements ViewBinding {
   @NonNull
   public final Switch switchDnd;
 
-  private ReferencepointRowBinding(@NonNull RelativeLayout rootView, @NonNull TextView border2,
-      @NonNull TextView roomId, @NonNull Spinner spinnerBluetooth, @NonNull Switch switchDnd) {
+  private ReferencepointRowBinding(@NonNull RelativeLayout rootView, @NonNull TextView roomId,
+      @NonNull Spinner spinnerBluetooth, @NonNull Switch switchDnd) {
     this.rootView = rootView;
-    this.border2 = border2;
     this.roomId = roomId;
     this.spinnerBluetooth = spinnerBluetooth;
     this.switchDnd = switchDnd;
@@ -69,12 +65,6 @@ public final class ReferencepointRowBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.border2;
-      TextView border2 = ViewBindings.findChildViewById(rootView, id);
-      if (border2 == null) {
-        break missingId;
-      }
-
       id = R.id.roomId;
       TextView roomId = ViewBindings.findChildViewById(rootView, id);
       if (roomId == null) {
@@ -93,8 +83,8 @@ public final class ReferencepointRowBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ReferencepointRowBinding((RelativeLayout) rootView, border2, roomId,
-          spinnerBluetooth, switchDnd);
+      return new ReferencepointRowBinding((RelativeLayout) rootView, roomId, spinnerBluetooth,
+          switchDnd);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

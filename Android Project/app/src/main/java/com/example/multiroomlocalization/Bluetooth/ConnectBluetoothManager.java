@@ -3,7 +3,6 @@ package com.example.multiroomlocalization.Bluetooth;
 
 import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,7 +13,6 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.DialogInterface;
-
 
 import com.example.multiroomlocalization.R;
 import com.example.multiroomlocalization.speaker.Speaker;
@@ -33,7 +31,7 @@ public class ConnectBluetoothManager {
     private BluetoothA2dp bluetoothA2DP;
     private Method disconnectA2dp;
 
-    private ScanBluetoothService bluetoothService;
+    private final ScanBluetoothService bluetoothService;
     private String macDeviceToConnect;
     private boolean requestDisconnectionA2DP = false;
     private boolean requestDisconnectionHeadset = false;
@@ -48,7 +46,7 @@ public class ConnectBluetoothManager {
         connectProxy();
     }
 
-    private ScanBluetoothService.OnDeviceFoundCallback callback = new ScanBluetoothService.OnDeviceFoundCallback() {
+    private final ScanBluetoothService.OnDeviceFoundCallback callback = new ScanBluetoothService.OnDeviceFoundCallback() {
         @Override
         public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
 
@@ -70,7 +68,7 @@ public class ConnectBluetoothManager {
 
     private void startBluetoothConnection(Speaker macDevice) {
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @Override
             public void onEnabled() {
                 macDeviceToConnect = macDevice.getMac();
@@ -91,7 +89,7 @@ public class ConnectBluetoothManager {
     //if device is not paired, i pair it
     private void ifNotBondedPair() {
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {
@@ -126,7 +124,7 @@ public class ConnectBluetoothManager {
             if (profile == BluetoothProfile.A2DP) {
                 bluetoothA2DP = (BluetoothA2dp) proxy;
                 try {
-                    System.out.println("proxy connected");
+
                     //get hidden method to connect device to proxy
                     connectA2dp = bluetoothA2DP.getClass().getMethod("connect", BluetoothDevice.class);
                     //get hidden method to disconnect device to proxy
@@ -135,7 +133,7 @@ public class ConnectBluetoothManager {
                         disconnectDevicesA2DP();
                         requestDisconnectionA2DP = false;
                     }
-                    //call connect
+
                     if(requestConnection) {
                         ifNotConnectedConnect(speakerToConnect);
                         requestConnection = false;
@@ -153,7 +151,7 @@ public class ConnectBluetoothManager {
             if (profile == BluetoothProfile.A2DP) {
 
 
-                btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+                btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onEnabled() {
@@ -198,7 +196,7 @@ public class ConnectBluetoothManager {
             if (profile == BluetoothProfile.A2DP) {
 
 
-                btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+                btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onEnabled() {
@@ -218,7 +216,7 @@ public class ConnectBluetoothManager {
 
         // Establish connection to the proxy.
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @Override
             public void onEnabled() {
                 bluetoothAdapter.getProfileProxy(myActivity, profileListenerA2DP, BluetoothProfile.A2DP);
@@ -240,7 +238,7 @@ public class ConnectBluetoothManager {
 
     private void ifNotConnectedConnect(Speaker device) {
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {
@@ -273,7 +271,7 @@ public class ConnectBluetoothManager {
 
 
     private void disconnectDevicesA2DP(){
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {
@@ -298,7 +296,7 @@ public class ConnectBluetoothManager {
     }
     private void disconnectDevicesHeadset(){
 
-        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+        btUtility.enableBluetooth(new BluetoothUtility.OnEnableBluetooth() {
             @SuppressLint("MissingPermission")
             @Override
             public void onEnabled() {

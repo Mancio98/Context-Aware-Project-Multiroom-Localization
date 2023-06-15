@@ -4,15 +4,12 @@ import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.Editable;
@@ -27,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.localization.ReferencePoint;
@@ -40,9 +36,7 @@ import com.example.multiroomlocalization.speaker.Speaker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.Base64;
 
 public class ListMapActivity extends AppCompatActivity implements ServiceConnection {
@@ -61,7 +55,7 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
     private Activity activity;
     private ArrayList<Speaker> listSpeaker;
     private ReferencePointListAdapter adapterReferencePointList;
-    //private ScanBluetooth scanBluetoothManager;
+
     private ScanBluetoothService scanBluetoothService;
     private boolean isBound = false;
 
@@ -117,7 +111,7 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
 
                 buttonConferma.setEnabled(false);
 
-                //scanBluetoothManager = new ScanBluetooth(getApplicationContext(), activity);
+
                 inputIdMap.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -215,11 +209,7 @@ public class ListMapActivity extends AppCompatActivity implements ServiceConnect
 
                                             @Override
                                             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                                                if(charSequence.toString().trim().length()==0){
-                                                    button.setEnabled(false);
-                                                } else {
-                                                    button.setEnabled(true);
-                                                }
+                                                button.setEnabled(charSequence.toString().trim().length() != 0);
                                             }
 
                                             @Override

@@ -1,27 +1,14 @@
 package com.example.multiroomlocalization.socket;
 
-import static java.net.StandardSocketOptions.SO_KEEPALIVE;
-
 import android.app.Activity;
-
-
-
-
-import com.example.multiroomlocalization.LoginActivity;
-
-import com.example.multiroomlocalization.ScanService;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.telecom.Call;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
-
+import com.example.multiroomlocalization.ScanService;
 import com.example.multiroomlocalization.messages.connection.MessageAcknowledge;
 import com.example.multiroomlocalization.messages.connection.MessageConnectionClose;
 import com.example.multiroomlocalization.messages.connection.MessageImageFinish;
@@ -37,26 +24,16 @@ import com.example.multiroomlocalization.messages.connection.MessageUnsuccessful
 import com.example.multiroomlocalization.messages.connection.MessageUpdateMapList;
 import com.example.multiroomlocalization.messages.localization.MessageImage;
 import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
-import com.example.multiroomlocalization.messages.localization.MessageStartMappingPhase;
-import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
-import com.example.multiroomlocalization.speaker.Speaker;
-
 import com.example.multiroomlocalization.messages.music.MessageRequestPlaylist;
+import com.example.multiroomlocalization.messages.speaker.MessageChangeReferencePoint;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-
-
-
-import java.net.Socket;
-
 import java.io.OutputStream;
-
-
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -65,16 +42,16 @@ public class ClientSocket extends Thread {
     private Socket socket;
     private static DataInputStream dataIn;
     private static DataOutputStream dataOut;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private ScanService scanService;
-    private int intervalScan = 10000;
+    private final int intervalScan = 10000;
 
-    private int port = 18064;
-    private String ip ="7.tcp.eu.ngrok.io";
+    private final int port = 18064;
+    private final String ip ="7.tcp.eu.ngrok.io";
 
     private WifiManager wifiManager;
     private Context context;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private IncomingMsgHandler incomingMsgHandler;
     private Callback<String> reqPlaylistCallback;
     private Callback<String> fingerPrintCallback;
@@ -150,8 +127,8 @@ public class ClientSocket extends Thread {
             }
         }
 
-        public IncomingMsgHandler(Handler handler) {
-            //this.handler = handler;
+        public IncomingMsgHandler() {
+
         }
 
 
@@ -317,7 +294,7 @@ public class ClientSocket extends Thread {
     }
 
     private void startIncomingMsgHandler(){
-        incomingMsgHandler = new IncomingMsgHandler(LoginActivity.handler);
+        incomingMsgHandler = new IncomingMsgHandler();
         incomingMsgHandler.start();
     }
 
@@ -413,7 +390,6 @@ public class ClientSocket extends Thread {
             @Override
             public void run() {
                 if (image) {
-                    DataOutputStream bytesOut = new DataOutputStream(new BufferedOutputStream(dataOut));
                     try {
                         dataOut.write(bb);
                         dataOut.flush();
@@ -435,7 +411,7 @@ public class ClientSocket extends Thread {
     }
 
 
-    private Runnable scanRunnable = new Runnable() {
+    private final Runnable scanRunnable = new Runnable() {
         @Override
         public void run() {
             scanService.startScan();

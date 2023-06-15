@@ -1,17 +1,12 @@
 package com.example.multiroomlocalization;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-
 import android.app.NotificationManager;
 import android.content.Context;
-
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -23,6 +18,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
@@ -30,7 +27,6 @@ import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-
 import java.util.Base64;
 
 public class LoginActivity extends AppCompatActivity {
@@ -136,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
                 String email = userInput.getText().toString();
                 String password = passwordInput.getText().toString();
 
-                String encoded = Base64.getEncoder().encodeToString(password.toString().getBytes());
+                String encoded = Base64.getEncoder().encodeToString(password.getBytes());
                 System.out.println(encoded);
 
                 User user= new User(email,encoded);

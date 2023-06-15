@@ -12,24 +12,22 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCaller;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 
-import com.example.multiroomlocalization.BetterActivityResult;
 import com.example.multiroomlocalization.MainActivity;
 
 public class BluetoothUtility {
 
-    private static BetterActivityResult<Intent, ActivityResult> activityLauncher;
+
     public static final int BT_CONNECT_AND_SCAN = 101;
     private OnEnableBluetooth callbackOnEnable;
 
-    private Activity activity;
+    private final Activity activity;
     private ActivityResultLauncher<Intent> someActivityResultLauncher;
-    private BluetoothAdapter bluetoothAdapter;
+    private final BluetoothAdapter bluetoothAdapter;
 
     public interface OnEnableBluetooth {
 
@@ -42,15 +40,15 @@ public class BluetoothUtility {
 
     public BluetoothUtility (ActivityResultCaller caller, Activity activity){
         this.activity = activity;
-        //activityLauncher = BetterActivityResult.registerActivityForResult(caller);
+
         initActivityResult(caller);
         bluetoothAdapter = activity.getSystemService(BluetoothManager.class).getAdapter();
     }
 
 
 
-    //method to query user to enable bluetooth
-    public void enableBluetooth(BluetoothAdapter bluetoothAdapters, OnEnableBluetooth callback) {
+
+    public void enableBluetooth(OnEnableBluetooth callback) {
 
 
         callbackOnEnable = callback;
@@ -73,15 +71,15 @@ public class BluetoothUtility {
 
     }
 
-    //method to get list of already paired devices
+
     public void getBondedDevices(BluetoothAdapter bluetoothAdapter, ScanBluetoothService.getPairedCallback callback) {
 
 
-        enableBluetooth(bluetoothAdapter, new OnEnableBluetooth() {
+        enableBluetooth(new OnEnableBluetooth() {
                 @SuppressLint("MissingPermission")
                 @Override
                 public void onEnabled() {
-                    System.out.println("onEnabled");
+
                     callback.onResult(bluetoothAdapter.getBondedDevices());
                 }
 

@@ -2,9 +2,6 @@ package com.example.multiroomlocalization;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +9,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.multiroomlocalization.messages.connection.MessageKeepAlive;
-import com.example.multiroomlocalization.messages.connection.MessageLogin;
-import com.example.multiroomlocalization.messages.localization.MessageImage;
-import com.example.multiroomlocalization.messages.localization.MessageMapDetails;
 import com.example.multiroomlocalization.messages.localization.MessageMapRequest;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
@@ -54,12 +47,12 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull MapListHolder holder,int position) {
-        //TODO far vedere a luca
+
         //position = holder.getBindingAdapterPosition();
         Map currentData = list.get(position);
         holder.idMap.setText("ID: " + currentData.id);
         holder.mapName.setText(currentData.name);
-        if(currentData.isReady != true){
+        if(!currentData.isReady){
             holder.isReady.setText("Not ready");
             holder.selectMap.setEnabled(false);
             holder.selectMap.setText("NON DISPONIBILE");
