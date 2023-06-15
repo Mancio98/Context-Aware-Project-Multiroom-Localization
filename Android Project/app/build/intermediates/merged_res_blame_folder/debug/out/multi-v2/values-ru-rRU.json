@@ -4,7 +4,7 @@
             "outputFile": "com.example.multiroomlocalization.app-mergeDebugResources-46:/values-ru-rRU/values-ru-rRU.xml",
             "map": [
                 {
-                    "source": "/Users/luca/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/res/values-ru-rRU/values-ru-rRU.xml",
+                    "source": "/Users/andreamancini/.gradle/caches/transforms-3/cc019b40368325cd50811cc3617523e7/transformed/jetified-android-image-cropper-4.5.0/res/values-ru-rRU/values-ru-rRU.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8",
                         "startColumns": "4,4,4,4,4,4,4",

@@ -19,9 +19,9 @@
         android:id="@+id/settingsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="top|end"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp"
         android:src="@android:drawable/ic_menu_preferences" />
 
 
@@ -29,7 +29,8 @@
         android:id="@+id/audiocontroller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/mapView">
+        android:layout_gravity="bottom|end"
+        android:background="@color/cardview_light_background">
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -94,6 +95,13 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_next"
                 android:contentDescription="@string/next" />
+            <ImageButton
+                android:id="@+id/openplaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_media_playlist"
+
+                android:contentDescription="@string/playlist" />
         </LinearLayout>
         <ListView
             android:layout_width="match_parent"
@@ -101,7 +109,7 @@
             android:id="@+id/playlist_view"
             tools:listitem="@layout/list_tracks_layout"
             android:layout_below="@id/controller_buttons"
-            android:visibility="invisible"/>
+            android:visibility="gone"/>
     </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -2,17 +2,15 @@ package com.example.multiroomlocalization;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.AlertDialog;
+
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
-import android.os.Parcelable;
 
 import android.text.Editable;
 import android.text.SpannableString;
@@ -25,18 +23,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
 import com.example.multiroomlocalization.socket.ClientSocket;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-
 
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.concurrent.atomic.AtomicReference;
 
+import java.util.Base64;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -50,14 +45,15 @@ public class LoginActivity extends AppCompatActivity {
     protected static ClientSocket client;
     protected static User currentUser;
     public static Handler handler;
-
-
+    public static BluetoothUtility btUtility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         ScanService scanService = new ScanService(getApplicationContext());
+
         setContentView(R.layout.activity_login);
         TextView link = findViewById(R.id.textViewLink);
         link.setMovementMethod(LinkMovementMethod.getInstance());
@@ -154,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                         System.out.println(result);
                         Gson gson = new Gson();
                         ArrayList<Map> accountMap =  gson.fromJson(result, MessageSuccessfulLogin.class).getMapList();
-                        loginSuccessfull(accountMap);
+                        loginSuccessful(accountMap);
                     }
                 };
                 ClientSocket.Callback<String> callbackUnsuccessful = new ClientSocket.Callback<String>() {
@@ -192,7 +188,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-
         TextView dnd = findViewById(R.id.textDnd);
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (mNotificationManager.isNotificationPolicyAccessGranted()) {
@@ -208,17 +203,19 @@ public class LoginActivity extends AppCompatActivity {
 
             }
         });
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if(!client.isAlive())
+
+        if(!client.isMessageHandlerRunning())
             client.start();
     }
 
 
-    private void loginSuccessfull(ArrayList<Map> accountMap){
+    private void loginSuccessful(ArrayList<Map> accountMap){
         Intent changeActivity;
         changeActivity = new Intent(this,ListMapActivity.class);
         changeActivity.putExtra("Map",accountMap);
@@ -231,7 +228,7 @@ public class LoginActivity extends AppCompatActivity {
 
         if(client != null)
             client.closeConnection();
-
+        btUtility = null;
         super.onDestroy();
 
     }

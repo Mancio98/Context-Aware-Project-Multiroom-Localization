@@ -1,6 +1,6 @@
 package com.example.multiroomlocalization;
 
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import android.app.Activity;
 import android.app.AlertDialog;

@@ -2,7 +2,7 @@ package com.example.multiroomlocalization;
 
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
 import static com.example.multiroomlocalization.MainActivity.btPermissionCallback;
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import android.Manifest;
 import android.app.Activity;
@@ -180,7 +180,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                clientSocket.setSenderFingerprint(true);
                 btUtility.checkPermission(new MainActivity.BluetoothPermCallback() {
                     @Override
                     public void onGranted() {
@@ -202,6 +202,7 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
                             @Override
                             public void onClick(View view) {
                                 adapterReferencePointList.closeBluetoothScan();
+                                clientSocket.setSenderFingerprint(false);
                                 ArrayList<Settings> arrListSettings = new ArrayList<>();
 
                                 for (int i = 0; i < referencePoints.size(); i++) {
@@ -494,18 +495,9 @@ public class ActivityLive extends AppCompatActivity implements ServiceConnection
         super.onDestroy();
         stopScan();
 
-        /*
-        try {
-
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(btUtility.getConnectA2dpReceiver());
-            activity.unregisterReceiver(btUtility.getConnectA2dpReceiver());
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }*/
 
         if(connectBluetoothThread != null)
-            connectBluetoothThread.disconnectEverything();
+            connectBluetoothThread.disconnectEverything(true);
         connectBluetoothThread = null;
         activity = null;
         clientSocket = null;
