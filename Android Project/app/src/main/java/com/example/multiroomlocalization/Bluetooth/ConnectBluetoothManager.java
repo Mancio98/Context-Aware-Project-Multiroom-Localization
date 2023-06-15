@@ -1,7 +1,7 @@
 package com.example.multiroomlocalization.Bluetooth;
 
 
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 
 import android.annotation.SuppressLint;
@@ -38,7 +38,7 @@ public class ConnectBluetoothManager {
     private boolean requestDisconnectionA2DP = false;
     private boolean requestDisconnectionHeadset = false;
     private Speaker speakerToConnect;
-
+    private boolean isSearching = false;
     public ConnectBluetoothManager(Activity activity, ScanBluetoothService bluetoothService) {
 
         bluetoothAdapter = activity.getSystemService(BluetoothManager.class).getAdapter();
@@ -48,25 +48,23 @@ public class ConnectBluetoothManager {
         connectProxy();
     }
 
-    private boolean found = false;
     private ScanBluetoothService.OnDeviceFoundCallback callback = new ScanBluetoothService.OnDeviceFoundCallback() {
         @Override
         public void onFound(String deviceName, String deviceHardwareAddress, BluetoothDevice device) {
 
-            if(deviceHardwareAddress != null && !found) {
+            if(deviceHardwareAddress != null) {
                 if (macDeviceToConnect.equals(deviceHardwareAddress) ) {
-                    found = true;
+
+                    isSearching = false;
                     myDevice = device;
                     bluetoothService.interruptScan();
                     startConnection();
                 }
             }
-            else if(deviceHardwareAddress == null && !found){
+            else {
                 showRequestConnectionDialog();
             }
-            else{
-                found = false;
-            }
+
         }
     };
 
@@ -77,7 +75,12 @@ public class ConnectBluetoothManager {
             public void onEnabled() {
                 macDeviceToConnect = macDevice.getMac();
 
-                bluetoothService.addDeviceFoundCallbackAndScan(callback);
+                if(isSearching)
+                    bluetoothService.newDeviceConnectionCallback(callback);
+                else {
+                    isSearching = true;
+                    bluetoothService.addDeviceFoundCallbackAndScan(callback);
+                }
             }
 
         });
@@ -123,6 +126,7 @@ public class ConnectBluetoothManager {
             if (profile == BluetoothProfile.A2DP) {
                 bluetoothA2DP = (BluetoothA2dp) proxy;
                 try {
+                    System.out.println("proxy connected");
                     //get hidden method to connect device to proxy
                     connectA2dp = bluetoothA2DP.getClass().getMethod("connect", BluetoothDevice.class);
                     //get hidden method to disconnect device to proxy
@@ -144,6 +148,7 @@ public class ConnectBluetoothManager {
             }
 
         }
+
         public void onServiceDisconnected(int profile) {
             if (profile == BluetoothProfile.A2DP) {
 
@@ -210,10 +215,12 @@ public class ConnectBluetoothManager {
     };
 
     private void connectProxy(){
-        System.out.println("connection proxy");
+        System.out.println("start connection proxy");
         // Establish connection to the proxy.
+
         bluetoothAdapter.getProfileProxy(myActivity, profileListenerA2DP, BluetoothProfile.A2DP);
         bluetoothAdapter.getProfileProxy(myActivity, profileListenerHeadset, BluetoothProfile.HEADSET);
+        System.out.println("finish connection proxy");
 
     }
 
@@ -309,7 +316,7 @@ public class ConnectBluetoothManager {
     }
 
     private void showRequestConnectionDialog(){
-
+        isSearching = false;
         AlertDialog.Builder builder = new AlertDialog.Builder(myActivity);
         builder.setMessage(R.string.dialog_request_connection_bt)
                 .setPositiveButton(R.string.dialog_conferma, new DialogInterface.OnClickListener() {
@@ -318,6 +325,7 @@ public class ConnectBluetoothManager {
                         if(BluetoothAdapter.checkBluetoothAddress(macDeviceToConnect)) {
                             dialog.dismiss();
                             myDevice = bluetoothAdapter.getRemoteDevice(macDeviceToConnect);
+
                             startConnection();
                         }
                     }
@@ -325,18 +333,28 @@ public class ConnectBluetoothManager {
                 .setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
+
                         dialog.dismiss();
                     }
                 });
         // Create the AlertDialog object and return it
         builder.create().show();
     }
+    private void closeProxy(){
+
+        bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2DP);
+        bluetoothAdapter.closeProfileProxy(BluetoothProfile.HEADSET, bluetoothHeadset);
+        bluetoothA2DP = null;
+        bluetoothHeadset = null;
+        isSearching = false;
+    }
 
     // Disconnect to service and device.
-    public void disconnectEverything() {
-
+    public void disconnectEverything(boolean alsoProxy) {
+        isSearching = false;
         disconnectDevicesA2DP();
         disconnectDevicesHeadset();
-
+        if(alsoProxy)
+            closeProxy();
     }
 }

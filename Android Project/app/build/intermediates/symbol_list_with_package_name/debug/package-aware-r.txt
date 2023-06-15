@@ -3186,6 +3186,7 @@ drawable ic_launcher_foreground
 drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
 drawable ic_m3_chip_close
+drawable ic_media_playlist
 drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
@@ -3709,6 +3710,7 @@ id on
 id onInterceptTouchReturnSwipe
 id onTouch
 id one
+id openplaylist
 id outline
 id outward
 id oval
@@ -4419,6 +4421,7 @@ string path_password_strike_through
 string pick_image_camera
 string pick_image_chooser_title
 string pick_image_gallery
+string playlist
 string playmusic
 string previous
 string registrationDone

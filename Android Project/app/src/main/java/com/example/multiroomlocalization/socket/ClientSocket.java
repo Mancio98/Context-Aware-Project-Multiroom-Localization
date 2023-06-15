@@ -69,8 +69,8 @@ public class ClientSocket extends Thread {
     private int intervalScan = 10000;
 
 
-    private int port = 10682;
-    private String ip = "2.tcp.eu.ngrok.io";// "10.0.2.2";
+    private int port = 18064;
+    private String ip = "7.tcp.eu.ngrok.io";// "10.0.2.2";
 
     private WifiManager wifiManager;
     private Context context;
@@ -94,13 +94,10 @@ public class ClientSocket extends Thread {
     private Callback<String> callbackSubscriptionUnsuccessful;
 
     byte[] bb;
+    private boolean blockSenderFingerprint = false;
 
     public interface Callback<R> {
         void onComplete(R result);
-    }
-    // TODO renderlo privato e fare metodo per bloccare readutf
-    public IncomingMsgHandler getIncomingMsgHandler(){
-        return incomingMsgHandler;
     }
 
     private class IncomingMsgHandler extends Thread {
@@ -109,7 +106,6 @@ public class ClientSocket extends Thread {
         @Override
         public void run() {
             super.run();
-
 
             while(!isInterrupted()){
                 try {
@@ -157,31 +153,11 @@ public class ClientSocket extends Thread {
         }
 
 
-        @Override
-        public void interrupt() {
-            super.interrupt();
-        }
-
         private void msgHandler(String msg){
 
             System.out.println(msg);
             String messageType = gson.fromJson(msg, JsonObject.class).get("type").getAsString();
-            /*if(messageType.equals(MessageChangeReferencePoint.type)){
 
-                Speaker speakerToChange = gson.fromJson(msg, MessageChangeReferencePoint.class)
-                        .getReferencePoint().getSpeaker();
-
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        MainActivity.getInstance().connectBluetoothDevice(speakerToChange);
-
-                    }
-                });
-
-            }
-            else*/
             if(messageType.equals(MessageChangeReferencePoint.type)){
                 handler.post(new Runnable() {
                     @Override
@@ -292,6 +268,7 @@ public class ClientSocket extends Thread {
 
         }
     }
+
     public ClientSocket(Context context) { this.context = context; }
 
     public static OutputStream getDataOutputStream() {
@@ -332,11 +309,9 @@ public class ClientSocket extends Thread {
             e.printStackTrace();
         }
 
-
         scanService = new ScanService(context);
 
         startIncomingMsgHandler();
-
     }
 
     private void startIncomingMsgHandler(){
@@ -344,17 +319,12 @@ public class ClientSocket extends Thread {
         incomingMsgHandler.start();
     }
 
-    public void setAddress(String addNgrok,Integer portNgrok){
-        ip = addNgrok;
-        port = portNgrok;
+    public boolean isMessageHandlerRunning(){
+        if(incomingMsgHandler == null)
+            return false;
+        else
+            return incomingMsgHandler.isAlive();
     }
-
-
-  /*  public TaskRunner<Void> createByte(byte[] bb,Handler handler,Callback<String> callback){
-        imageCallback = callback;
-        return new TaskRunner<Void>(new MessageByte(bb),handler);
-    };
-*/
 
     public void sendImage(byte[] bb,Callback<String> callback){
         imageCallback = callback;
@@ -414,7 +384,8 @@ public class ClientSocket extends Thread {
     }
 
     public void sendMessageFingerprint(String message){
-        sendMessage(message,false,null);
+        if(!blockSenderFingerprint)
+            sendMessage(message,false,null);
     }
 
     public void sendMessageRegistration(Callback<String> callback,Callback<String> callback2,String message){
@@ -428,6 +399,9 @@ public class ClientSocket extends Thread {
         //sendMessage(null,false,null);
     };
 
+    public void setSenderFingerprint(boolean set){
+        blockSenderFingerprint = set;
+    }
     public void setContext(Context context){
         this.context = context;
     }
@@ -457,6 +431,7 @@ public class ClientSocket extends Thread {
                 }
             }
         });
+
     }
 
 
@@ -501,5 +476,6 @@ public class ClientSocket extends Thread {
                 incomingMsgHandler.interrupt();
         }
 
+        interrupt();
     }
 }

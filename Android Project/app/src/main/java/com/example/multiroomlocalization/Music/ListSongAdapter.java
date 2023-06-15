@@ -1,5 +1,7 @@
 package com.example.multiroomlocalization.Music;
 
+import static com.example.multiroomlocalization.ControlAudioService.blockAutoPlay;
+
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -26,7 +28,7 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
     ArrayList<ImageButton> playButtons;
 
     public ListSongAdapter(int resource, Context context, @NonNull List<MyAudioTrack> objects, Activity activity) {
-        super(context, resource,objects);
+        super(context, resource, objects);
         this.context = activity;
         playButtons = new ArrayList<>();
 
@@ -41,7 +43,6 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
     public ArrayList<ImageButton> getPlayButtons() {
         return playButtons;
     }
-
 
     @NonNull
     @Override
@@ -59,21 +60,26 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
 
         artist.setText(String.format("%s %s", track.getAuthor(), ""));
         ImageButton play = (ImageButton) listItem.findViewById(R.id.play_list);
-        playButtons.add(play);
 
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MediaControllerCompat media = MediaControllerCompat.getMediaController(context);
+                if(media != null) {
+                    if (media.getPlaybackState().getState()== PlaybackStateCompat.STATE_PAUSED  ||
+                    media.getPlaybackState().getState() == PlaybackStateCompat.STATE_NONE ) {
 
-                int pbState = MediaControllerCompat.getMediaController(context).getPlaybackState().getState();
-                if (pbState == PlaybackStateCompat.STATE_PLAYING) {
+                        blockAutoPlay = false;
+                        media.getTransportControls().playFromMediaId(String.valueOf(position), null);
+                    }
+                    else if (media.getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING){
 
-                    MediaControllerCompat.getMediaController(context).getTransportControls().pause();
+                        blockAutoPlay = true;
+                        media.getTransportControls().playFromMediaId(String.valueOf(position), null);
+                    }
 
                 }
-                else
-                    MediaControllerCompat.getMediaController(context).getTransportControls().playFromMediaId(String.valueOf(position),null);
-                    //TODO change icon on pause
+
             }
         });
 

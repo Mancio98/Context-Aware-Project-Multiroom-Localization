@@ -1,6 +1,6 @@
 package com.example.multiroomlocalization.Bluetooth;
 
-import static com.example.multiroomlocalization.MainActivity.btUtility;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
@@ -23,6 +23,8 @@ import com.example.multiroomlocalization.MainActivity;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -39,11 +41,10 @@ public class ScanBluetoothService extends Service {
     }
     private final IBinder binder = new LocalBinder();
     private BluetoothAdapter bluetoothAdapter;
-    protected Set<BluetoothDevice> pairedDevices;
 
     private OnDeviceFoundCallback currentFoundCallback;
 
-    private Queue<OnDeviceFoundCallback> queueCallback;
+    private LinkedList<OnDeviceFoundCallback> queueCallback;
     private Context context;
     public ScanBluetoothService() {}
 
@@ -57,7 +58,30 @@ public class ScanBluetoothService extends Service {
         void onResult(Set<BluetoothDevice> list);
     }
 
+    public void newDeviceConnectionCallback(OnDeviceFoundCallback callback){
+
+        System.out.println("newDeviceConnection");
+        btUtility.enableBluetooth(bluetoothAdapter, new BluetoothUtility.OnEnableBluetooth() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onEnabled() {
+                if (!bluetoothAdapter.isDiscovering()) {
+                    currentFoundCallback = callback;
+                    bluetoothAdapter.startDiscovery();
+                }
+                else {
+                    currentFoundCallback = null;
+                    queueCallback.addFirst(callback);
+                    interruptScan();
+                }
+            }
+
+        });
+
+    }
+
     public void addDeviceFoundCallbackAndScan(OnDeviceFoundCallback callback){
+        System.out.println("addDeviceFoundCallback");
         if(callback!= null)
             queueCallback.add(callback);
 
@@ -74,8 +98,8 @@ public class ScanBluetoothService extends Service {
             }
 
         });
-
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -97,7 +121,7 @@ public class ScanBluetoothService extends Service {
 
     private void setupService() {
         bluetoothAdapter = getSystemService(BluetoothManager.class).getAdapter();
-        queueCallback = new ArrayDeque<>();
+        queueCallback = new LinkedList<>();
         setupReceiver();
     }
 
@@ -141,7 +165,8 @@ public class ScanBluetoothService extends Service {
 
                                 //System.out.println(deviceName);
 
-                                currentFoundCallback.onFound(deviceName, deviceHardwareAddress, device);
+                                if(currentFoundCallback!= null && deviceHardwareAddress != null)
+                                    currentFoundCallback.onFound(deviceName, deviceHardwareAddress, device);
 
                             }
                         }
@@ -151,10 +176,14 @@ public class ScanBluetoothService extends Service {
                 //when scanning is finished
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 
-                currentFoundCallback.onFound(null, null, null);
-                currentFoundCallback = null;
-                if(!queueCallback.isEmpty())
-                    addDeviceFoundCallbackAndScan(null);
+                if(currentFoundCallback != null) {
+                    currentFoundCallback.onFound(null, null, null);
+                    currentFoundCallback = null;
+                }
+                if(!queueCallback.isEmpty()) {
+                    currentFoundCallback = queueCallback.poll();
+                    bluetoothAdapter.startDiscovery();
+                }
                 Log.i("devices_scan", "finished");
 
                 //when scanning is started
@@ -174,8 +203,10 @@ public class ScanBluetoothService extends Service {
             @SuppressLint("MissingPermission")
             @Override
             public void onGranted() {
-                if (bluetoothAdapter.isDiscovering())
+                if (bluetoothAdapter.isDiscovering()) {
+                    currentFoundCallback = null;
                     bluetoothAdapter.cancelDiscovery();
+                }
 
             }
         });
@@ -185,13 +216,6 @@ public class ScanBluetoothService extends Service {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver();
-    }
-
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        unregisterReceiver();
-        return super.onUnbind(intent);
     }
 
     public void unregisterReceiver(){

@@ -67,48 +67,32 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             .build();
     private AudioFocusRequest focusRequest;
 
-    public static int currentTrack = -1;
+    public static int currentTrack = 0;
 
     private int resumePosition;
     private TelephonyManager telephonyManager;
     private PhoneStateListener phoneStateListener;
     private boolean ongoingCall = false;
 
-    private List<MyAudioTrack> trackList = Arrays.asList(new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg",
-            "ah non lo so io", "lucacotu", null),
-            new MyAudioTrack("https://upload.wikimedia.org/wikipedia/commons/e/e3/Columbia-d14531-bx538.ogg", "urbania", "bonajunior", null),
-            new MyAudioTrack("https://58e7-79-55-37-219.ngrok-free.app/Will_Clarke_Rock_with_me.mp3 ","asdkadn","boh",null));
+    private List<MyAudioTrack> trackList;
 
     private int playerState = PlaybackState.STATE_NONE;
     private final Handler handler = new Handler();
     private final Gson gson = new Gson();
     private final MediaSessionCompat.Callback myMediaSessionCallback = new MediaSessionCompat.Callback() {
 
-    //private final MediaSessionConnector.PlaybackPreparer myMediaSessionCallback = new MediaSessionConnector.PlaybackPreparer() {
-
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             super.onPlayFromMediaId(mediaId,extras);
                 int mediaIndex = Integer.parseInt(mediaId);
-                /*if(exoPlayer == null) {
 
+                if(mediaIndex == currentTrack)
+                    playPauseAudio();
+                else {
                     currentTrack = mediaIndex;
-                    initExoPlayer();
-                    Intent intent = new Intent(context, AudioPlaybackService.class);
-                    startService(intent);
-
+                    seekToAudio();
                 }
-                else{
-                    */
-                    if(mediaIndex == currentTrack){
-                        resumeAudio();
-                    }
-                    else {
-                        currentTrack = mediaIndex;
-                        seekToAudio();
-                    }
-                //}
 
         }
 
@@ -128,6 +112,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
+
             if(exoPlayer != null){
                 exoPlayer.seekToNext();
 
@@ -140,7 +125,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         public void onSkipToPrevious() {
             super.onSkipToPrevious();
             if(exoPlayer != null) {
-
                 exoPlayer.seekToPrevious();
                 if(!exoPlayer.isPlaying())
                     exoPlayer.play();
@@ -153,7 +137,6 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
             exoPlayer.stop();
 
-
         }
 
         @Override
@@ -164,29 +147,35 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         }
 
     };
-    private MediaSessionConnector mediaSessionConnector;
+
 
     private void pauseAudio() {
-        if(exoPlayer.isPlaying()) {
-
+        if(exoPlayer.isPlaying())
             exoPlayer.pause();
-
-        }
     }
 
     private void seekToAudio(){
         if(exoPlayer != null){
+            pauseAudio();
             exoPlayer.seekTo(currentTrack,0);
             resumeAudio();
         }
     }
 
     private void resumeAudio() {
-        if (!exoPlayer.isPlaying())
+        if (!exoPlayer.isPlaying()) {
+            System.out.println("now play!");
             exoPlayer.play();
+        }
+
     }
 
-
+    private void playPauseAudio(){
+        if(exoPlayer.isPlaying())
+            pauseAudio();
+        else
+            resumeAudio();
+    }
     @Override
     public void onIsPlayingChanged(boolean isPlaying) {
         Player.Listener.super.onIsPlayingChanged(isPlaying);
@@ -203,11 +192,12 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
             playerState = PlaybackState.STATE_PAUSED;
     }
 
+
     @Override
     public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
         Player.Listener.super.onMediaItemTransition(mediaItem, reason);
 
-
+        currentTrack = exoPlayer.getCurrentMediaItemIndex();
         MediaMetadataCompat mediaMetadata = null;
         if (mediaItem != null) {
             mediaMetadata = new MediaMetadataCompat.Builder()
@@ -217,6 +207,17 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         }
         mediaSession.setMetadata(mediaMetadata);
     }
+
+    @Override
+    public void onPlayerError(PlaybackException error) {
+        error.printStackTrace();
+    }
+
+    @Override
+    public void onPlayerErrorChanged(@Nullable PlaybackException error) {
+        error.printStackTrace();
+    }
+
 
     private void updatePlaybackState() {
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
@@ -378,13 +379,11 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
 
         // Build the media items.
         exoPlayer = new ExoPlayer.Builder(context).build();
+
         exoPlayer.addListener(new Player.Listener() {
             @Override
-            public void onPlayerError(PlaybackException error) {
-                //Player.Listener.super.onPlayerError(error);
-                error.printStackTrace();
-                /*exoPlayer = null;
-                initExoPlayer();*/
+            public void onIsPlayingChanged(boolean isPlaying) {
+                Player.Listener.super.onIsPlayingChanged(isPlaying);
             }
         });
         for (MyAudioTrack track : trackList) {
@@ -400,9 +399,7 @@ public class AudioPlaybackService extends MediaBrowserServiceCompat implements P
         exoPlayer.addListener(this);
         exoPlayer.prepare();
         exoPlayer.seekTo(0,0);
-        exoPlayer.play();
-        //mediaSessionConnector = new MediaSessionConnector(mediaSession);
-        //mediaSessionConnector.setPlayer(exoPlayer);
+
     }
 
 

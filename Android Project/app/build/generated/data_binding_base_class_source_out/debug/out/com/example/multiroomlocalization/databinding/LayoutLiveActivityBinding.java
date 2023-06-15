@@ -48,6 +48,9 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
   public final ImageButton nexttrack;
 
   @NonNull
+  public final ImageButton openplaylist;
+
+  @NonNull
   public final ListView playlistView;
 
   @NonNull
@@ -69,8 +72,9 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
       @NonNull CoordinatorLayout activityLiveLayout, @NonNull TextView audioTime,
       @NonNull RelativeLayout audiocontroller, @NonNull ImageButton closePlaylistButton,
       @NonNull LinearLayout controllerButtons, @NonNull ImageView mapView,
-      @NonNull ImageButton nexttrack, @NonNull ListView playlistView,
-      @NonNull ImageButton playpause, @NonNull ImageButton previoustrack, @NonNull SeekBar seekBar,
+      @NonNull ImageButton nexttrack, @NonNull ImageButton openplaylist,
+      @NonNull ListView playlistView, @NonNull ImageButton playpause,
+      @NonNull ImageButton previoustrack, @NonNull SeekBar seekBar,
       @NonNull FloatingActionButton settingsButton, @NonNull LinearLayout timeControl) {
     this.rootView = rootView;
     this.activityLiveLayout = activityLiveLayout;
@@ -80,6 +84,7 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
     this.controllerButtons = controllerButtons;
     this.mapView = mapView;
     this.nexttrack = nexttrack;
+    this.openplaylist = openplaylist;
     this.playlistView = playlistView;
     this.playpause = playpause;
     this.previoustrack = previoustrack;
@@ -153,6 +158,12 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.openplaylist;
+      ImageButton openplaylist = ViewBindings.findChildViewById(rootView, id);
+      if (openplaylist == null) {
+        break missingId;
+      }
+
       id = R.id.playlist_view;
       ListView playlistView = ViewBindings.findChildViewById(rootView, id);
       if (playlistView == null) {
@@ -191,7 +202,8 @@ public final class LayoutLiveActivityBinding implements ViewBinding {
 
       return new LayoutLiveActivityBinding((CoordinatorLayout) rootView, activityLiveLayout,
           audioTime, audiocontroller, closePlaylistButton, controllerButtons, mapView, nexttrack,
-          playlistView, playpause, previoustrack, seekBar, settingsButton, timeControl);
+          openplaylist, playlistView, playpause, previoustrack, seekBar, settingsButton,
+          timeControl);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

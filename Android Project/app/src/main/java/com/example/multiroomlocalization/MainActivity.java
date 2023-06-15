@@ -1,9 +1,10 @@
 package com.example.multiroomlocalization;
 
 import static com.example.multiroomlocalization.Bluetooth.BluetoothUtility.BT_CONNECT_AND_SCAN;
+import static com.example.multiroomlocalization.LoginActivity.btUtility;
 
 import com.example.multiroomlocalization.Bluetooth.BluetoothUtility;
-//import com.example.multiroomlocalization.Bluetooth.ScanBluetooth;
+
 import com.example.multiroomlocalization.Bluetooth.ScanBluetoothService;
 import com.example.multiroomlocalization.messages.connection.MessageLogin;
 import com.example.multiroomlocalization.messages.connection.MessageSuccessfulLogin;
@@ -160,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private final Gson gson = new Gson();
     private ControlAudioService setupAudioService;
-    public static BluetoothUtility btUtility;
     private ReferencePointListAdapter adapterReferencePointList;
     //private ScanBluetooth scanBluetoothManager;
     private ScanBluetoothService scanBluetoothService;
@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     protected void onStart() {
         super.onStart();
-        btUtility = new BluetoothUtility(this,activity);
+        btUtility = new BluetoothUtility(this, activity);
 
         Intent intent = new Intent(this, ScanBluetoothService.class);
 

@@ -36,7 +36,7 @@ public class BluetoothUtility {
         void onEnabled();
 
         default void onDisabled(Activity activity) {
-            Toast.makeText(activity, "Enabled bluetooth is mandatory", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Enable bluetooth is mandatory", Toast.LENGTH_LONG).show();
         }
     }
 

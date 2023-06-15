@@ -32,6 +32,7 @@ public class ReferencePointListAdapter extends RecyclerView.Adapter<ReferencePoi
 
     public ReferencePointListAdapter(ArrayList<ReferencePoint> arrList, Context context, ScanBluetoothService serviceBluetooth){
 
+
         listReferencePoint = arrList;
         this.context = context;
         this.serviceBluetooth = serviceBluetooth;
