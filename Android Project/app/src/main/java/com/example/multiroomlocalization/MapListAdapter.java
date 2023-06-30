@@ -46,7 +46,7 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MapListHolder holder,int position) {
+    public void onBindViewHolder(@NonNull MapListHolder holder, int position) {
 
         //position = holder.getBindingAdapterPosition();
         Map currentData = list.get(position);

@@ -1,5 +1,6 @@
 package com.example.multiroomlocalization.Music;
 
+import static com.example.multiroomlocalization.Music.AudioPlaybackService.currentTrack;
 import static com.example.multiroomlocalization.Music.ControlAudioService.blockAutoPlay;
 
 import android.app.Activity;
@@ -52,6 +53,7 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
             @Override
             public void onClick(View v) {
                 MediaControllerCompat media = MediaControllerCompat.getMediaController(context);
+
                 if(media != null) {
                     if (media.getPlaybackState().getState()== PlaybackStateCompat.STATE_PAUSED  ||
                     media.getPlaybackState().getState() == PlaybackStateCompat.STATE_NONE ) {
@@ -61,7 +63,8 @@ public class ListSongAdapter extends ArrayAdapter<MyAudioTrack> {
                     }
                     else if (media.getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING){
 
-                        blockAutoPlay = true;
+                        if(currentTrack == position)
+                            blockAutoPlay = true;
                         media.getTransportControls().playFromMediaId(String.valueOf(position), null);
                     }
 

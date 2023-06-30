@@ -251,8 +251,8 @@ public class ClientSocket extends Thread {
         super.run();
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         try {
-            String ip = "7.tcp.eu.ngrok.io";
-            int port = 18064;
+            String ip = "172.20.10.2";
+            int port = 50000;
             socket = new Socket(ip, port);
             socket.setSoTimeout(60000);
             dataIn = new DataInputStream(socket.getInputStream());

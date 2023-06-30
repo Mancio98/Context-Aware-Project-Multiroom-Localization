@@ -45,9 +45,6 @@ public class BluetoothUtility {
         bluetoothAdapter = activity.getSystemService(BluetoothManager.class).getAdapter();
     }
 
-
-
-
     public void enableBluetooth(OnEnableBluetooth callback) {
 
 

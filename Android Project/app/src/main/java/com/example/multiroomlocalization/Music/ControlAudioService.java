@@ -86,7 +86,6 @@ public class ControlAudioService {
                     // Save the controller
                     MediaControllerCompat.setMediaController(activity, mediaController);
 
-
                     registerReceiverBluetooth();
                     downloadAudioTracks();
                     // Finish building the UI
